@@ -1,0 +1,11 @@
+{
+    "name": "Cpe",
+    "alias": "cpe",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Cpe\\Providers\\CpeServiceProvider"
+    ],
+    "files": []
+}

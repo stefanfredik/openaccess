@@ -1,0 +1,13 @@
+{
+    "Company": true,
+    "Area": true,
+    "Site": true,
+    "User": true,
+    "Dashboard": true,
+    "Pop": true,
+    "Server": true,
+    "PassiveDevice": true,
+    "ActiveDevice": true,
+    "Cpe": true,
+    "Map": true
+}

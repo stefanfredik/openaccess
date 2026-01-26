@@ -1,0 +1,11 @@
+{
+    "name": "PassiveDevice",
+    "alias": "passivedevice",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\PassiveDevice\\Providers\\PassiveDeviceServiceProvider"
+    ],
+    "files": []
+}

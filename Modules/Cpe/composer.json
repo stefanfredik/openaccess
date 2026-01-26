@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/cpe",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Cpe\\": "app/",
+            "Modules\\Cpe\\Database\\Factories\\": "database/factories/",
+            "Modules\\Cpe\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Cpe\\Tests\\": "tests/"
+        }
+    }
+}

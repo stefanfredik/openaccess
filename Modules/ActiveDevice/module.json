@@ -1,0 +1,11 @@
+{
+    "name": "ActiveDevice",
+    "alias": "activedevice",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\ActiveDevice\\Providers\\ActiveDeviceServiceProvider"
+    ],
+    "files": []
+}

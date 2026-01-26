@@ -1,0 +1,11 @@
+{
+    "name": "Pop",
+    "alias": "pop",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Pop\\Providers\\PopServiceProvider"
+    ],
+    "files": []
+}
