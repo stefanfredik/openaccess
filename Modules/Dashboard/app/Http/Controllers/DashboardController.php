@@ -26,7 +26,6 @@ class DashboardController extends Controller
                 'stats' => [
                     'companies' => Company::count(),
                     'users' => User::count(),
-                    // Optionally show global infra if needed, but per request super admin only manages company & user
                 ],
                 'isSuperAdmin' => true
             ]);
@@ -42,6 +41,27 @@ class DashboardController extends Controller
                     \Modules\ActiveDevice\Models\Router::count(),
             ],
             'isSuperAdmin' => false
+        ]);
+    }
+
+    public function pendataan()
+    {
+        if (auth()->user()->hasRole('superadmin')) {
+            return redirect()->route('dashboard');
+        }
+
+        return Inertia::render('Dashboard::Pendataan', [
+            'stats' => [
+                'areas' => InfrastructureArea::count(),
+                'sites' => Site::count(),
+                'pops' => \Modules\Pop\Models\Pop::count(),
+                'active_devices' => \Modules\ActiveDevice\Models\Olt::count() +
+                    \Modules\ActiveDevice\Models\Ont::count() +
+                    \Modules\ActiveDevice\Models\Router::count(),
+                'passive_devices' => \Modules\PassiveDevice\Models\Odp::count() +
+                    \Modules\PassiveDevice\Models\Pole::count() +
+                    \Modules\PassiveDevice\Models\Tower::count(),
+            ]
         ]);
     }
 }

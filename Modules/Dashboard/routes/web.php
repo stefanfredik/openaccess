@@ -5,4 +5,5 @@ use Modules\Dashboard\Http\Controllers\DashboardController;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/pendataan', [DashboardController::class, 'pendataan'])->name('pendataan');
 });

@@ -36,13 +36,29 @@ import { index as cpeIndex } from '@/routes/cpe';
 import { index as mapIndex } from '@/routes/map';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Building2, MapPin, Server, Users, Network, Map } from 'lucide-vue-next';
+import { BookOpen, Folder, LayoutGrid, Building2, MapPin, Server, Users, Network, Map, Database } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 const page = usePage();
 const isSuperAdmin = computed(() => (page.props.auth as any).roles.includes('superadmin'));
+const currentUrl = computed(() => page.url);
+
+const isInPendataanScope = computed(() => {
+    const pendataanPaths = [
+        '/pendataan',
+        '/areas',
+        '/pops',
+        '/servers',
+        '/sites',
+        '/cpes',
+        '/active-devices',
+        '/passive-devices'
+    ];
+    return pendataanPaths.some(path => currentUrl.value.startsWith(path));
+});
+
 
 
 const generalNavItems: NavItem[] = [
@@ -55,6 +71,11 @@ const generalNavItems: NavItem[] = [
         title: 'GIS Map',
         href: mapIndex().url,
         icon: Map,
+    },
+    {
+        title: 'Pendataan',
+        href: '/pendataan',
+        icon: Database,
     },
 ];
 
@@ -209,15 +230,15 @@ const footerNavItems: NavItem[] = [
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain :items="isSuperAdmin ? [generalNavItems[0]] : generalNavItems" title="Navigation" />
+            <NavMain :items="isSuperAdmin ? [generalNavItems[0]] : generalNavItems" title="Beranda" />
             
-            <template v-if="!isSuperAdmin">
-                <NavMain :items="infrastructureNavItems" title="Infrastructure" />
-                <NavMain :items="activeDeviceNavItems" title="Active Devices" />
-                <NavMain :items="passiveDeviceNavItems" title="Passive Devices" />
+            <template v-if="!isSuperAdmin && isInPendataanScope">
+                <NavMain :items="infrastructureNavItems" title="Infrastruktur" />
+                <NavMain :items="activeDeviceNavItems" title="Perangkat Aktif" />
+                <NavMain :items="passiveDeviceNavItems" title="Perangkat Pasif" />
             </template>
 
-            <NavMain :items="managementNavItems" title="Management" />
+            <NavMain v-if="isSuperAdmin || !isSuperAdmin" :items="managementNavItems" title="Manajemen" />
         </SidebarContent>
 
         <SidebarFooter>
