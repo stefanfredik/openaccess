@@ -10,7 +10,7 @@ class Olt extends Model
 {
     use HasFactory, \App\Traits\BelongsToCompany;
 
-    protected $table = 'ad_olts';
+    protected $table = 'olt';
 
     protected $fillable = [
         'company_id',
@@ -23,12 +23,30 @@ class Olt extends Model
         'serial_number',
         'mac_address',
         'ip_address',
-        'pon_port_count',
-        'uplink_port_count',
+        'username',
+        'password',
+        'service_status',
+        'purchase_year',
+        'latitude',
+        'longitude',
+        'pon_type',
         'is_active',
+        'status',
         'installed_at',
         'description',
+        'device_image',
     ];
+
+    protected $casts = [
+        'service_status' => 'array',
+        'is_active' => 'boolean',
+        'installed_at' => 'date',
+    ];
+
+    public function photos()
+    {
+        return $this->hasMany(OltPhoto::class);
+    }
 
     public function area()
     {

@@ -19,7 +19,7 @@ class UpdateOltRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('ad_olts')->where(fn($query) => $query->where('company_id', auth()->user()->company_id))
+                Rule::unique('olt')->where(fn($query) => $query->where('company_id', $this->user()->company_id))
                     ->ignore($this->olt),
             ],
             'name' => ['required', 'string', 'max:255'],
@@ -28,11 +28,17 @@ class UpdateOltRequest extends FormRequest
             'serial_number' => ['nullable', 'string', 'max:255'],
             'mac_address' => ['nullable', 'string', 'max:255'],
             'ip_address' => ['nullable', 'ip'],
-            'pon_port_count' => ['required', 'integer', 'min:0'],
-            'uplink_port_count' => ['required', 'integer', 'min:0'],
-            'is_active' => ['boolean'],
+            'username' => ['nullable', 'string', 'max:255'],
+            'password' => ['nullable', 'string', 'max:255'],
+            'service_status' => ['nullable', 'array'],
+            'purchase_year' => ['nullable', 'integer', 'min:1900', 'max:' . (date('Y') + 1)],
+            'latitude' => ['nullable', 'string'],
+            'longitude' => ['nullable', 'string'],
+            'pon_type' => ['nullable', 'string', 'max:255'],
+            'status' => ['required', 'string', 'in:Active,Inactive,Planned'],
             'installed_at' => ['nullable', 'date'],
             'description' => ['nullable', 'string'],
+            'device_image' => ['nullable', 'image', 'max:2048'],
         ];
     }
 

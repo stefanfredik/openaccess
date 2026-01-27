@@ -45,6 +45,11 @@ class OltController extends Controller
     {
         $data = $request->validated();
         $data['company_id'] = auth()->user()->company_id;
+
+        if ($request->hasFile('device_image')) {
+            $data['device_image'] = $request->file('device_image')->store('olt-images', 'public');
+        }
+
         Olt::create($data);
 
         if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
@@ -90,7 +95,13 @@ class OltController extends Controller
      */
     public function update(UpdateOltRequest $request, Olt $olt): RedirectResponse
     {
-        $olt->update($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('device_image')) {
+            $data['device_image'] = $request->file('device_image')->store('olt-images', 'public');
+        }
+
+        $olt->update($data);
 
         return redirect()->route('active-device.olt.index')->with('success', 'OLT updated successfully.');
     }

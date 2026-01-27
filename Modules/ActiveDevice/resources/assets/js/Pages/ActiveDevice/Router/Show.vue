@@ -17,14 +17,14 @@ const props = defineProps<{
     <Head :title="`Router: ${router.name}`" />
 
     <AppLayout :breadcrumbs="[
-        { title: 'Routers', href: '/active-devices/router' },
+        { title: 'Routers', href: '/pendataan/active-devices/router' },
         { title: router.name, href: '#' }
     ]">
         <div class="flex flex-col gap-6 p-4 md:p-6 lg:p-8 w-full">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
                     <Button variant="ghost" size="icon" as-child>
-                        <Link href="/active-devices/router">
+                        <Link href="/pendataan/active-devices/router">
                             <ArrowLeft class="h-4 w-4" />
                         </Link>
                     </Button>
@@ -34,7 +34,7 @@ const props = defineProps<{
                     </div>
                 </div>
                 <Button as-child>
-                    <Link :href="`/active-devices/router/${router.id}/edit`">
+                    <Link :href="`/pendataan/active-devices/router/${router.id}/edit`">
                         <Pencil class="mr-2 h-4 w-4" />
                         Edit Router
                     </Link>

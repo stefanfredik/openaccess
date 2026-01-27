@@ -31,7 +31,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post('/active-devices/connections', {
+    form.post('/topology/connections', {
         onSuccess: () => {
             form.reset('destination_id', 'destination_type', 'source_port', 'destination_port', 'description');
             showAddForm.value = false;
@@ -41,7 +41,7 @@ const submit = () => {
 
 const deleteConnection = (id: number) => {
     if (confirm('Are you sure you want to remove this connection?')) {
-        router.delete(`/active-devices/connections/${id}`);
+        router.delete(`/topology/connections/${id}`);
     }
 };
 </script>

@@ -10,7 +10,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        $tables = ['ad_olts', 'ad_onts', 'ad_routers', 'ad_switches', 'ad_access_points'];
+        $tables = ['ad_onts', 'ad_routers', 'ad_switches', 'ad_access_points'];
 
         foreach ($tables as $table) {
             Schema::table($table, function (Blueprint $table) {
@@ -25,7 +25,7 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        $tables = ['ad_olts', 'ad_onts', 'ad_routers', 'ad_switches', 'ad_access_points'];
+        $tables = ['ad_onts', 'ad_routers', 'ad_switches', 'ad_access_points'];
 
         foreach ($tables as $table) {
             Schema::table($table, function (Blueprint $table) {

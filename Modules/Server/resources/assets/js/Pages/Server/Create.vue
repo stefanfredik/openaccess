@@ -43,172 +43,190 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Create Server" />
+    <Head title="Tambah Server" />
 
     <AppLayout :breadcrumbs="[
-        { title: 'Servers', href: serverIndex().url },
-        { title: 'Create', href: '#' }
+        { title: 'Server', href: serverIndex().url },
+        { title: 'Tambah', href: '#' }
     ]">
-        <div class="max-w-5xl mx-auto p-4 md:p-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Create New Server / Node</CardTitle>
-                    <CardDescription>Add a new core network node or server.</CardDescription>
-                </CardHeader>
-                <form @submit.prevent="submit">
-                    <CardContent class="space-y-8">
-                        <!-- Section 1: Basic Info -->
-                        <div class="space-y-4">
-                            <h3 class="text-lg font-semibold border-b pb-2">Basic Information</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="space-y-2">
-                                    <Label for="name">Server/Node Name</Label>
-                                    <Input id="name" v-model="form.name" required placeholder="e.g. CORE-ROUTER-01" />
-                                    <div v-if="form.errors.name" class="text-sm text-destructive">{{ form.errors.name }}</div>
-                                </div>
-                                <div class="space-y-2">
-                                    <Label for="code">Unique Code</Label>
-                                    <Input id="code" v-model="form.code" required placeholder="e.g. SRV-001" />
-                                    <div v-if="form.errors.code" class="text-sm text-destructive">{{ form.errors.code }}</div>
-                                </div>
-                                <div class="space-y-2">
-                                    <Label for="function">Function</Label>
-                                    <Select v-model="form.function">
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Function" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="Server">Server</SelectItem>
-                                            <SelectItem value="OLT">OLT</SelectItem>
-                                            <SelectItem value="Core Network">Core Network</SelectItem>
-                                            <SelectItem value="NOC">NOC</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <div v-if="form.errors.function" class="text-sm text-destructive">{{ form.errors.function }}</div>
-                                </div>
-                                <div class="space-y-2">
-                                    <Label for="status">Status</Label>
-                                    <Select v-model="form.status">
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Status" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="Active">Active</SelectItem>
-                                            <SelectItem value="Inactive">Inactive</SelectItem>
-                                            <SelectItem value="Planned">Planned</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <div v-if="form.errors.status" class="text-sm text-destructive">{{ form.errors.status }}</div>
-                                </div>
+        <div class="max-w-4xl mx-4 p-4 md:p-4 space-y-6">
+            <!-- Header -->
+            <div class="space-y-1">
+                <h1 class="text-2xl font-bold tracking-tight">Tambah Server Baru</h1>
+                <p class="text-muted-foreground text-sm text-foreground/60">Lengkapi informasi untuk mendaftarkan server atau perangkat core baru.</p>
+            </div>
+
+            <form @submit.prevent="submit" class="space-y-6">
+                <!-- Section 1: Informasi Dasar -->
+                <Card class="border shadow-none">
+                    <CardHeader class="pb-4">
+                        <CardTitle class="text-base font-semibold">Informasi Dasar</CardTitle>
+                        <CardDescription class="text-xs">Detail identitas dan fungsi perangkat.</CardDescription>
+                    </CardHeader>
+                    <CardContent class="space-y-5">
+                        <div class="space-y-1.5">
+                            <Label for="name" class="text-sm font-medium">Nama Perangkat</Label>
+                            <Input id="name" v-model="form.name" required placeholder="Contoh: CORE-ROUTER-01" class="h-11 rounded-lg border-slate-200" />
+                            <div v-if="form.errors.name" class="text-xs text-destructive mt-1">{{ form.errors.name }}</div>
+                        </div>
+
+                        <div class="space-y-5">
+                            <div class="space-y-1.5">
+                                <Label for="code" class="text-sm font-medium">Kode Unik</Label>
+                                <Input id="code" v-model="form.code" required placeholder="Contoh: SRV-001" class="h-11 rounded-lg border-slate-200" />
+                                <div v-if="form.errors.code" class="text-xs text-destructive mt-1">{{ form.errors.code }}</div>
+                            </div>
+                            <div class="space-y-1.5">
+                                <Label for="function" class="text-sm font-medium">Fungsi Perangkat</Label>
+                                <Select v-model="form.function">
+                                    <SelectTrigger class="h-11 rounded-lg border-slate-200">
+                                        <SelectValue placeholder="Pilih Fungsi" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Server">Server</SelectItem>
+                                        <SelectItem value="OLT">OLT</SelectItem>
+                                        <SelectItem value="Core Network">Core Network</SelectItem>
+                                        <SelectItem value="NOC">NOC</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <div v-if="form.errors.function" class="text-xs text-destructive mt-1">{{ form.errors.function }}</div>
+                            </div>
+                            <div class="space-y-1.5">
+                                <Label for="status" class="text-sm font-medium">Status Operasional</Label>
+                                <Select v-model="form.status">
+                                    <SelectTrigger class="h-11 rounded-lg border-slate-200">
+                                        <SelectValue placeholder="Pilih Status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Active">Active</SelectItem>
+                                        <SelectItem value="Inactive">Inactive</SelectItem>
+                                        <SelectItem value="Planned">Planned</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <div v-if="form.errors.status" class="text-xs text-destructive mt-1">{{ form.errors.status }}</div>
                             </div>
                         </div>
-
-                        <!-- Section 2: Placement Details -->
-                        <div class="space-y-4">
-                            <h3 class="text-lg font-semibold border-b pb-2">Location & Placement</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="space-y-4">
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div class="space-y-2">
-                                            <Label for="area">Infrastructure Area</Label>
-                                            <Select v-model="form.area_id">
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select Area" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem v-for="area in areas" :key="area.id" :value="area.id">
-                                                        {{ area.name }}
-                                                    </SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div class="space-y-2">
-                                            <Label for="pop">Linked POP (Optional)</Label>
-                                            <Select v-model="form.pop_id">
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select POP" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem v-for="pop in pops" :key="pop.id" :value="pop.id">
-                                                        {{ pop.name }}
-                                                    </SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div class="space-y-2">
-                                            <Label for="building">Building Name</Label>
-                                            <Input id="building" v-model="form.building" placeholder="e.g. Gedung A" />
-                                        </div>
-                                        <div class="space-y-2">
-                                            <Label for="floor">Floor</Label>
-                                            <Input id="floor" v-model="form.floor" placeholder="e.g. 2" />
-                                        </div>
-                                    </div>
-                                    <div class="space-y-2">
-                                        <Label for="area_location">Internal Area / Room</Label>
-                                        <Input id="area_location" v-model="form.area_location" placeholder="e.g. Server Room 1" />
-                                    </div>
-                                </div>
-
-                                <div class="space-y-2">
-                                    <Label>Coordinates</Label>
-                                    <LocationPicker 
-                                        :latitude="form.latitude" 
-                                        :longitude="form.longitude"
-                                        @update:latitude="form.latitude = $event"
-                                        @update:longitude="form.longitude = $event"
-                                    />
-                                    <div class="grid grid-cols-2 gap-2 mt-2">
-                                        <Input v-model="form.latitude" placeholder="Latitude" class="text-xs" />
-                                        <Input v-model="form.longitude" placeholder="Longitude" class="text-xs" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Section 3: Documentation Photos -->
-                        <div class="space-y-4">
-                            <h3 class="text-lg font-semibold border-b pb-2">Documentation Photos</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="space-y-2">
-                                    <Label>Room / Environment</Label>
-                                    <PhotoUpload v-model="form.photos.Room" />
-                                    <div v-if="form.errors['photos.Room']" class="text-sm text-destructive">{{ form.errors['photos.Room'] }}</div>
-                                </div>
-                                <div class="space-y-2">
-                                    <Label>Rack / Cabinet</Label>
-                                    <PhotoUpload v-model="form.photos.Rack" />
-                                    <div v-if="form.errors['photos.Rack']" class="text-sm text-destructive">{{ form.errors['photos.Rack'] }}</div>
-                                </div>
-                                <div class="space-y-2">
-                                    <Label>Device Installation</Label>
-                                    <PhotoUpload v-model="form.photos.Installation" />
-                                    <div v-if="form.errors['photos.Installation']" class="text-sm text-destructive">{{ form.errors['photos.Installation'] }}</div>
-                                </div>
-                                <div class="space-y-2">
-                                    <Label>Cabling / Wiring</Label>
-                                    <PhotoUpload v-model="form.photos.Cabling" />
-                                    <div v-if="form.errors['photos.Cabling']" class="text-sm text-destructive">{{ form.errors['photos.Cabling'] }}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="space-y-2">
-                            <Label for="description">Additional Notes</Label>
-                            <Textarea id="description" v-model="form.description" rows="4" placeholder="..." />
-                        </div>
-
                     </CardContent>
-                    <CardFooter class="flex justify-between border-t p-6 mt-6">
-                        <Button variant="outline" as-child>
-                            <Link :href="serverIndex().url">Cancel</Link>
+                </Card>
+
+                <!-- Section 2: Lokasi & Penempatan -->
+                <Card class="border shadow-none">
+                    <CardHeader class="pb-4">
+                        <CardTitle class="text-base font-semibold">Lokasi & Penempatan</CardTitle>
+                        <CardDescription class="text-xs">Detail lokasi fisik perangkat ditempatkan.</CardDescription>
+                    </CardHeader>
+                    <CardContent class="space-y-5">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div class="space-y-1.5">
+                                <Label for="area" class="text-sm font-medium">Wilayah Infrastruktur</Label>
+                                <Select v-model="form.area_id">
+                                    <SelectTrigger class="h-11 rounded-lg border-slate-200">
+                                        <SelectValue placeholder="Pilih Wilayah" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem v-for="area in areas" :key="area.id" :value="area.id">
+                                            {{ area.name }}
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div class="space-y-1.5">
+                                <Label for="pop" class="text-sm font-medium">POP (Opsional)</Label>
+                                <Select v-model="form.pop_id">
+                                    <SelectTrigger class="h-11 rounded-lg border-slate-200">
+                                        <SelectValue placeholder="Pilih POP (Jika ada)" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem v-for="pop in pops" :key="pop.id" :value="pop.id">
+                                            {{ pop.name }}
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <Label for="building" class="text-sm font-medium">Nama Gedung</Label>
+                                <Input id="building" v-model="form.building" placeholder="Contoh: Gedung A" class="h-11 rounded-lg border-slate-200" />
+                            </div>
+                            <div class="space-y-1.5">
+                                <Label for="floor" class="text-sm font-medium">Lantai</Label>
+                                <Input id="floor" v-model="form.floor" placeholder="Contoh: 2" class="h-11 rounded-lg border-slate-200" />
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <Label for="area_location" class="text-sm font-medium">Ruangan / Keterangan Lokasi</Label>
+                            <Input id="area_location" v-model="form.area_location" placeholder="Contoh: Server Room 1" class="h-11 rounded-lg border-slate-200" />
+                        </div>
+
+                        <div class="space-y-4 pt-2">
+                             <LocationPicker 
+                                :latitude="form.latitude" 
+                                :longitude="form.longitude"
+                                @update:latitude="form.latitude = $event"
+                                @update:longitude="form.longitude = $event"
+                            />
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-1.5">
+                                    <Label class="text-sm font-medium">Latitude</Label>
+                                    <Input v-model="form.latitude" placeholder="Latitude" class="h-11 rounded-lg border-slate-200" />
+                                </div>
+                                <div class="space-y-1.5">
+                                    <Label class="text-sm font-medium">Longitude</Label>
+                                    <Input v-model="form.longitude" placeholder="Longitude" class="h-11 rounded-lg border-slate-200" />
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <!-- Section 3: Dokumentasi -->
+                <Card class="border shadow-none">
+                    <CardHeader class="pb-4">
+                        <CardTitle class="text-base font-semibold">Dokumentasi & Catatan</CardTitle>
+                        <CardDescription class="text-xs">Foto dokumentasi perangkat dan instalasi.</CardDescription>
+                    </CardHeader>
+                    <CardContent class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <Label class="text-sm font-medium">Ruangan / Lingkungan</Label>
+                                <PhotoUpload v-model="form.photos.Room" />
+                                <div v-if="(form.errors as any)['photos.Room']" class="text-xs text-destructive mt-1">{{ (form.errors as any)['photos.Room'] }}</div>
+                            </div>
+                            <div class="space-y-2">
+                                <Label class="text-sm font-medium">Rack / Kabinet</Label>
+                                <PhotoUpload v-model="form.photos.Rack" />
+                                <div v-if="(form.errors as any)['photos.Rack']" class="text-xs text-destructive mt-1">{{ (form.errors as any)['photos.Rack'] }}</div>
+                            </div>
+                            <div class="space-y-2">
+                                <Label class="text-sm font-medium">Instalasi Perangkat</Label>
+                                <PhotoUpload v-model="form.photos.Installation" />
+                                <div v-if="(form.errors as any)['photos.Installation']" class="text-xs text-destructive mt-1">{{ (form.errors as any)['photos.Installation'] }}</div>
+                            </div>
+                            <div class="space-y-2">
+                                <Label class="text-sm font-medium">Kabel / Wiring</Label>
+                                <PhotoUpload v-model="form.photos.Cabling" />
+                                <div v-if="(form.errors as any)['photos.Cabling']" class="text-xs text-destructive mt-1">{{ (form.errors as any)['photos.Cabling'] }}</div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <Label for="description" class="text-sm font-medium">Catatan Tambahan</Label>
+                            <Textarea id="description" v-model="form.description" rows="4" placeholder="Keterangan tambahan..." class="min-h-[100px] rounded-lg border-slate-200 resize-none" />
+                        </div>
+                    </CardContent>
+                    <CardFooter class="border-t bg-slate-50/50 p-6 flex justify-end gap-3 rounded-b-lg">
+                        <Button variant="ghost" as-child class="font-medium">
+                            <Link :href="serverIndex().url">Batal</Link>
                         </Button>
-                        <Button type="submit" :disabled="form.processing">Create Server Node</Button>
+                        <Button type="submit" :disabled="form.processing" class="px-10 font-bold bg-primary hover:bg-primary/90 rounded-lg">
+                            Simpan Server
+                        </Button>
                     </CardFooter>
-                </form>
-            </Card>
+                </Card>
+            </form>
         </div>
     </AppLayout>
 </template>

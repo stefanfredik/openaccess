@@ -10,7 +10,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('ad_olts', function (Blueprint $table) {
+        Schema::create('olt', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_id')->constrained()->cascadeOnDelete();
             $table->foreignId('infrastructure_area_id')->constrained('infrastructure_areas')->cascadeOnDelete();
@@ -22,13 +22,19 @@ return new class extends Migration {
             $table->string('serial_number')->nullable();
             $table->string('mac_address')->nullable();
             $table->string('ip_address')->nullable();
-            $table->integer('pon_port_count')->default(0);
-            $table->integer('uplink_port_count')->default(0);
+            $table->string('username')->nullable();
+            $table->string('password')->nullable();
+            $table->year('purchase_year')->nullable();
+            $table->string('latitude')->nullable();
+            $table->string('longitude')->nullable();
+            $table->string('pon_type')->nullable();
             $table->boolean('is_active')->default(true);
             $table->date('installed_at')->nullable();
             $table->text('description')->nullable();
+            $table->string('device_image')->nullable();
+            $table->string('service_status')->nullable();
+            $table->enum('status', ['Active', 'Inactive', 'Planned'])->default('Active');
             $table->timestamps();
-
             $table->unique(['company_id', 'code']);
         });
     }
@@ -38,6 +44,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('ad_olts');
+        Schema::dropIfExists('olt');
     }
 };

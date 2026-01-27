@@ -26,30 +26,24 @@ defineProps<{
 </script>
 
 <template>
-    <Head title="OLTs" />
+    <Head title="OLT" />
 
-    <AppLayout :breadcrumbs="[{ title: 'OLTs', href: '#' }]">
+    <AppLayout :breadcrumbs="[{ title: 'OLT', href: '#' }]">
         <div class="flex flex-col gap-6 p-4 md:p-6">
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight">OLTs</h1>
-                    <p class="text-muted-foreground">Manage Optical Line Terminal devices.</p>
+                    <h1 class="text-2xl font-bold tracking-tight">OLT</h1>
+                    <p class="text-muted-foreground">Daftar OLT.</p>
                 </div>
                 <Button as-child>
                     <Link :href="oltCreate().url">
                         <Plus class="mr-2 h-4 w-4" />
-                        Add OLT
+                        Tambah
                     </Link>
                 </Button>
             </div>
 
             <Card>
-                <CardHeader>
-                    <CardTitle>OLTs</CardTitle>
-                    <CardDescription>
-                        List of all registered OLTs.
-                    </CardDescription>
-                </CardHeader>
                 <CardContent>
                     <Table>
                         <TableHeader>
@@ -57,7 +51,8 @@ defineProps<{
                                 <TableHead class="w-[120px]">Code</TableHead>
                                 <TableHead>Name</TableHead>
                                 <TableHead>Area</TableHead>
-                                <TableHead>Ports (PON/Up)</TableHead>
+                                <TableHead>Brand / Model</TableHead>
+                                <TableHead>IP Address</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead class="text-right">Actions</TableHead>
                             </TableRow>
@@ -65,12 +60,18 @@ defineProps<{
                         <TableBody>
                             <TableRow v-for="olt in olts.data" :key="olt.id">
                                 <TableCell class="font-medium">{{ olt.code }}</TableCell>
-                                <TableCell>{{ olt.name }}</TableCell>
-                                <TableCell>{{ olt.area?.name || '-' }}</TableCell>
-                                <TableCell>{{ olt.pon_port_count }} / {{ olt.uplink_port_count }}</TableCell>
                                 <TableCell>
-                                    <Badge :variant="olt.is_active ? 'default' : 'destructive'">
-                                        {{ olt.is_active ? 'Active' : 'Inactive' }}
+                                    <div class="flex flex-col">
+                                        <span>{{ olt.name }}</span>
+                                        <span class="text-xs text-muted-foreground">{{ olt.pon_type || '-' }}</span>
+                                    </div>
+                                </TableCell>
+                                <TableCell>{{ olt.area?.name || '-' }}</TableCell>
+                                <TableCell>{{ olt.brand }} {{ olt.model }}</TableCell>
+                                <TableCell class="font-mono text-xs">{{ olt.ip_address }}</TableCell>
+                                <TableCell>
+                                    <Badge :variant="olt.status === 'Active' ? 'default' : (olt.status === 'Planned' ? 'secondary' : 'destructive')">
+                                        {{ olt.status }}
                                     </Badge>
                                 </TableCell>
                                 <TableCell class="text-right">

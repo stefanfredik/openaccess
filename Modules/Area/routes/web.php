@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Area\Http\Controllers\AreaController;
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified'])->prefix('pendataan')->group(function () {
     Route::resource('areas', AreaController::class)->names('area');
     
     // API routes for dropdowns

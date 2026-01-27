@@ -40,7 +40,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post('/active-devices/router');
+    form.post('/pendataan/active-devices/router');
 };
 
 onMounted(() => {
@@ -59,7 +59,7 @@ onMounted(() => {
     <Head title="Add Router" />
 
     <AppLayout :breadcrumbs="[
-        { title: 'Routers', href: '/active-devices/router' },
+        { title: 'Routers', href: '/pendataan/active-devices/router' },
         { title: 'Add Router', href: '#' }
     ]">
         <div class="flex flex-col gap-6 p-4 md:p-6 lg:p-8 max-w-4xl mx-auto">
@@ -190,7 +190,7 @@ onMounted(() => {
                     </CardContent>
                     <CardFooter class="flex justify-end gap-2 border-t p-6 mt-6">
                         <Button variant="outline" as-child>
-                            <Link href="/active-devices/router">Cancel</Link>
+                            <Link href="/pendataan/active-devices/router">Cancel</Link>
                         </Button>
                         <Button type="submit" :disabled="form.processing">
                             {{ form.processing ? 'Saving...' : 'Save Router' }}

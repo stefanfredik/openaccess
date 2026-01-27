@@ -31,4 +31,13 @@ class InfrastructureArea extends Model
         'boundary' => 'array',
     ];
 
+    public function pops()
+    {
+        return $this->hasMany(\Modules\Pop\Models\Pop::class, 'area_id');
+    }
+
+    public function servers()
+    {
+        return $this->hasMany(\Modules\Server\Models\Server::class, 'area_id');
+    }
 }

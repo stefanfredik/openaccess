@@ -33,7 +33,7 @@ defineProps<{
                     <p class="text-muted-foreground">Manage IP Routers.</p>
                 </div>
                 <Button as-child>
-                    <Link href="/active-devices/router/create">
+                    <Link href="/pendataan/active-devices/router/create">
                         <Plus class="mr-2 h-4 w-4" />
                         Add Router
                     </Link>
@@ -75,16 +75,16 @@ defineProps<{
                                 <TableCell class="text-right">
                                     <div class="flex justify-end gap-2">
                                         <Button variant="ghost" size="icon" as-child title="View Detail">
-                                            <Link :href="`/active-devices/router/${item.id}`">
+                                            <Link :href="`/pendataan/active-devices/router/${item.id}`">
                                                 <Eye class="h-4 w-4" />
                                             </Link>
                                         </Button>
                                         <Button variant="ghost" size="icon" as-child title="Edit">
-                                            <Link :href="`/active-devices/router/${item.id}/edit`">
+                                            <Link :href="`/pendataan/active-devices/router/${item.id}/edit`">
                                                 <Pencil class="h-4 w-4" />
                                             </Link>
                                         </Button>
-                                        <DeleteAction :href="`/active-devices/router/${item.id}`" />
+                                        <DeleteAction :href="`/pendataan/active-devices/router/${item.id}`" />
                                     </div>
                                 </TableCell>
                             </TableRow>

@@ -15,15 +15,27 @@ use Modules\Server\Http\Requests\UpdateServerRequest;
 
 class ServerController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $servers = Server::query()
             ->with(['area', 'pop'])
+            ->when($request->input('search'), function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('code', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->input('type'), function ($query, $type) {
+                if ($type !== 'all') {
+                    $query->where('status', $type);
+                }
+            })
             ->latest()
             ->get();
 
         return Inertia::render('Server::Index', [
             'servers' => $servers,
+            'filters' => $request->only(['search', 'type']),
         ]);
     }
 
@@ -38,7 +50,7 @@ class ServerController extends Controller
     public function store(StoreServerRequest $request)
     {
         $data = $request->validated();
-        $data['company_id'] = auth()->user()->company_id;
+        $data['company_id'] = $request->user()->company_id;
 
         $server = Server::create($data);
 

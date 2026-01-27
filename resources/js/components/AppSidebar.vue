@@ -51,13 +51,13 @@ const currentUrl = computed(() => page.url);
 const isInPendataanScope = computed(() => {
     const pendataanPaths = [
         '/pendataan',
-        '/areas',
-        '/pops',
-        '/servers',
-        '/sites',
-        '/cpes',
-        '/active-devices',
-        '/passive-devices'
+        '/pendataan/areas',
+        '/pendataan/pops',
+        '/pendataan/servers',
+        '/pendataan/sites',
+        '/pendataan/cpes',
+        '/pendataan/active-devices',
+        '/pendataan/passive-devices'
     ];
     // Exact match for /topology should be excluded from pendataan scope
     if (currentUrl.value === '/topology') return false;
@@ -121,7 +121,7 @@ const infrastructureNavItems: NavItem[] = [
         icon: Server, 
     },
     {
-        title: 'CPEs',
+        title: 'CPE',
         href: cpeIndex().url,
         icon: Smartphone,
     },
@@ -129,22 +129,22 @@ const infrastructureNavItems: NavItem[] = [
 
 const passiveDeviceNavItems: NavItem[] = [
     {
-        title: 'ODFs',
+        title: 'ODF',
         href: odfIndex().url,
         icon: Layers,
     },
     {
-        title: 'Poles',
+        title: 'Tiang',
         href: poleIndex().url,
         icon: Component,
     },
     {
-        title: 'ODPs',
+        title: 'ODP',
         href: odpIndex().url,
         icon: Layers,
     },
     {
-        title: 'Cables',
+        title: 'Kabel',
         href: cableIndex().url,
         icon: Cable,
     },
@@ -154,17 +154,17 @@ const passiveDeviceNavItems: NavItem[] = [
         icon: Zap,
     },
     {
-        title: 'Splitters',
+        title: 'Splitter',
         href: splitterIndex().url,
         icon: Component,
     },
     {
-        title: 'Slacks',
-        href: cableIndex().url,
+        title: 'Slack',
+        href: slackIndex().url,
         icon: Cable,
     },
     {
-        title: 'Towers',
+        title: 'Tower',
         href: towerIndex().url,
         icon: Radio,
     },
@@ -177,27 +177,27 @@ const passiveDeviceNavItems: NavItem[] = [
 
 const activeDeviceNavItems: NavItem[] = [
     {
-        title: 'OLTs',
+        title: 'OLT',
         href: oltIndex().url,
         icon: Database,
     },
     {
-        title: 'ONTs',
+        title: 'ONT',
         href: ontIndex().url,
         icon: Smartphone,
     },
     {
-        title: 'Switches',
+        title: 'Switch',
         href: switchIndex().url,
         icon: Layers,
     },
     {
-        title: 'Routers',
+        title: 'Router',
         href: routerIndex().url,
         icon: Network,
     },
     {
-        title: 'APs',
+        title: 'Akses Point',
         href: apIndex().url,
         icon: Radio,
     },
@@ -205,12 +205,12 @@ const activeDeviceNavItems: NavItem[] = [
 
 const managementNavItems: NavItem[] = [
     {
-        title: 'Companies',
+        title: 'Perusahaan',
         href: companiesIndex().url,
         icon: Building2,
     },
     {
-        title: 'Users',
+        title: 'User',
         href: userIndex().url,
         icon: Users,
     },

@@ -11,7 +11,7 @@ use Modules\PassiveDevice\Http\Controllers\SlackController;
 use Modules\PassiveDevice\Http\Controllers\SplicingPointController;
 use Modules\PassiveDevice\Http\Controllers\TowerController;
 
-Route::middleware(['auth', 'verified'])->prefix('passive-devices')->name('passive-device.')->group(function () {
+Route::middleware(['auth', 'verified'])->prefix('pendataan/passive-devices')->name('passive-device.')->group(function () {
     Route::resource('odf', OdfController::class);
     Route::resource('pole', PoleController::class);
     Route::resource('odp', OdpController::class);

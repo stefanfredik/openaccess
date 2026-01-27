@@ -83,6 +83,11 @@ class AreaController extends Controller
     public function destroy($id)
     {
         $area = InfrastructureArea::findOrFail($id);
+
+        if ($area->pops()->exists() || $area->servers()->exists()) {
+            return back()->with('error', 'Wilayah tidak dapat dihapus karena masih memiliki data terkait (POP/Server).');
+        }
+
         $area->delete();
 
         return redirect()->route('area.index')->with('success', 'Area deleted successfully.');

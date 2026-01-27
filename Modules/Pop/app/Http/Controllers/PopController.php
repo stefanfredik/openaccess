@@ -14,15 +14,27 @@ use Modules\Pop\Http\Requests\UpdatePopRequest;
 
 class PopController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $pops = Pop::query()
             ->with(['area'])
+            ->when($request->input('search'), function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('code', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->input('type'), function ($query, $type) {
+                if ($type !== 'all') {
+                    $query->where('status', $type);
+                }
+            })
             ->latest()
             ->get();
 
         return Inertia::render('Pop::Index', [
             'pops' => $pops,
+            'filters' => $request->only(['search', 'type']),
         ]);
     }
 
@@ -36,7 +48,7 @@ class PopController extends Controller
     public function store(StorePopRequest $request)
     {
         $data = $request->validated();
-        $data['company_id'] = auth()->user()->company_id;
+        $data['company_id'] = $request->user()->company_id;
 
         $pop = Pop::create($data);
 
