@@ -13,6 +13,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw';
 import 'leaflet-draw/dist/leaflet.draw.css';
+import { Maximize2 } from 'lucide-vue-next';
 import { index as areaIndex, create as areaCreate, store as areaStore } from '@/routes/area';
 
 const props = defineProps<{
@@ -35,6 +36,54 @@ const form = useForm({
 const mapContainer = ref<HTMLElement | null>(null);
 let map: L.Map | null = null;
 let drawnItems: L.FeatureGroup | null = null;
+
+// Fullscreen functionality
+const isFullscreen = ref(false);
+
+const toggleFullscreen = () => {
+    const mapElement = mapContainer.value;
+    if (!mapElement) return;
+
+    if (!document.fullscreenElement) {
+        mapElement.requestFullscreen().then(() => {
+            isFullscreen.value = true;
+            // Ensure map adjusts to new dimensions
+            setTimeout(() => {
+                map?.invalidateSize();
+            }, 100);
+        }).catch((err) => {
+            console.error(`Error attempting to enable fullscreen: ${err.message}`);
+        });
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen().then(() => {
+                isFullscreen.value = false;
+            });
+        }
+    }
+};
+
+// Listen for fullscreen change events to adjust map
+document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+        isFullscreen.value = false;
+        // Adjust map size when exiting fullscreen
+        setTimeout(() => {
+            map?.invalidateSize();
+        }, 100);
+        
+        // Remove fullscreen class from map container
+        if (mapContainer.value) {
+            mapContainer.value.classList.remove('fullscreen-map');
+        }
+    } else {
+        isFullscreen.value = true;
+        // Add fullscreen class to map container
+        if (mapContainer.value) {
+            mapContainer.value.classList.add('fullscreen-map');
+        }
+    }
+});
 
 const provinces = ref<Array<any>>([]);
 const regencies = ref<Array<any>>([]);
@@ -270,6 +319,34 @@ const submit = () => {
                             <Label>Area Boundary (Polygon)</Label>
                             <div class="h-[400px] w-full rounded-md border overflow-hidden relative">
                                 <div ref="mapContainer" class="absolute inset-0 z-0"></div>
+                                <Button
+                                    @click="toggleFullscreen"
+                                    variant="secondary"
+                                    size="sm"
+                                    class="absolute top-2 right-2 z-[1000] shadow-md"
+                                >
+                                    <Maximize2 class="h-4 w-4" />
+                                </Button>
+                                
+                                <!-- Fullscreen Controls -->
+                                <div v-if="isFullscreen" class="absolute top-2 left-2 z-[1000] flex gap-2">
+                                    <Button
+                                        @click="toggleFullscreen"
+                                        variant="default"
+                                        size="sm"
+                                        class="shadow-md"
+                                    >
+                                        Done
+                                    </Button>
+                                    <Button
+                                        @click="toggleFullscreen"
+                                        variant="outline"
+                                        size="sm"
+                                        class="shadow-md"
+                                    >
+                                        Cancel
+                                    </Button>
+                                </div>
                             </div>
                             <p class="text-xs text-muted-foreground">Click the polygon tool to draw the area boundary on the map.</p>
                             <div v-if="form.errors.boundary" class="text-sm text-destructive">{{ form.errors.boundary }}</div>
@@ -286,3 +363,28 @@ const submit = () => {
         </div>
     </AppLayout>
 </template>
+
+<style>
+/* Make sure controls are visible in fullscreen mode */
+:deep(.leaflet-control-zoom),
+:deep(.leaflet-draw-section) {
+    z-index: 1001 !important;
+}
+
+.fullscreen-map .map-controls {
+    z-index: 1002 !important;
+}
+
+/* Ensure fullscreen buttons are visible */
+:deep(.fullscreen-map) {
+    z-index: 9999 !important;
+}
+
+.absolute.top-2.right-2.z-\[1000\].shadow-md {
+    z-index: 10000 !important;
+}
+
+.absolute.top-2.left-2.z-\[1000\].flex.gap-2 {
+    z-index: 10000 !important;
+}
+</style>

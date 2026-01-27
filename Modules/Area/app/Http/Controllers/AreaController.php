@@ -30,6 +30,11 @@ class AreaController extends Controller
     public function store(StoreAreaRequest $request)
     {
         $data = $request->validated();
+
+        if (! auth()->user()->company_id) {
+            return back()->with('error', 'User yang sedang aktif belum terhubung ke Company.');
+        }
+
         $data['company_id'] = auth()->user()->company_id;
 
         InfrastructureArea::create($data);
