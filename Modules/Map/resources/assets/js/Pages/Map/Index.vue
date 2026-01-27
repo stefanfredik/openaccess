@@ -51,13 +51,26 @@ const pendingPath = ref<Array<[number, number]>>([]);
 const isDrawingCable = ref(false);
 const mapData = ref<any>(null); // Store fetched GeoJSON
 
-const deviceFilters = ref({
-    infrastructure: true,
-    active: true,
-    passive: true,
-    customer: true,
-    cables: true,
-});
+const getSavedFilters = () => {
+    const saved = localStorage.getItem('map_device_filters');
+    if (saved) {
+        try {
+            return JSON.parse(saved);
+        } catch (e) {
+            console.error('Failed to parse saved filters', e);
+        }
+    }
+    return {
+        infrastructure: true,
+        active: true,
+        passive: true,
+        customer: true,
+        cables: true,
+    };
+};
+
+const deviceFilters = ref(getSavedFilters());
+
 
 const deviceTypes = {
     active: [
@@ -316,7 +329,8 @@ const loadMapData = async () => {
     }
 };
 
-watch(deviceFilters, () => {
+watch(deviceFilters, (newVal) => {
+    localStorage.setItem('map_device_filters', JSON.stringify(newVal));
     renderMap();
 }, { deep: true });
 

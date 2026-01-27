@@ -38,6 +38,12 @@ import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
 import { BookOpen, Folder, LayoutGrid, Building2, MapPin, Server, Users, Network, Map } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
+import { usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
+
+const page = usePage();
+const isSuperAdmin = computed(() => (page.props.auth as any).roles.includes('superadmin'));
+
 
 const generalNavItems: NavItem[] = [
     {
@@ -203,10 +209,14 @@ const footerNavItems: NavItem[] = [
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain :items="generalNavItems" title="Navigation" />
-            <NavMain :items="infrastructureNavItems" title="Infrastructure" />
-            <NavMain :items="activeDeviceNavItems" title="Active Devices" />
-            <NavMain :items="passiveDeviceNavItems" title="Passive Devices" />
+            <NavMain :items="isSuperAdmin ? [generalNavItems[0]] : generalNavItems" title="Navigation" />
+            
+            <template v-if="!isSuperAdmin">
+                <NavMain :items="infrastructureNavItems" title="Infrastructure" />
+                <NavMain :items="activeDeviceNavItems" title="Active Devices" />
+                <NavMain :items="passiveDeviceNavItems" title="Passive Devices" />
+            </template>
+
             <NavMain :items="managementNavItems" title="Management" />
         </SidebarContent>
 

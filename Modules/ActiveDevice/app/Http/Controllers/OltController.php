@@ -47,6 +47,10 @@ class OltController extends Controller
         $data['company_id'] = auth()->user()->company_id;
         Olt::create($data);
 
+        if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
+            return back()->with('success', 'OLT created successfully.');
+        }
+
         return redirect()->route('active-device.olt.index')->with('success', 'OLT created successfully.');
     }
 

@@ -46,6 +46,10 @@ class SwitchController extends Controller
         $data['company_id'] = auth()->user()->company_id;
         AdSwitch::create($data);
 
+        if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
+            return back()->with('success', 'Switch created successfully.');
+        }
+
         return redirect()->route('active-device.switch.index')->with('success', 'Switch created successfully.');
     }
 

@@ -44,6 +44,10 @@ class CpeController extends Controller
 
         Cpe::create($data);
 
+        if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
+            return back()->with('success', 'CPE created successfully.');
+        }
+
         return redirect()->route('cpe.index')->with('success', 'CPE created successfully.');
     }
 

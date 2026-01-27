@@ -40,7 +40,13 @@ class OdfController extends Controller
      */
     public function store(StoreOdfRequest $request)
     {
-        Odf::create($request->validated());
+        $data = $request->validated();
+        $data['company_id'] = auth()->user()->company_id;
+        Odf::create($data);
+
+        if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
+            return back()->with('success', 'ODF created successfully.');
+        }
 
         return redirect()->route('passive-device.odf.index')
             ->with('success', 'ODF created successfully.');

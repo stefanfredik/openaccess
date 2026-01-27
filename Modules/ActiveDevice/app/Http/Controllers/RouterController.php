@@ -46,6 +46,10 @@ class RouterController extends Controller
         $data['company_id'] = auth()->user()->company_id;
         Router::create($data);
 
+        if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
+            return back()->with('success', 'Router created successfully.');
+        }
+
         return redirect()->route('active-device.router.index')->with('success', 'Router created successfully.');
     }
 

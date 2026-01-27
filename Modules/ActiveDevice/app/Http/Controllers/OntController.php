@@ -47,6 +47,10 @@ class OntController extends Controller
         $data['company_id'] = auth()->user()->company_id;
         Ont::create($data);
 
+        if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
+            return back()->with('success', 'ONT created successfully.');
+        }
+
         return redirect()->route('active-device.ont.index')->with('success', 'ONT created successfully.');
     }
 

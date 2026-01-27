@@ -53,8 +53,12 @@ const form = useForm({
     length: 0,
     core_count: 0,
     type: 'Single Mode',
-    // tower fields
+    // OLT fields
+    pon_port_count: 8,
+    uplink_port_count: 4,
+    // pole fields
     height: '',
+    material: 'Besi',
     ownership: 'Sendiri',
     antenna_capacity: '',
 });
@@ -183,6 +187,19 @@ const isActiveDevice = () => {
                     </div>
                 </div>
 
+                <div v-if="deviceType === 'olt'" class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <Label>PON Port Count</Label>
+                        <Input type="number" v-model="form.pon_port_count" />
+                        <p v-if="form.errors.pon_port_count" class="text-xs text-red-500">{{ form.errors.pon_port_count }}</p>
+                    </div>
+                    <div class="space-y-2">
+                        <Label>Uplink Port Count</Label>
+                        <Input type="number" v-model="form.uplink_port_count" />
+                        <p v-if="form.errors.uplink_port_count" class="text-xs text-red-500">{{ form.errors.uplink_port_count }}</p>
+                    </div>
+                </div>
+
                 <!-- Type Specific Fields -->
                 <div v-if="deviceType === 'odp' || deviceType === 'router' || deviceType === 'switch'" class="space-y-2">
                     <Label>Port Count</Label>
@@ -202,6 +219,42 @@ const isActiveDevice = () => {
                 <div v-if="deviceType === 'access-point'" class="space-y-2">
                     <Label>Frequency</Label>
                     <Input v-model="form.frequency" placeholder="2.4GHz / 5GHz" />
+                </div>
+
+                <!-- Pole Specific Fields -->
+                <div v-if="deviceType === 'pole'" class="space-y-4 pt-2 border-t">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <Label>Material</Label>
+                            <Select v-model="form.material">
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select Material" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Beton">Beton</SelectItem>
+                                    <SelectItem value="Besi">Besi</SelectItem>
+                                    <SelectItem value="Kayu">Kayu</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div class="space-y-2">
+                            <Label>Height (m)</Label>
+                            <Input type="number" v-model="form.height" />
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <Label>Ownership</Label>
+                        <Select v-model="form.ownership">
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select Ownership" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Sendiri">Sendiri</SelectItem>
+                                <SelectItem value="PLN">PLN</SelectItem>
+                                <SelectItem value="Sewa">Sewa</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
 
                 <!-- Tower Specific Fields -->

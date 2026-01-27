@@ -5,12 +5,8 @@ import StatsCard from '../../Components/StatsCard.vue';
 import { Building2, MapPin, Server, Users } from 'lucide-vue-next';
 
 defineProps<{
-    stats: {
-        companies: number;
-        areas: number;
-        sites: number;
-        users: number;
-    };
+    stats: any;
+    isSuperAdmin: boolean;
 }>();
 </script>
 
@@ -19,32 +15,49 @@ defineProps<{
 
     <AppLayout :breadcrumbs="[{ title: 'Dashboard', href: '#' }]">
         <div class="flex flex-col gap-6 p-4 md:p-6">
-            <h1 class="text-2xl font-bold tracking-tight">Dashboard</h1>
+            <h1 class="text-2xl font-bold tracking-tight">
+                {{ isSuperAdmin ? 'Super Admin Dashboard' : 'ISP Overview' }}
+            </h1>
             
-            <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div v-if="isSuperAdmin" class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <StatsCard 
                     title="Total Companies" 
                     :value="stats.companies" 
                     :icon="Building2"
-                    description="Registered companies"
+                    description="Registered entities"
                 />
                 <StatsCard 
-                    title="Areas" 
+                    title="System Users" 
+                    :value="stats.users" 
+                    :icon="Users"
+                    description="Total global accounts"
+                />
+            </div>
+
+            <div v-else class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <StatsCard 
+                    title="Coverage Areas" 
                     :value="stats.areas" 
                     :icon="MapPin"
-                    description="Infrastructure areas"
+                    description="Registered areas"
+                />
+                <StatsCard 
+                    title="POPs" 
+                    :value="stats.pops" 
+                    :icon="MapPin"
+                    description="Point of presence"
                 />
                 <StatsCard 
                     title="Sites" 
                     :value="stats.sites" 
                     :icon="Server"
-                    description="Active sites"
+                    description="Infrastructure sites"
                 />
                 <StatsCard 
-                    title="Users" 
-                    :value="stats.users" 
-                    :icon="Users"
-                    description="System users"
+                    title="Network Devices" 
+                    :value="stats.active_devices" 
+                    :icon="Server"
+                    description="Total active hardware"
                 />
             </div>
 

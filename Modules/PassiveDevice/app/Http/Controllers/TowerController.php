@@ -42,7 +42,13 @@ class TowerController extends Controller
      */
     public function store(StoreTowerRequest $request)
     {
-        Tower::create($request->validated());
+        $data = $request->validated();
+        $data['company_id'] = auth()->user()->company_id;
+        Tower::create($data);
+
+        if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
+            return back()->with('success', 'Tower created successfully.');
+        }
 
         return redirect()->route('passive-device.tower.index')
             ->with('success', 'Tower created successfully.');

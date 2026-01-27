@@ -216,7 +216,7 @@ class MapController extends Controller
 
         return response()->json([
             'type' => 'FeatureCollection',
-            'features' => $pops
+            'features' => collect($pops)
                 ->merge($olts)
                 ->merge($onts)
                 ->merge($routers)

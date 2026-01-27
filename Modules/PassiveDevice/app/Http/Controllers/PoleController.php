@@ -42,7 +42,13 @@ class PoleController extends Controller
      */
     public function store(StorePoleRequest $request)
     {
-        Pole::create($request->validated());
+        $data = $request->validated();
+        $data['company_id'] = auth()->user()->company_id;
+        Pole::create($data);
+
+        if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
+            return back()->with('success', 'Pole created successfully.');
+        }
 
         return redirect()->route('passive-device.pole.index')
             ->with('success', 'Pole created successfully.');

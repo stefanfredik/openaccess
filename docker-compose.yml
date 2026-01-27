@@ -2,7 +2,7 @@ services:
     mysql:
         image: 'mysql:8.4'
         ports:
-            - '${FORWARD_DB_PORT:-3306}:3306'
+            - '${DB_PORT:-3306}:3306'
         environment:
             MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
             MYSQL_ROOT_HOST: '%'
@@ -47,11 +47,11 @@ services:
         networks:
             - sail
     phpmyadmin:
-        image: 'phpmyadmin/phpmyadmin'
+        image: phpmyadmin/phpmyadmin
         links:
-            - mysql:mysql
+            - 'mysql:mysql'
         ports:
-            - 8090:80
+            - '8090:80'
         environment:
             PMA_USER: '${DB_USERNAME}'
             PMA_PASSWORD: '${DB_PASSWORD}'

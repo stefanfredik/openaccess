@@ -40,7 +40,13 @@ class JointBoxController extends Controller
      */
     public function store(StoreJointBoxRequest $request)
     {
-        JointBox::create($request->validated());
+        $data = $request->validated();
+        $data['company_id'] = auth()->user()->company_id;
+        JointBox::create($data);
+
+        if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
+            return back()->with('success', 'Joint Box created successfully.');
+        }
 
         return redirect()->route('passive-device.joint-box.index')
             ->with('success', 'Joint Box created successfully.');

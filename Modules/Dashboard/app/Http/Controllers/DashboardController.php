@@ -18,13 +18,30 @@ class DashboardController extends Controller
      */
     public function index()
     {
+        $user = auth()->user();
+        $isSuperAdmin = $user->hasRole('superadmin');
+
+        if ($isSuperAdmin) {
+            return Inertia::render('Dashboard::Index', [
+                'stats' => [
+                    'companies' => Company::count(),
+                    'users' => User::count(),
+                    // Optionally show global infra if needed, but per request super admin only manages company & user
+                ],
+                'isSuperAdmin' => true
+            ]);
+        }
+
         return Inertia::render('Dashboard::Index', [
             'stats' => [
-                'companies' => Company::count(),
                 'areas' => InfrastructureArea::count(),
                 'sites' => Site::count(),
-                'users' => User::count(),
-            ]
+                'pops' => \Modules\Pop\Models\Pop::count(),
+                'active_devices' => \Modules\ActiveDevice\Models\Olt::count() +
+                    \Modules\ActiveDevice\Models\Ont::count() +
+                    \Modules\ActiveDevice\Models\Router::count(),
+            ],
+            'isSuperAdmin' => false
         ]);
     }
 }

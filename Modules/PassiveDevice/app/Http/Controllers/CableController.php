@@ -41,7 +41,13 @@ class CableController extends Controller
      */
     public function store(StoreCableRequest $request)
     {
-        Cable::create($request->validated());
+        $data = $request->validated();
+        $data['company_id'] = auth()->user()->company_id;
+        Cable::create($data);
+
+        if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
+            return back()->with('success', 'Cable created successfully.');
+        }
 
         return redirect()->route('passive-device.cable.index')
             ->with('success', 'Cable created successfully.');

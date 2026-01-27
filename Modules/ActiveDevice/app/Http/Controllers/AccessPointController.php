@@ -46,6 +46,10 @@ class AccessPointController extends Controller
         $data['company_id'] = auth()->user()->company_id;
         AccessPoint::create($data);
 
+        if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
+            return back()->with('success', 'Access Point created successfully.');
+        }
+
         return redirect()->route('active-device.access-point.index')->with('success', 'Access Point created successfully.');
     }
 
