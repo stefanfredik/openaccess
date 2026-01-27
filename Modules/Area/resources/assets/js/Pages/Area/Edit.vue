@@ -46,7 +46,6 @@ const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
         mapElement.requestFullscreen().then(() => {
             isFullscreen.value = true;
-            // Ensure map adjusts to new dimensions
             setTimeout(() => {
                 map?.invalidateSize();
             }, 100);
@@ -62,22 +61,17 @@ const toggleFullscreen = () => {
     }
 };
 
-// Listen for fullscreen change events to adjust map
 document.addEventListener('fullscreenchange', () => {
     if (!document.fullscreenElement) {
         isFullscreen.value = false;
-        // Adjust map size when exiting fullscreen
         setTimeout(() => {
             map?.invalidateSize();
         }, 100);
-        
-        // Remove fullscreen class from map container
         if (mapContainer.value) {
             mapContainer.value.classList.remove('fullscreen-map');
         }
     } else {
         isFullscreen.value = true;
-        // Add fullscreen class to map container
         if (mapContainer.value) {
             mapContainer.value.classList.add('fullscreen-map');
         }
@@ -153,6 +147,7 @@ const initMap = () => {
 
     // Initial boundary if exists
     if (form.boundary && Array.isArray(form.boundary) && form.boundary.length > 0) {
+        // Ensure boundary is in the correct format [lat, lng]
         const polygon = L.polygon(form.boundary as L.LatLngExpression[]);
         drawnItems.addLayer(polygon);
         map.fitBounds(polygon.getBounds());
@@ -160,7 +155,7 @@ const initMap = () => {
 
     map.on(L.Draw.Event.CREATED, (event: any) => {
         const layer = event.layer;
-        drawnItems?.clearLayers(); // Only one polygon allowed
+        drawnItems?.clearLayers();
         drawnItems?.addLayer(layer);
         updateFormBoundary();
     });
@@ -180,7 +175,6 @@ const updateFormBoundary = () => {
     if (layers.length > 0) {
         const polygon = layers[0] as L.Polygon;
         const latlngs = polygon.getLatLngs();
-        // Flatten if nested (which L.Polygon can be)
         const coords = Array.isArray(latlngs[0]) ? latlngs[0] : latlngs;
         form.boundary = (coords as L.LatLng[]).map(ll => [ll.lat, ll.lng]);
     } else {
@@ -241,174 +235,176 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Edit Area" />
+    <Head title="Ubah Wilayah" />
 
     <AppLayout :breadcrumbs="[
-        { title: 'Areas', href: areaIndex().url },
-        { title: 'Edit', href: areaEdit({ area: area.id }).url }
+        { title: 'Wilayah', href: areaIndex().url },
+        { title: 'Ubah', href: areaEdit({ area: area.id }).url }
     ]">
-        <div class="max-w-2xl mx-auto p-4 md:p-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Edit Area</CardTitle>
-                    <CardDescription>Update infrastructure area details.</CardDescription>
-                </CardHeader>
-                <form @submit.prevent="submit">
-                    <CardContent class="space-y-4">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="space-y-2">
-                                <Label for="name">Name</Label>
-                                <Input id="name" v-model="form.name" required />
-                                <div v-if="form.errors.name" class="text-sm text-destructive">{{ form.errors.name }}</div>
-                            </div>
-                            <div class="space-y-2">
-                                <Label for="code">Code (Optional)</Label>
-                                <Input id="code" v-model="form.code" />
-                                <div v-if="form.errors.code" class="text-sm text-destructive">{{ form.errors.code }}</div>
-                            </div>
+        <div class="max-w-4xl mx-4 p-4 md:p-4 space-y-6">
+            <!-- Header -->
+            <div class="space-y-1">
+                <h1 class="text-2xl font-bold tracking-tight">Ubah Wilayah</h1>
+                <p class="text-muted-foreground text-sm text-foreground/60">Perbarui data wilayah infrastruktur dibawah ini.</p>
+            </div>
+
+            <form @submit.prevent="submit" class="space-y-6">
+                <!-- Section 1: Identitas -->
+                <Card class="border shadow-none">
+                    <CardHeader class="pb-4">
+                        <CardTitle class="text-base font-semibold">Informasi Wilayah</CardTitle>
+                        <CardDescription class="text-xs">Detail nama dan tipe klasifikasi wilayah.</CardDescription>
+                    </CardHeader>
+                    <CardContent class="space-y-5">
+                        <div class="space-y-1.5">
+                            <Label for="name" class="text-sm font-medium">Nama Wilayah</Label>
+                            <Input id="name" v-model="form.name" placeholder="Masukkan nama wilayah" required class="h-11 rounded-lg border-slate-200" />
+                            <div v-if="form.errors.name" class="text-xs text-destructive mt-1">{{ form.errors.name }}</div>
                         </div>
-
-                        <div class="space-y-2">
-                            <Label for="type">Type</Label>
-                            <Select v-model="form.type">
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select type" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="region">Region</SelectItem>
-                                    <SelectItem value="area">Area</SelectItem>
-                                    <SelectItem value="subarea">Subarea</SelectItem>
-                                    <SelectItem value="pop_location">POP Location</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <div v-if="form.errors.type" class="text-sm text-destructive">{{ form.errors.type }}</div>
-                        </div>
-
-                        <div class="space-y-2">
-                            <Label>Location (Regional)</Label>
-                            <div class="grid grid-cols-2 gap-4">
-                                <Select v-model="form.province_id">
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Province" />
+                        
+                        <div class="space-y-5">
+                            <div class="space-y-1.5">
+                                <Label for="code" class="text-sm font-medium">Kode Wilayah</Label>
+                                <Input id="code" v-model="form.code" placeholder="Masukkan kode wilayah" class="h-11 rounded-lg border-slate-200" />
+                                <div v-if="form.errors.code" class="text-xs text-destructive mt-1">{{ form.errors.code }}</div>
+                            </div>
+                            <div class="space-y-1.5">
+                                <Label for="type" class="text-sm font-medium">Tipe Wilayah</Label>
+                                <Select v-model="form.type">
+                                    <SelectTrigger class="w-full h-11 rounded-lg border-slate-200">
+                                        <SelectValue placeholder="Pilih tipe wilayah" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem v-for="prov in provinces" :key="prov.id" :value="prov.id">
-                                            {{ prov.name }}
-                                        </SelectItem>
+                                        <SelectItem value="region">Region</SelectItem>
+                                        <SelectItem value="area">Area</SelectItem>
+                                        <SelectItem value="subarea">Subarea</SelectItem>
+                                        <SelectItem value="pop_location">POP Location</SelectItem>
                                     </SelectContent>
                                 </Select>
-
-                                <Select v-model="form.regency_id" :disabled="!form.province_id">
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Regency" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem v-for="reg in regencies" :key="reg.id" :value="reg.id">
-                                            {{ reg.name }}
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-
-                                <Select v-model="form.district_id" :disabled="!form.regency_id">
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select District" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem v-for="dist in districts" :key="dist.id" :value="dist.id">
-                                            {{ dist.name }}
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-
-                                <Select v-model="form.village_id" :disabled="!form.district_id">
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Village" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem v-for="vill in villages" :key="vill.id" :value="vill.id">
-                                            {{ vill.name }}
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <div v-if="form.errors.type" class="text-xs text-destructive mt-1">{{ form.errors.type }}</div>
                             </div>
                         </div>
 
-                        <div class="space-y-2">
-                            <Label for="description">Description</Label>
-                            <Textarea id="description" v-model="form.description" />
-                            <div v-if="form.errors.description" class="text-sm text-destructive">{{ form.errors.description }}</div>
-                        </div>
-
-                        <div class="space-y-2">
-                            <Label>Area Boundary (Polygon)</Label>
-                            <div class="h-[400px] w-full rounded-md border overflow-hidden relative">
-                                <div ref="mapContainer" class="absolute inset-0 z-0"></div>
-                                <Button
-                                    @click="toggleFullscreen"
-                                    variant="secondary"
-                                    size="sm"
-                                    class="absolute top-2 right-2 z-[1000] shadow-md"
-                                >
-                                    <Maximize2 class="h-4 w-4" />
-                                </Button>
-                                
-                                <!-- Fullscreen Controls -->
-                                <div v-if="isFullscreen" class="absolute top-2 left-2 z-[1000] flex gap-2">
-                                    <Button
-                                        @click="toggleFullscreen"
-                                        variant="default"
-                                        size="sm"
-                                        class="shadow-md"
-                                    >
-                                        Done
-                                    </Button>
-                                    <Button
-                                        @click="toggleFullscreen"
-                                        variant="outline"
-                                        size="sm"
-                                        class="shadow-md"
-                                    >
-                                        Cancel
-                                    </Button>
-                                </div>
-                            </div>
-                            <p class="text-xs text-muted-foreground">Click the polygon tool to draw the area boundary on the map.</p>
-                            <div v-if="form.errors.boundary" class="text-sm text-destructive">{{ form.errors.boundary }}</div>
+                        <div class="space-y-1.5">
+                            <Label for="description" class="text-sm font-medium">Keterangan</Label>
+                            <Textarea id="description" v-model="form.description" placeholder="Masukkan keterangan tambahan jika ada" class="min-h-[100px] rounded-lg border-slate-200 resize-none" />
+                            <div v-if="form.errors.description" class="text-xs text-destructive mt-1">{{ form.errors.description }}</div>
                         </div>
                     </CardContent>
-                    <CardFooter class="flex justify-between">
-                        <Button variant="outline" as-child>
-                            <Link :href="areaIndex().url">Cancel</Link>
+                </Card>
+
+                <!-- Section 2: Lokasi -->
+                <Card class="border shadow-none">
+                    <CardHeader class="pb-4">
+                        <CardTitle class="text-base font-semibold">Lokasi Administratif</CardTitle>
+                        <CardDescription class="text-xs">Data wilayah berdasarkan administrasi nasional.</CardDescription>
+                    </CardHeader>
+                    <CardContent class="space-y-5">
+                        <div class="space-y-1.5">
+                            <Label class="text-sm font-medium">Provinsi</Label>
+                            <Select v-model="form.province_id">
+                                <SelectTrigger class="w-full h-11 rounded-lg border-slate-200">
+                                    <SelectValue placeholder="Pilih provinsi" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem v-for="prov in provinces" :key="prov.id" :value="prov.id">
+                                        {{ prov.name }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <Label class="text-sm font-medium">Kota / Kabupaten</Label>
+                            <Select v-model="form.regency_id" :disabled="!form.province_id">
+                                <SelectTrigger class="w-full h-11 rounded-lg border-slate-200">
+                                    <SelectValue placeholder="Pilih kota/kabupaten" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem v-for="reg in regencies" :key="reg.id" :value="reg.id">
+                                        {{ reg.name }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <Label class="text-sm font-medium">Kecamatan</Label>
+                            <Select v-model="form.district_id" :disabled="!form.regency_id">
+                                <SelectTrigger class="w-full h-11 rounded-lg border-slate-200">
+                                    <SelectValue placeholder="Pilih kecamatan" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem v-for="dist in districts" :key="dist.id" :value="dist.id">
+                                        {{ dist.name }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <Label class="text-sm font-medium">Kelurahan / Desa</Label>
+                            <Select v-model="form.village_id" :disabled="!form.district_id">
+                                <SelectTrigger class="w-full h-11 rounded-lg border-slate-200">
+                                    <SelectValue placeholder="Pilih kelurahan/desa" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem v-for="vill in villages" :key="vill.id" :value="vill.id">
+                                        {{ vill.name }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <!-- Section 3: Map -->
+                <Card class="border shadow-none">
+                    <CardHeader class="pb-4">
+                        <CardTitle class="text-base font-semibold">Batas Wilayah (Map)</CardTitle>
+                        <CardDescription class="text-xs">Gambarkan area cakupan pada peta dibawah ini.</CardDescription>
+                    </CardHeader>
+                    <CardContent class="space-y-4">
+                        <div class="h-[450px] w-full rounded-lg border border-slate-200 overflow-hidden relative">
+                            <div ref="mapContainer" class="absolute inset-0 z-0"></div>
+                            <Button
+                                type="button"
+                                @click="toggleFullscreen"
+                                variant="outline"
+                                size="icon"
+                                class="absolute top-3 right-3 z-[1000] bg-white shadow-sm border-slate-200"
+                            >
+                                <Maximize2 class="h-4 w-4" />
+                            </Button>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-slate-500 uppercase tracking-tight">
+                            <span>Gunakan ikon Polygon di kiri atas peta untuk mulai menggambar.</span>
+                            <span v-if="form.boundary" class="text-emerald-600 font-bold">Batas wilayah telah ditentukan</span>
+                        </div>
+                    </CardContent>
+                    <CardFooter class="border-t bg-slate-50/50 p-6 flex justify-end gap-3 rounded-b-lg">
+                        <Button variant="ghost" as-child class="font-medium">
+                            <Link :href="areaIndex().url">Batal</Link>
                         </Button>
-                        <Button type="submit" :disabled="form.processing">Update Area</Button>
+                        <Button type="submit" :disabled="form.processing" class="px-10 font-bold bg-primary hover:bg-primary/90 rounded-lg">
+                            Simpan Perubahan
+                        </Button>
                     </CardFooter>
-                </form>
-            </Card>
+                </Card>
+            </form>
         </div>
     </AppLayout>
 </template>
 
 <style>
-/* Make sure controls are visible in fullscreen mode */
 :deep(.leaflet-control-zoom),
 :deep(.leaflet-draw-section) {
     z-index: 1001 !important;
 }
-
 .fullscreen-map .map-controls {
     z-index: 1002 !important;
 }
-
-/* Ensure fullscreen buttons are visible */
 :deep(.fullscreen-map) {
     z-index: 9999 !important;
-}
-
-.absolute.top-2.right-2.z-\[1000\].shadow-md {
-    z-index: 10000 !important;
-}
-
-.absolute.top-2.left-2.z-\[1000\].flex.gap-2 {
-    z-index: 10000 !important;
 }
 </style>

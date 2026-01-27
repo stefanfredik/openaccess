@@ -2,15 +2,15 @@
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
-import {
-    Sidebar,
-    SidebarContent,
-    SidebarFooter,
-    SidebarHeader,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-} from '@/components/ui/sidebar';
+import Sidebar from '@/components/ui/sidebar/Sidebar.vue';
+import SidebarContent from '@/components/ui/sidebar/SidebarContent.vue';
+import SidebarFooter from '@/components/ui/sidebar/SidebarFooter.vue';
+import SidebarGroup from '@/components/ui/sidebar/SidebarGroup.vue';
+import SidebarGroupLabel from '@/components/ui/sidebar/SidebarGroupLabel.vue';
+import SidebarHeader from '@/components/ui/sidebar/SidebarHeader.vue';
+import SidebarMenu from '@/components/ui/sidebar/SidebarMenu.vue';
+import SidebarMenuButton from '@/components/ui/sidebar/SidebarMenuButton.vue';
+import SidebarMenuItem from '@/components/ui/sidebar/SidebarMenuItem.vue';
 import { dashboard } from '@/routes';
 import { index as companiesIndex } from '@/routes/companies';
 import { index as areaIndex } from '@/routes/area';
@@ -34,15 +34,18 @@ import { index as routerIndex } from '@/routes/active-device/router';
 import { index as apIndex } from '@/routes/active-device/access-point';
 import { index as cpeIndex } from '@/routes/cpe';
 import { index as mapIndex } from '@/routes/map';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Building2, MapPin, Server, Users, Network, Map, Database } from 'lucide-vue-next';
+import { 
+    BookOpen, Folder, LayoutGrid, Building2, MapPin, Server, Users, 
+    Network, Map, Database, Cpu, HardDrive, Smartphone, Radio, 
+    Cable, Layers, Component, Zap, Globe 
+} from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
-import { usePage } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
+import { type NavItem } from '@/types';
 import { computed } from 'vue';
 
 const page = usePage();
-const isSuperAdmin = computed(() => (page.props.auth as any).roles.includes('superadmin'));
+const isSuperAdmin = computed(() => (page.props.auth as any)?.roles?.includes('superadmin') || false);
 const currentUrl = computed(() => page.url);
 
 const isInPendataanScope = computed(() => {
@@ -56,10 +59,26 @@ const isInPendataanScope = computed(() => {
         '/active-devices',
         '/passive-devices'
     ];
+    // Exact match for /topology should be excluded from pendataan scope
+    if (currentUrl.value === '/topology') return false;
+    
     return pendataanPaths.some(path => currentUrl.value.startsWith(path));
 });
 
+const filteredGeneralNavItems = computed(() => {
+    if (isSuperAdmin.value) return [generalNavItems[0]];
+    if (isInPendataanScope.value) {
+        // In Pendataan focus mode: only show Dashboard to keep focus
+        return [generalNavItems[0]];
+    }
+    return generalNavItems;
+});
 
+const shouldShowManagement = computed(() => {
+    if (isSuperAdmin.value) return true;
+    // Hide management for normal users when in Pendataan scope to reduce noise
+    return !isInPendataanScope.value;
+});
 
 const generalNavItems: NavItem[] = [
     {
@@ -68,42 +87,43 @@ const generalNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
     {
+        title: 'Pendataan',
+        href: '/pendataan',
+        icon: Database,
+    },
+    {
         title: 'GIS Map',
         href: mapIndex().url,
         icon: Map,
     },
     {
-        title: 'Pendataan',
-        href: '/pendataan',
-        icon: Database,
+        title: 'Topology',
+        href: '/topology',
+        icon: Network,
     },
+    
 ];
 
 const infrastructureNavItems: NavItem[] = [
     {
-        title: 'Areas',
+        title: 'Wilayah',
         href: areaIndex().url,
-        icon: MapPin,
+        icon: Globe,
     },
     {
-        title: 'POPs',
+        title: 'POP',
         href: popIndex().url,
         icon: MapPin, 
     },
     {
-        title: 'Servers',
+        title: 'Server',
         href: serverIndex().url,
-        icon: Server, 
-    },
-    {
-        title: 'Sites',
-        href: siteIndex().url,
         icon: Server, 
     },
     {
         title: 'CPEs',
         href: cpeIndex().url,
-        icon: Server,
+        icon: Smartphone,
     },
 ];
 
@@ -111,47 +131,47 @@ const passiveDeviceNavItems: NavItem[] = [
     {
         title: 'ODFs',
         href: odfIndex().url,
-        icon: MapPin,
+        icon: Layers,
     },
     {
         title: 'Poles',
         href: poleIndex().url,
-        icon: MapPin,
+        icon: Component,
     },
     {
         title: 'ODPs',
         href: odpIndex().url,
-        icon: MapPin,
+        icon: Layers,
     },
     {
         title: 'Cables',
         href: cableIndex().url,
-        icon: Server,
+        icon: Cable,
     },
     {
         title: 'Joint Boxes',
         href: jointBoxIndex().url,
-        icon: MapPin,
+        icon: Zap,
     },
     {
         title: 'Splitters',
         href: splitterIndex().url,
-        icon: MapPin,
+        icon: Component,
     },
     {
         title: 'Slacks',
-        href: slackIndex().url,
-        icon: MapPin,
+        href: cableIndex().url,
+        icon: Cable,
     },
     {
         title: 'Towers',
         href: towerIndex().url,
-        icon: MapPin,
+        icon: Radio,
     },
     {
         title: 'Splicing Points',
         href: splicingPointIndex().url,
-        icon: MapPin,
+        icon: Zap,
     },
 ];
 
@@ -159,32 +179,27 @@ const activeDeviceNavItems: NavItem[] = [
     {
         title: 'OLTs',
         href: oltIndex().url,
-        icon: Server,
+        icon: Database,
     },
     {
         title: 'ONTs',
         href: ontIndex().url,
-        icon: Server,
+        icon: Smartphone,
     },
     {
         title: 'Switches',
         href: switchIndex().url,
-        icon: Server,
+        icon: Layers,
     },
     {
         title: 'Routers',
         href: routerIndex().url,
-        icon: Server,
+        icon: Network,
     },
     {
         title: 'APs',
         href: apIndex().url,
-        icon: Server,
-    },
-    {
-        title: 'Topology',
-        href: '/active-devices/topology',
-        icon: Network,
+        icon: Radio,
     },
 ];
 
@@ -201,18 +216,8 @@ const managementNavItems: NavItem[] = [
     },
 ];
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Github Repo',
-        href: 'https://github.com/laravel/vue-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#vue',
-        icon: BookOpen,
-    },
-];
+const footerNavItems: NavItem[] = [];
+
 </script>
 
 <template>
@@ -229,16 +234,47 @@ const footerNavItems: NavItem[] = [
             </SidebarMenu>
         </SidebarHeader>
 
-        <SidebarContent>
-            <NavMain :items="isSuperAdmin ? [generalNavItems[0]] : generalNavItems" title="Beranda" />
+        <SidebarContent class="px-2 scrollbar-thin">
+            <div class="mt-4 first:mt-0">
+                <NavMain :items="filteredGeneralNavItems" title="Beranda" />
+            </div>
             
             <template v-if="!isSuperAdmin && isInPendataanScope">
-                <NavMain :items="infrastructureNavItems" title="Infrastruktur" />
-                <NavMain :items="activeDeviceNavItems" title="Perangkat Aktif" />
-                <NavMain :items="passiveDeviceNavItems" title="Perangkat Pasif" />
+                <SidebarGroup class="px-2 py-0">                   
+                    <div class="space-y-6 mt-2">
+                        <!-- Infrastruktur Section -->
+                        <div class="space-y-1">
+                            <div class="px-4 py-1 text-[9px] font-bold uppercase text-muted-foreground/40 flex items-center gap-2">
+                                <MapPin class="h-3 w-3" /> Infrastruktur
+                            </div>
+                            <NavMain :items="infrastructureNavItems" />
+                        </div>
+
+                        <!-- Perangkat Aktif Section -->
+                        <div class="space-y-1">
+                            <div class="px-4 py-1 text-[9px] font-bold uppercase text-muted-foreground/40 flex items-center gap-2">
+                                <Cpu class="h-3 w-3" /> Perangkat Aktif
+                            </div>
+                            <NavMain :items="activeDeviceNavItems" />
+                        </div>
+
+                        <!-- Perangkat Pasif Section -->
+                        <div class="space-y-1">
+                            <div class="px-4 py-1 text-[9px] font-bold uppercase text-muted-foreground/40 flex items-center gap-2">
+                                <HardDrive class="h-3 w-3" /> Perangkat Pasif
+                            </div>
+                            <NavMain :items="passiveDeviceNavItems" />
+                        </div>
+                    </div>
+                </SidebarGroup>
             </template>
 
-            <NavMain v-if="isSuperAdmin || !isSuperAdmin" :items="managementNavItems" title="Manajemen" />
+            <div v-if="shouldShowManagement" class="mt-6 border-t border-border/50 pt-4">
+                <div v-if="isSuperAdmin" class="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50">
+                    Administrasi Sistem
+                </div>
+                <NavMain :items="managementNavItems" title="Manajemen" />
+            </div>
         </SidebarContent>
 
         <SidebarFooter>

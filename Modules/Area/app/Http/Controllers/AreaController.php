@@ -11,14 +11,26 @@ use Modules\Area\Http\Requests\UpdateAreaRequest;
 
 class AreaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $filters = $request->only(['search', 'type']);
+        
         $areas = InfrastructureArea::query()
+            ->when($filters['search'] ?? null, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('code', 'like', "%{$search}%");
+                });
+            })
+            ->when($filters['type'] ?? null, function ($query, $type) {
+                $query->where('type', $type);
+            })
             ->latest()
             ->get();
 
         return Inertia::render('Area::Index', [
             'areas' => $areas,
+            'filters' => $filters,
         ]);
     }
 
@@ -31,11 +43,11 @@ class AreaController extends Controller
     {
         $data = $request->validated();
 
-        if (! auth()->user()->company_id) {
+        if (! $request->user()->company_id) {
             return back()->with('error', 'User yang sedang aktif belum terhubung ke Company.');
         }
 
-        $data['company_id'] = auth()->user()->company_id;
+        $data['company_id'] = $request->user()->company_id;
 
         InfrastructureArea::create($data);
 

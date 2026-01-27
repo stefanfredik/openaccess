@@ -53,7 +53,7 @@ onMounted(() => {
     <Head :title="area.name" />
 
     <AppLayout :breadcrumbs="[
-        { title: 'Areas', href: areaIndex().url },
+        { title: 'Wilayah', href: areaIndex().url },
         { title: area.name, href: areaShow({ area: area.id }).url }
     ]">
         <div class="flex flex-col gap-6 p-4 md:p-6">
@@ -65,7 +65,7 @@ onMounted(() => {
                 <Button as-child>
                     <Link :href="areaEdit({ area: area.id }).url">
                         <Pencil class="mr-2 h-4 w-4" />
-                        Edit Area
+                        Edit
                     </Link>
                 </Button>
             </div>

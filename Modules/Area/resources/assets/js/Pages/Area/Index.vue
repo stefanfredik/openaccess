@@ -12,76 +12,89 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2 } from 'lucide-vue-next';
-import { index as areaIndex, create as areaCreate, edit as areaEdit, destroy as areaDestroy } from '@/routes/area';
+import { Plus } from 'lucide-vue-next';
+import SearchFilter from '@/components/SearchFilter.vue';
+import ShowAction from '@/components/ShowAction.vue';
+import EditAction from '@/components/EditAction.vue';
+import DeleteAction from '@/components/DeleteAction.vue';
+import { MapPin } from 'lucide-vue-next';
+import { index as areaIndex, create as areaCreate, edit as areaEdit, destroy as areaDestroy, show as areaShow } from '@/routes/area';
 
 defineProps<{
     areas: Array<any>;
+    filters: any;
 }>();
+
+const typeOptions = [
+    { label: 'Region', value: 'region' },
+    { label: 'Area', value: 'area' },
+    { label: 'Sub-Area', value: 'subarea' },
+    { label: 'POP Location', value: 'pop_location' },
+];
 </script>
 
 <template>
-    <Head title="Infrastructure Areas" />
+    <Head title="Wilayah Jaringan" />
 
-    <AppLayout :breadcrumbs="[{ title: 'Areas', href: areaIndex().url }]">
-        <div class="flex flex-col gap-6 p-4 md:p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-2xl font-bold tracking-tight">Infrastructure Areas</h1>
-                    <p class="text-muted-foreground">Manage infrastructure areas.</p>
+    <AppLayout :breadcrumbs="[{ title: 'Wilayah', href: areaIndex().url }]">
+        <div class="flex flex-col gap-4 p-4 md:p-6 mb-10">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div class="flex flex-col gap-1">
+                    <h1 class="text-3xl font-black tracking-tight text-foreground">Wilayah</h1>
+                    <p class="text-muted-foreground text-sm font-medium">Wilayah Infrastruktur</p>
                 </div>
-                <Button as-child>
+                <Button as-child >
                     <Link :href="areaCreate().url">
-                        <Plus class="mr-2 h-4 w-4" />
-                        Add Area
+                        <Plus class="mr-2 h-5 w-5" />
+                        Tambah Wilayah
                     </Link>
                 </Button>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Areas</CardTitle>
-                    <CardDescription>
-                        List of all infrastructure areas.
-                    </CardDescription>
+            <Card class="border-none shadow-sm overflow-hidden">
+                <CardHeader class="p-0">
+                    <div class="px-6 py-4 bg-slate-50/50 border-b">
+                        <SearchFilter
+                            :route="areaIndex().url"
+                            :filters="filters"
+                            placeholder="Cari"
+                            show-type-filter
+                            :type-options="typeOptions"
+                        />
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <div class="overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead class="w-[100px]">Code</TableHead>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Type</TableHead>
-                                    <TableHead>Description</TableHead>
-                                    <TableHead class="text-right">Actions</TableHead>
+                                    <TableHead class="w-[150px]">Kode</TableHead>
+                                    <TableHead class="min-w-[200px]">Nama Wilayah</TableHead>
+                                    <TableHead class="w-[150px]">Tipe</TableHead>
+                                    <TableHead>Keterangan</TableHead>
+                                    <TableHead class="text-right w-[150px]">Aksi</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 <TableRow v-for="area in areas" :key="area.id">
-                                    <TableCell class="font-medium">{{ area.code || '-' }}</TableCell>
-                                    <TableCell class="whitespace-nowrap">{{ area.name }}</TableCell>
+                                    <TableCell class="font-medium whitespace-nowrap">
+                                        <div class="flex items-center gap-2">
+                                            <MapPin class="h-4 w-4 text-primary/70" />
+                                            {{ area.code || '-' }}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell class="font-bold whitespace-nowrap">{{ area.name }}</TableCell>
                                     <TableCell>
-                                        <Badge variant="outline" class="capitalize whitespace-nowrap">
+                                        <Badge variant="outline" class="capitalize whitespace-nowrap px-3 py-0.5 rounded-md">
                                             {{ area.type.replace('_', ' ') }}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell class="truncate max-w-[200px]">{{ area.description }}</TableCell>
+                                    <TableCell class="truncate max-w-[300px] text-muted-foreground">{{ area.description || '-' }}</TableCell>
                                     <TableCell class="text-right">
                                         <div class="flex justify-end gap-2">
-                                            <Button variant="ghost" size="icon" as-child>
-                                                <Link :href="areaEdit({ area: area.id }).url">
-                                                    <Pencil class="h-4 w-4" />
-                                                </Link>
-                                            </Button>
-                                            <Link
-                                                :href="areaDestroy({ area: area.id }).url"
-                                                method="delete"
-                                                as="button"
-                                                class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10 text-destructive hover:text-destructive"
-                                            >
-                                                <Trash2 class="h-4 w-4" />
-                                            </Link>
+                                            <ShowAction :href="areaShow({ area: area.id }).url" title="Detail Wilayah" />
+                                            <EditAction :href="areaEdit({ area: area.id }).url" title="Ubah Wilayah" />
+                                            <DeleteAction :href="areaDestroy({ area: area.id }).url" />
                                         </div>
                                     </TableCell>
                                 </TableRow>
