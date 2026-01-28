@@ -316,7 +316,8 @@ const renderMap = () => {
                     color: '#3b82f6',
                     weight: 6,
                     opacity: 0.8,
-                    interactive: true,
+                    interactive:
+                        !pendingDeviceType.value && !isDrawingCable.value,
                 };
             }
             return {};
@@ -324,7 +325,10 @@ const renderMap = () => {
         pointToLayer: (feature, latlng) => {
             const deviceType = feature.properties.type;
             const icon = mapIcons[deviceType] || mapIcons.pop;
-            return L.marker(latlng, { icon });
+            return L.marker(latlng, {
+                icon,
+                interactive: !pendingDeviceType.value && !isDrawingCable.value,
+            });
         },
         onEachFeature: (feature, layer) => {
             const props = feature.properties;
@@ -835,6 +839,7 @@ watch(pendingDeviceType, (newVal) => {
     } else {
         isDrawingCable.value = false;
     }
+    renderMap();
 });
 
 watch(showCreateModal, (val) => {
