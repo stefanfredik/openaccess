@@ -1,0 +1,7 @@
+tunnel: 2dd4367a-a43d-4126-b362-94ae3172e578
+credentials-file: /etc/cloudflared/creds/creds.json
+
+ingress:
+  - hostname: oa.kopiflores.my.id
+    service: http://openaccess-nginx:80
+  - service: http_status:404

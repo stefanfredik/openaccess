@@ -93,6 +93,19 @@ services:
     depends_on:
       - mysql
 
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: openaccess-cloudflared
+    restart: unless-stopped
+    command: tunnel run
+    volumes:
+      - ./cloudflared-config.yml:/etc/cloudflared/config.yml
+      - ./docker/cloudflared/creds.json:/etc/cloudflared/creds/creds.json
+    networks:
+      - app-network
+    depends_on:
+      - nginx
+
 networks:
   app-network:
     driver: bridge

@@ -5,7 +5,7 @@ import { Network, Server, Router as RouterIcon, Wifi, Laptop, Activity, ZoomIn, 
 import { ref, computed, onMounted, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import { update as updatePositionsRoute } from '@/routes/active-device/topology/positions';
-import { store as storeConnectionRoute } from '@/routes/active-device/connection';
+import { store as storeConnectionRoute } from '@/routes/active-device/connections';
 import { details as deviceDetailsRoute } from '@/routes/active-device/topology';
 import axios from 'axios';
 import ConnectionDialog from '../../Components/ActiveDevice/ConnectionDialog.vue';
