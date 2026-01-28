@@ -48,7 +48,7 @@ const pendingDeviceType = ref<string | null>(null);
 const showCreateModal = ref(false);
 const showWarningModal = ref(false);
 const showFilter = ref(true); // Default open
-const isFilterMinimized = ref(false);
+const isFilterMinimized = ref(true);
 const relocatingDevice = ref<{ id: number; type: string; name: string } | null>(
     null,
 );
@@ -840,6 +840,15 @@ watch(pendingDeviceType, (newVal) => {
 watch(showCreateModal, (val) => {
     if (!val) {
         // Reset device type when modal closes
+        // If we were drawing a cable or if a cable was pending, clean it up
+        if (
+            pendingDeviceType.value === 'cable' ||
+            isDrawingCable.value ||
+            (drawPolyline && !showCreateModal.value)
+        ) {
+            cancelCableDrawing();
+        }
+
         pendingDeviceType.value = null;
 
         if (tempMarker && map) {
@@ -1064,39 +1073,47 @@ watch(selectedAreaId, (newVal) => {
             class="absolute bottom-10 left-1/2 z-[2000] -translate-x-1/2 animate-in duration-300 slide-in-from-bottom-5"
         >
             <div
-                class="flex items-center gap-4 rounded-2xl border border-blue-100 bg-white p-2 pr-4 shadow-2xl"
+                class="flex items-center gap-4 rounded-3xl border border-white/40 bg-white/95 p-3 pr-5 shadow-[0_20px_50px_rgba(0,0,0,0.15)] backdrop-blur-xl"
             >
-                <div class="rounded-xl bg-blue-600 p-3 text-white shadow-lg">
-                    <Plus class="h-6 w-6 animate-pulse" />
+                <div
+                    class="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-[0_8px_16px_rgba(37,99,235,0.3)] transition-transform hover:scale-105 active:scale-95"
+                >
+                    <Plus class="h-6 w-6 font-black" stroke-width="3" />
                 </div>
-                <div>
-                    <div
-                        class="text-[10px] font-bold tracking-wider text-blue-600 uppercase"
+                <div class="flex flex-col">
+                    <span
+                        class="text-[10px] font-black tracking-[0.15em] text-blue-600 uppercase"
                     >
-                        Mode Gambar
-                    </div>
-                    <div class="text-sm leading-tight font-bold text-gray-900">
-                        Klik peta untuk tambah titik
-                    </div>
+                        {{
+                            relocatingDevice?.type === 'cable'
+                                ? 'MODE EDIT KABEL'
+                                : 'MODE GAMBAR KABEL'
+                        }}
+                    </span>
+                    <span class="text-[15px] font-extrabold text-slate-800">
+                        {{
+                            relocatingDevice?.type === 'cable'
+                                ? 'Geser titik untuk mengubah jalur'
+                                : 'Klik peta untuk tambah titik baru'
+                        }}
+                    </span>
                 </div>
-                <div class="mx-2 h-8 w-px bg-gray-200"></div>
-                <div class="flex gap-2">
+                <div class="mx-2 h-10 w-px bg-slate-200/60"></div>
+                <div class="flex items-center gap-3">
                     <Button
                         variant="ghost"
-                        size="sm"
                         @click="cancelCableDrawing"
-                        class="font-semibold text-gray-500 hover:text-gray-700"
+                        class="h-11 px-6 font-bold text-slate-500 transition-colors hover:bg-slate-100/50 hover:text-slate-800"
                     >
                         Batal
                     </Button>
                     <Button
-                        size="sm"
                         @click="
                             relocatingDevice?.type === 'cable'
                                 ? saveEditedCable()
                                 : finalizeCableDrawing()
                         "
-                        class="rounded-lg bg-blue-600 px-6 font-bold text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg"
+                        class="h-11 rounded-2xl bg-blue-600 px-8 font-black text-white shadow-[0_8px_20px_rgba(37,99,235,0.25)] transition-all hover:bg-blue-700 hover:shadow-[0_12px_25px_rgba(37,99,235,0.4)] active:scale-95"
                     >
                         {{
                             relocatingDevice?.type === 'cable'
@@ -1110,27 +1127,43 @@ watch(selectedAreaId, (newVal) => {
 
         <!-- Relocation Confirmation Bar -->
         <div
-            v-if="relocatingDevice"
+            v-if="relocatingDevice && relocatingDevice.type !== 'cable'"
             class="absolute bottom-10 left-1/2 z-[2000] -translate-x-1/2 animate-in duration-300 slide-in-from-bottom-5"
         >
             <div
-                class="flex items-center gap-2 rounded-2xl border border-blue-100 bg-white p-2 shadow-2xl"
+                class="flex items-center gap-4 rounded-3xl border border-white/40 bg-white/95 p-3 pr-5 shadow-[0_20px_50px_rgba(0,0,0,0.15)] backdrop-blur-xl"
             >
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    @click="cancelRelocation"
-                    class="font-semibold text-gray-500 hover:text-gray-700"
+                <div
+                    class="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-500 text-white shadow-[0_8px_16px_rgba(249,115,22,0.3)]"
                 >
-                    Batal
-                </Button>
-                <Button
-                    size="sm"
-                    @click="saveRelocation"
-                    class="rounded-lg bg-blue-600 px-6 font-bold text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg"
-                >
-                    Simpan
-                </Button>
+                    <MapPin class="h-6 w-6" stroke-width="3" />
+                </div>
+                <div class="flex flex-col">
+                    <span
+                        class="text-[10px] font-black tracking-[0.15em] text-orange-500 uppercase"
+                    >
+                        MODE RELOKASI
+                    </span>
+                    <span class="text-[15px] font-extrabold text-slate-800">
+                        Geser pin ke lokasi baru
+                    </span>
+                </div>
+                <div class="mx-2 h-10 w-px bg-slate-200/60"></div>
+                <div class="flex items-center gap-3">
+                    <Button
+                        variant="ghost"
+                        @click="cancelRelocation"
+                        class="h-11 px-6 font-bold text-slate-500 transition-colors hover:bg-slate-100/50 hover:text-slate-800"
+                    >
+                        Batal
+                    </Button>
+                    <Button
+                        @click="saveRelocation"
+                        class="h-11 rounded-2xl bg-orange-500 px-8 font-black text-white shadow-[0_8px_20px_rgba(249,115,22,0.25)] transition-all hover:bg-orange-600 hover:shadow-[0_12px_25px_rgba(249,115,22,0.4)] active:scale-95"
+                    >
+                        Simpan Perubahan
+                    </Button>
+                </div>
             </div>
         </div>
 
