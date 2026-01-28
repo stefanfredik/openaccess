@@ -30,7 +30,7 @@ import { Switch as UiSwitch } from '@/components/ui/switch';
 import axios from 'axios';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Filter, MapPin, Plus } from 'lucide-vue-next';
+import { Filter, Plus } from 'lucide-vue-next';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import DeviceCreateModal from './Components/DeviceCreateModal.vue';
@@ -129,10 +129,13 @@ const updateFilter = (type: string, value: boolean) => {
 
 // Helper to create valid SVG string (using Lucide style paths)
 const getIconHtml = (color: string, svgPath: string) => `
-    <div style="background-color: white; border: 2px solid ${color}; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            ${svgPath}
-        </svg>
+    <div class="flex flex-col items-center drop-shadow-md">
+        <div style="background-color: ${color}; border: 2.5px solid #fff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 2;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));">
+                ${svgPath}
+            </svg>
+        </div>
+        <div style="width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 9px solid #fff; margin-top: -2px; z-index: 1;"></div>
     </div>
 `;
 
@@ -140,21 +143,21 @@ const createIcon = (color: string, svgPath: string) =>
     L.divIcon({
         className: 'custom-map-icon',
         html: getIconHtml(color, svgPath),
-        iconSize: [32, 16],
-        iconAnchor: [16, 16],
-        popupAnchor: [0, -18],
+        iconSize: [36, 43],
+        iconAnchor: [18, 43],
+        popupAnchor: [0, -43],
     });
 
 const colors = {
-    blue: '#2563eb',
-    green: '#16a34a',
-    violet: '#7c3aed',
-    red: '#dc2626',
-    yellow: '#ca8a04',
-    grey: '#4b5563',
-    orange: '#ea580c',
-    gold: '#d97706',
-    black: '#000000',
+    blue: '#3b82f6',
+    green: '#22c55e',
+    violet: '#8b5cf6',
+    red: '#ef4444',
+    yellow: '#f59e0b',
+    grey: '#6b7280',
+    orange: '#f97316',
+    gold: '#fbbf24',
+    black: '#1f2937',
 };
 
 const iconPaths = {
@@ -1005,7 +1008,7 @@ watch(selectedAreaId, (newVal) => {
                                 size="icon"
                                 class="h-12 w-12 rounded-full transition-colors hover:bg-blue-50 hover:text-blue-600"
                             >
-                                <MapPin class="h-8 w-8" />
+                                <Plus class="h-8 w-8" />
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
