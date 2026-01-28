@@ -1,6 +1,14 @@
 <script setup lang="ts">
-import { Head, Link, useForm, router } from '@inertiajs/vue3';
-import AppLayout from '@/layouts/AppLayout.vue';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import {
     Table,
     TableBody,
@@ -9,14 +17,12 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Search, Plus, Pencil, Trash2, Building2 } from 'lucide-vue-next';
-import { ref, watch } from 'vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { debounce } from 'lodash';
-import { index as companiesIndex, create as companiesCreate, edit as companiesEdit, destroy as companiesDestroy, show as companiesShow } from '@/routes/companies';
+import { Building2, Pencil, Plus, Search, Trash2 } from 'lucide-vue-next';
+import { ref, watch } from 'vue';
+// import { index as companiesIndex, create as companiesCreate, edit as companiesEdit, destroy as companiesDestroy, show as companiesShow } from '@/routes/companies';
 
 const props = defineProps<{
     companies: {
@@ -44,16 +50,16 @@ watch(
     search,
     debounce((value: string) => {
         router.get(
-            companiesIndex().url,
+            route('companies.index'),
             { search: value },
-            { preserveState: true, replace: true }
+            { preserveState: true, replace: true },
         );
-    }, 300)
+    }, 300),
 );
 
 const deleteCompany = (id: number) => {
     if (confirm('Are you sure you want to delete this company?')) {
-        router.delete(companiesDestroy({ company: id }).url);
+        router.delete(route('companies.destroy', id));
     }
 };
 </script>
@@ -61,15 +67,19 @@ const deleteCompany = (id: number) => {
 <template>
     <Head title="Companies" />
 
-    <AppLayout :breadcrumbs="[{ title: 'Companies', href: companiesIndex().url }]">
+    <AppLayout
+        :breadcrumbs="[{ title: 'Companies', href: route('companies.index') }]"
+    >
         <div class="flex flex-col gap-6 p-4 md:p-6">
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight">Companies</h1>
-                    <p class="text-muted-foreground">Manage your ISP companies.</p>
+                    <p class="text-muted-foreground">
+                        Manage your ISP companies.
+                    </p>
                 </div>
                 <Button as-child>
-                    <Link :href="companiesCreate().url">
+                    <Link :href="route('companies.create')">
                         <Plus class="mr-2 h-4 w-4" />
                         Add Company
                     </Link>
@@ -77,7 +87,9 @@ const deleteCompany = (id: number) => {
             </div>
 
             <Card>
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-4">
+                <CardHeader
+                    class="flex flex-row items-center justify-between space-y-0 pb-4"
+                >
                     <div class="space-y-1">
                         <CardTitle>List of Companies</CardTitle>
                         <CardDescription>
@@ -86,7 +98,9 @@ const deleteCompany = (id: number) => {
                     </div>
                     <div class="w-full max-w-sm items-center space-x-2">
                         <div class="relative">
-                            <Search class="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Search
+                                class="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground"
+                            />
                             <Input
                                 v-model="search"
                                 placeholder="Search companies..."
@@ -105,48 +119,95 @@ const deleteCompany = (id: number) => {
                                     <TableHead>Name</TableHead>
                                     <TableHead>Contact</TableHead>
                                     <TableHead>Status</TableHead>
-                                    <TableHead class="text-right">Actions</TableHead>
+                                    <TableHead class="text-right"
+                                        >Actions</TableHead
+                                    >
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 <TableRow v-if="companies.data.length === 0">
-                                    <TableCell colspan="6" class="text-center h-24 text-muted-foreground">
+                                    <TableCell
+                                        colspan="6"
+                                        class="h-24 text-center text-muted-foreground"
+                                    >
                                         No companies found.
                                     </TableCell>
                                 </TableRow>
-                                <TableRow v-for="company in companies.data" :key="company.id">
+                                <TableRow
+                                    v-for="company in companies.data"
+                                    :key="company.id"
+                                >
                                     <TableCell>
-                                        <div class="h-10 w-10 overflow-hidden rounded-full border bg-muted flex items-center justify-center">
+                                        <div
+                                            class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border bg-muted"
+                                        >
                                             <img
                                                 v-if="company.logo"
                                                 :src="`/storage/${company.logo}`"
                                                 alt="Logo"
                                                 class="h-full w-full object-cover"
                                             />
-                                            <Building2 v-else class="h-5 w-5 text-muted-foreground" />
+                                            <Building2
+                                                v-else
+                                                class="h-5 w-5 text-muted-foreground"
+                                            />
                                         </div>
                                     </TableCell>
-                                    <TableCell class="font-medium">{{ company.code }}</TableCell>
+                                    <TableCell class="font-medium">{{
+                                        company.code
+                                    }}</TableCell>
                                     <TableCell>
-                                        <Link :href="companiesShow({ company: company.id }).url" class="font-medium hover:underline">
+                                        <Link
+                                            :href="
+                                                route(
+                                                    'companies.show',
+                                                    company.id,
+                                                )
+                                            "
+                                            class="font-medium hover:underline"
+                                        >
                                             {{ company.name }}
                                         </Link>
                                     </TableCell>
                                     <TableCell>
                                         <div class="flex flex-col text-sm">
                                             <span>{{ company.email }}</span>
-                                            <span class="text-muted-foreground text-xs">{{ company.phone }}</span>
+                                            <span
+                                                class="text-xs text-muted-foreground"
+                                                >{{ company.phone }}</span
+                                            >
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge :variant="company.is_active ? 'default' : 'secondary'">
-                                            {{ company.is_active ? 'Active' : 'Inactive' }}
+                                        <Badge
+                                            :variant="
+                                                company.is_active
+                                                    ? 'default'
+                                                    : 'secondary'
+                                            "
+                                        >
+                                            {{
+                                                company.is_active
+                                                    ? 'Active'
+                                                    : 'Inactive'
+                                            }}
                                         </Badge>
                                     </TableCell>
                                     <TableCell class="text-right">
                                         <div class="flex justify-end gap-2">
-                                            <Button variant="ghost" size="icon" as-child>
-                                                <Link :href="companiesEdit({ company: company.id }).url">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                as-child
+                                            >
+                                                <Link
+                                                    :href="
+                                                        route(
+                                                            'companies.edit',
+                                                            company.id,
+                                                        )
+                                                    "
+                                                >
                                                     <Pencil class="h-4 w-4" />
                                                 </Link>
                                             </Button>
@@ -154,7 +215,9 @@ const deleteCompany = (id: number) => {
                                                 variant="ghost"
                                                 size="icon"
                                                 class="text-destructive hover:text-destructive"
-                                                @click="deleteCompany(company.id)"
+                                                @click="
+                                                    deleteCompany(company.id)
+                                                "
                                             >
                                                 <Trash2 class="h-4 w-4" />
                                             </Button>
@@ -166,7 +229,10 @@ const deleteCompany = (id: number) => {
                     </div>
 
                     <!-- Pagination -->
-                    <div class="flex items-center justify-end space-x-2 py-4" v-if="companies.links.length > 3">
+                    <div
+                        class="flex items-center justify-end space-x-2 py-4"
+                        v-if="companies.links.length > 3"
+                    >
                         <template v-for="(link, i) in companies.links" :key="i">
                             <Button
                                 v-if="link.url || link.label"

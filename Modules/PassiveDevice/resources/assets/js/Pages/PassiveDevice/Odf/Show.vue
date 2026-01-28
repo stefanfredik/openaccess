@@ -3,10 +3,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/AppLayout.vue';
-import {
-    edit as odfEdit,
-    index as odfIndex,
-} from '@/routes/passive-device/odf';
+// import {
+//     edit as odfEdit,
+//     index as odfIndex,
+// } from '@/routes/passive-device/odf';
 import { Head, Link } from '@inertiajs/vue3';
 import { ArrowLeft, Pencil } from 'lucide-vue-next';
 
@@ -20,7 +20,7 @@ defineProps<{
 
     <AppLayout
         :breadcrumbs="[
-            { title: 'ODFs', href: odfIndex().url },
+            { title: 'ODFs', href: route('passive-device.odf.index') },
             { title: odf.name, href: '#' },
         ]"
     >
@@ -28,7 +28,7 @@ defineProps<{
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
                     <Button variant="ghost" size="icon" as-child>
-                        <Link :href="odfIndex().url">
+                        <Link :href="route('passive-device.odf.index')">
                             <ArrowLeft class="h-4 w-4" />
                         </Link>
                     </Button>
@@ -40,7 +40,7 @@ defineProps<{
                     </div>
                 </div>
                 <Button as-child>
-                    <Link :href="odfEdit(odf.id).url">
+                    <Link :href="route('passive-device.odf.edit', odf.id)">
                         <Pencil class="mr-2 h-4 w-4" />
                         Edit ODF
                     </Link>

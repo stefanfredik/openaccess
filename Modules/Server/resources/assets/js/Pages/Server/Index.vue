@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
-import AppLayout from '@/layouts/AppLayout.vue';
+import DeleteAction from '@/components/DeleteAction.vue';
+import EditAction from '@/components/EditAction.vue';
+import SearchFilter from '@/components/SearchFilter.vue';
+import ShowAction from '@/components/ShowAction.vue';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
@@ -11,13 +14,10 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Server as ServerIcon, MapPin } from 'lucide-vue-next';
-import SearchFilter from '@/components/SearchFilter.vue';
-import ShowAction from '@/components/ShowAction.vue';
-import EditAction from '@/components/EditAction.vue';
-import DeleteAction from '@/components/DeleteAction.vue';
-import { index as serverIndex, create as serverCreate, edit as serverEdit, show as serverShow, destroy as serverDestroy } from '@/routes/server';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { Head, Link } from '@inertiajs/vue3';
+import { MapPin, Plus, Server as ServerIcon } from 'lucide-vue-next';
+// import { index as serverIndex, create as serverCreate, edit as serverEdit, show as serverShow, destroy as serverDestroy } from '@/routes/server';
 
 defineProps<{
     servers: Array<any>;
@@ -67,26 +67,36 @@ const getFunctionBadge = (func: string) => {
 <template>
     <Head title="Data Server" />
 
-    <AppLayout :breadcrumbs="[{ title: 'Server', href: serverIndex().url }]">
-        <div class="flex flex-col gap-4 p-4 md:p-6 mb-10">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+    <AppLayout
+        :breadcrumbs="[{ title: 'Server', href: route('server.index') }]"
+    >
+        <div class="mb-10 flex flex-col gap-4 p-4 md:p-6">
+            <div
+                class="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center"
+            >
                 <div class="flex flex-col gap-1">
-                    <h1 class="text-3xl font-black tracking-tight text-foreground">Data Server & Core</h1>
-                    <p class="text-muted-foreground text-sm font-medium">Kelola infrastruktur server, OLT, dan core network.</p>
+                    <h1
+                        class="text-3xl font-black tracking-tight text-foreground"
+                    >
+                        Data Server & Core
+                    </h1>
+                    <p class="text-sm font-medium text-muted-foreground">
+                        Kelola infrastruktur server, OLT, dan core network.
+                    </p>
                 </div>
                 <Button as-child>
-                    <Link :href="serverCreate().url">
+                    <Link :href="route('server.create')">
                         <Plus class="mr-2 h-5 w-5" />
                         Tambah Server
                     </Link>
                 </Button>
             </div>
 
-            <Card class="border-none shadow-sm overflow-hidden">
+            <Card class="overflow-hidden border-none shadow-sm">
                 <CardHeader class="p-0">
-                    <div class="px-6 py-4 bg-slate-50/50 border-b">
+                    <div class="border-b bg-slate-50/50 px-6 py-4">
                         <SearchFilter
-                            :route="serverIndex().url"
+                            :route="route('server.index')"
                             :filters="filters"
                             placeholder="Cari Server..."
                             show-type-filter
@@ -100,60 +110,139 @@ const getFunctionBadge = (func: string) => {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead class="w-[150px]">Kode</TableHead>
-                                    <TableHead class="min-w-[200px]">Nama Perangkat</TableHead>
+                                    <TableHead class="w-[150px]"
+                                        >Kode</TableHead
+                                    >
+                                    <TableHead class="min-w-[200px]"
+                                        >Nama Perangkat</TableHead
+                                    >
                                     <TableHead>Fungsi</TableHead>
                                     <TableHead>Lokasi</TableHead>
                                     <TableHead>Area / POP</TableHead>
                                     <TableHead>Status</TableHead>
-                                    <TableHead class="text-right w-[150px]">Aksi</TableHead>
+                                    <TableHead class="w-[150px] text-right"
+                                        >Aksi</TableHead
+                                    >
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <TableRow v-for="server in servers" :key="server.id">
-                                    <TableCell class="font-medium whitespace-nowrap">
+                                <TableRow
+                                    v-for="server in servers"
+                                    :key="server.id"
+                                >
+                                    <TableCell
+                                        class="font-medium whitespace-nowrap"
+                                    >
                                         <div class="flex items-center gap-2">
-                                            <ServerIcon class="h-4 w-4 text-primary/70" />
+                                            <ServerIcon
+                                                class="h-4 w-4 text-primary/70"
+                                            />
                                             {{ server.code }}
                                         </div>
                                     </TableCell>
-                                    <TableCell class="font-bold whitespace-nowrap">{{ server.name }}</TableCell>
+                                    <TableCell
+                                        class="font-bold whitespace-nowrap"
+                                        >{{ server.name }}</TableCell
+                                    >
                                     <TableCell>
-                                        <Badge :variant="getFunctionBadge(server.function)" class="whitespace-nowrap">
+                                        <Badge
+                                            :variant="
+                                                getFunctionBadge(
+                                                    server.function,
+                                                )
+                                            "
+                                            class="whitespace-nowrap"
+                                        >
                                             {{ server.function }}
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
-                                        <div class="text-xs flex flex-col gap-0.5">
-                                            <span class="font-medium">{{ server.building || '-' }}</span>
-                                            <span v-if="server.floor" class="text-muted-foreground">Lantai {{ server.floor }}</span>
-                                            <span v-if="server.area_location" class="text-muted-foreground">{{ server.area_location }}</span>
+                                        <div
+                                            class="flex flex-col gap-0.5 text-xs"
+                                        >
+                                            <span class="font-medium">{{
+                                                server.building || '-'
+                                            }}</span>
+                                            <span
+                                                v-if="server.floor"
+                                                class="text-muted-foreground"
+                                                >Lantai {{ server.floor }}</span
+                                            >
+                                            <span
+                                                v-if="server.area_location"
+                                                class="text-muted-foreground"
+                                                >{{
+                                                    server.area_location
+                                                }}</span
+                                            >
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <div class="text-xs flex flex-col gap-0.5">
-                                            <div class="font-medium flex items-center gap-1">
-                                                <MapPin class="h-3 w-3 text-muted-foreground" />
+                                        <div
+                                            class="flex flex-col gap-0.5 text-xs"
+                                        >
+                                            <div
+                                                class="flex items-center gap-1 font-medium"
+                                            >
+                                                <MapPin
+                                                    class="h-3 w-3 text-muted-foreground"
+                                                />
                                                 {{ server.area?.name || '-' }}
                                             </div>
-                                            <div class="text-muted-foreground pl-4" v-if="server.pop">{{ server.pop?.name }}</div>
+                                            <div
+                                                class="pl-4 text-muted-foreground"
+                                                v-if="server.pop"
+                                            >
+                                                {{ server.pop?.name }}
+                                            </div>
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge :variant="getUiStatus(server.status)" class="px-3 py-0.5 rounded-md shadow-sm">
+                                        <Badge
+                                            :variant="
+                                                getUiStatus(server.status)
+                                            "
+                                            class="rounded-md px-3 py-0.5 shadow-sm"
+                                        >
                                             {{ server.status }}
                                         </Badge>
                                     </TableCell>
                                     <TableCell class="text-right">
                                         <div class="flex justify-end gap-2">
-                                            <ShowAction :href="serverShow({ server: server.id }).url" title="Detail Server" />
-                                            <EditAction :href="serverEdit({ server: server.id }).url" title="Ubah Server" />
-                                            <DeleteAction :href="serverDestroy({ server: server.id }).url" />
+                                            <ShowAction
+                                                :href="
+                                                    route(
+                                                        'server.show',
+                                                        server.id,
+                                                    )
+                                                "
+                                                title="Detail Server"
+                                            />
+                                            <EditAction
+                                                :href="
+                                                    route(
+                                                        'server.edit',
+                                                        server.id,
+                                                    )
+                                                "
+                                                title="Ubah Server"
+                                            />
+                                            <DeleteAction
+                                                :href="
+                                                    route(
+                                                        'server.destroy',
+                                                        server.id,
+                                                    )
+                                                "
+                                            />
                                         </div>
                                     </TableCell>
                                 </TableRow>
                                 <TableRow v-if="servers.length === 0">
-                                    <TableCell colspan="7" class="h-24 text-center text-muted-foreground">
+                                    <TableCell
+                                        colspan="7"
+                                        class="h-24 text-center text-muted-foreground"
+                                    >
                                         Tidak ada data server ditemukan.
                                     </TableCell>
                                 </TableRow>

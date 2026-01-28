@@ -1,13 +1,26 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
-import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { index as serverIndex, edit as serverEdit, update as serverUpdate } from '@/routes/server';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
+// import { index as serverIndex, edit as serverEdit, update as serverUpdate } from '@/routes/server';
 import LocationPicker from '@/components/LocationPicker.vue';
 import PhotoUpload from '@/components/PhotoUpload.vue';
 
@@ -40,78 +53,152 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(serverUpdate({ server: props.server.id }).url, {
+    form.post(route('server.update', props.server.id), {
         onSuccess: () => form.reset('photos'),
     });
 };
 
 const getPhotosByCategory = (category: string) => {
-    return props.server.photos?.filter((p: any) => p.category === category) || [];
+    return (
+        props.server.photos?.filter((p: any) => p.category === category) || []
+    );
 };
 </script>
 
 <template>
     <Head title="Ubah Server" />
 
-    <AppLayout :breadcrumbs="[
-        { title: 'Server', href: serverIndex().url },
-        { title: 'Ubah', href: serverEdit({ server: server.id }).url }
-    ]">
-        <div class="max-w-4xl mx-4 p-4 md:p-4 space-y-6">
+    <AppLayout
+        :breadcrumbs="[
+            { title: 'Server', href: route('server.index') },
+            { title: 'Ubah', href: route('server.edit', server.id) },
+        ]"
+    >
+        <div class="mx-4 max-w-4xl space-y-6 p-4 md:p-4">
             <!-- Header -->
             <div class="space-y-1">
-                <h1 class="text-2xl font-bold tracking-tight">Ubah Data Server</h1>
-                <p class="text-muted-foreground text-sm text-foreground/60">Perbarui informasi server atau perangkat core yang sudah ada.</p>
+                <h1 class="text-2xl font-bold tracking-tight">
+                    Ubah Data Server
+                </h1>
+                <p class="text-sm text-foreground/60 text-muted-foreground">
+                    Perbarui informasi server atau perangkat core yang sudah
+                    ada.
+                </p>
             </div>
 
             <form @submit.prevent="submit" class="space-y-6">
                 <!-- Section 1: Informasi Dasar -->
                 <Card class="border shadow-none">
                     <CardHeader class="pb-4">
-                        <CardTitle class="text-base font-semibold">Informasi Dasar</CardTitle>
-                        <CardDescription class="text-xs">Detail identitas dan fungsi perangkat.</CardDescription>
+                        <CardTitle class="text-base font-semibold"
+                            >Informasi Dasar</CardTitle
+                        >
+                        <CardDescription class="text-xs"
+                            >Detail identitas dan fungsi
+                            perangkat.</CardDescription
+                        >
                     </CardHeader>
                     <CardContent class="space-y-5">
                         <div class="space-y-1.5">
-                            <Label for="name" class="text-sm font-medium">Nama Perangkat</Label>
-                            <Input id="name" v-model="form.name" required placeholder="Contoh: CORE-ROUTER-01" class="h-11 rounded-lg border-slate-200" />
-                            <div v-if="form.errors.name" class="text-xs text-destructive mt-1">{{ form.errors.name }}</div>
+                            <Label for="name" class="text-sm font-medium"
+                                >Nama Perangkat</Label
+                            >
+                            <Input
+                                id="name"
+                                v-model="form.name"
+                                required
+                                placeholder="Contoh: CORE-ROUTER-01"
+                                class="h-11 rounded-lg border-slate-200"
+                            />
+                            <div
+                                v-if="form.errors.name"
+                                class="mt-1 text-xs text-destructive"
+                            >
+                                {{ form.errors.name }}
+                            </div>
                         </div>
 
                         <div class="space-y-5">
                             <div class="space-y-1.5">
-                                <Label for="code" class="text-sm font-medium">Kode Unik</Label>
-                                <Input id="code" v-model="form.code" required placeholder="Contoh: SRV-001" class="h-11 rounded-lg border-slate-200" />
-                                <div v-if="form.errors.code" class="text-xs text-destructive mt-1">{{ form.errors.code }}</div>
+                                <Label for="code" class="text-sm font-medium"
+                                    >Kode Unik</Label
+                                >
+                                <Input
+                                    id="code"
+                                    v-model="form.code"
+                                    required
+                                    placeholder="Contoh: SRV-001"
+                                    class="h-11 rounded-lg border-slate-200"
+                                />
+                                <div
+                                    v-if="form.errors.code"
+                                    class="mt-1 text-xs text-destructive"
+                                >
+                                    {{ form.errors.code }}
+                                </div>
                             </div>
                             <div class="space-y-1.5">
-                                <Label for="function" class="text-sm font-medium">Fungsi Perangkat</Label>
+                                <Label
+                                    for="function"
+                                    class="text-sm font-medium"
+                                    >Fungsi Perangkat</Label
+                                >
                                 <Select v-model="form.function">
-                                    <SelectTrigger class="h-11 rounded-lg border-slate-200">
-                                        <SelectValue placeholder="Pilih Fungsi" />
+                                    <SelectTrigger
+                                        class="h-11 rounded-lg border-slate-200"
+                                    >
+                                        <SelectValue
+                                            placeholder="Pilih Fungsi"
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="Server">Server</SelectItem>
+                                        <SelectItem value="Server"
+                                            >Server</SelectItem
+                                        >
                                         <SelectItem value="OLT">OLT</SelectItem>
-                                        <SelectItem value="Core Network">Core Network</SelectItem>
+                                        <SelectItem value="Core Network"
+                                            >Core Network</SelectItem
+                                        >
                                         <SelectItem value="NOC">NOC</SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <div v-if="form.errors.function" class="text-xs text-destructive mt-1">{{ form.errors.function }}</div>
+                                <div
+                                    v-if="form.errors.function"
+                                    class="mt-1 text-xs text-destructive"
+                                >
+                                    {{ form.errors.function }}
+                                </div>
                             </div>
                             <div class="space-y-1.5">
-                                <Label for="status" class="text-sm font-medium">Status Operasional</Label>
+                                <Label for="status" class="text-sm font-medium"
+                                    >Status Operasional</Label
+                                >
                                 <Select v-model="form.status">
-                                    <SelectTrigger class="h-11 rounded-lg border-slate-200">
-                                        <SelectValue placeholder="Pilih Status" />
+                                    <SelectTrigger
+                                        class="h-11 rounded-lg border-slate-200"
+                                    >
+                                        <SelectValue
+                                            placeholder="Pilih Status"
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="Active">Active</SelectItem>
-                                        <SelectItem value="Inactive">Inactive</SelectItem>
-                                        <SelectItem value="Planned">Planned</SelectItem>
+                                        <SelectItem value="Active"
+                                            >Active</SelectItem
+                                        >
+                                        <SelectItem value="Inactive"
+                                            >Inactive</SelectItem
+                                        >
+                                        <SelectItem value="Planned"
+                                            >Planned</SelectItem
+                                        >
                                     </SelectContent>
                                 </Select>
-                                <div v-if="form.errors.status" class="text-xs text-destructive mt-1">{{ form.errors.status }}</div>
+                                <div
+                                    v-if="form.errors.status"
+                                    class="mt-1 text-xs text-destructive"
+                                >
+                                    {{ form.errors.status }}
+                                </div>
                             </div>
                         </div>
                     </CardContent>
@@ -120,32 +207,57 @@ const getPhotosByCategory = (category: string) => {
                 <!-- Section 2: Lokasi & Penempatan -->
                 <Card class="border shadow-none">
                     <CardHeader class="pb-4">
-                        <CardTitle class="text-base font-semibold">Lokasi & Penempatan</CardTitle>
-                        <CardDescription class="text-xs">Detail lokasi fisik perangkat ditempatkan.</CardDescription>
+                        <CardTitle class="text-base font-semibold"
+                            >Lokasi & Penempatan</CardTitle
+                        >
+                        <CardDescription class="text-xs"
+                            >Detail lokasi fisik perangkat
+                            ditempatkan.</CardDescription
+                        >
                     </CardHeader>
                     <CardContent class="space-y-5">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
                             <div class="space-y-1.5">
-                                <Label for="area" class="text-sm font-medium">Wilayah Infrastruktur</Label>
+                                <Label for="area" class="text-sm font-medium"
+                                    >Wilayah Infrastruktur</Label
+                                >
                                 <Select v-model="form.area_id">
-                                    <SelectTrigger class="h-11 rounded-lg border-slate-200">
-                                        <SelectValue placeholder="Pilih Wilayah" />
+                                    <SelectTrigger
+                                        class="h-11 rounded-lg border-slate-200"
+                                    >
+                                        <SelectValue
+                                            placeholder="Pilih Wilayah"
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem v-for="area in areas" :key="area.id" :value="area.id">
+                                        <SelectItem
+                                            v-for="area in areas"
+                                            :key="area.id"
+                                            :value="area.id"
+                                        >
                                             {{ area.name }}
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
                             <div class="space-y-1.5">
-                                <Label for="pop" class="text-sm font-medium">POP (Opsional)</Label>
+                                <Label for="pop" class="text-sm font-medium"
+                                    >POP (Opsional)</Label
+                                >
                                 <Select v-model="form.pop_id">
-                                    <SelectTrigger class="h-11 rounded-lg border-slate-200">
-                                        <SelectValue placeholder="Pilih POP (Jika ada)" />
+                                    <SelectTrigger
+                                        class="h-11 rounded-lg border-slate-200"
+                                    >
+                                        <SelectValue
+                                            placeholder="Pilih POP (Jika ada)"
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem v-for="pop in pops" :key="pop.id" :value="pop.id">
+                                        <SelectItem
+                                            v-for="pop in pops"
+                                            :key="pop.id"
+                                            :value="pop.id"
+                                        >
                                             {{ pop.name }}
                                         </SelectItem>
                                     </SelectContent>
@@ -155,35 +267,72 @@ const getPhotosByCategory = (category: string) => {
 
                         <div class="grid grid-cols-2 gap-4">
                             <div class="space-y-1.5">
-                                <Label for="building" class="text-sm font-medium">Nama Gedung</Label>
-                                <Input id="building" v-model="form.building" placeholder="Contoh: Gedung A" class="h-11 rounded-lg border-slate-200" />
+                                <Label
+                                    for="building"
+                                    class="text-sm font-medium"
+                                    >Nama Gedung</Label
+                                >
+                                <Input
+                                    id="building"
+                                    v-model="form.building"
+                                    placeholder="Contoh: Gedung A"
+                                    class="h-11 rounded-lg border-slate-200"
+                                />
                             </div>
                             <div class="space-y-1.5">
-                                <Label for="floor" class="text-sm font-medium">Lantai</Label>
-                                <Input id="floor" v-model="form.floor" placeholder="Contoh: 2" class="h-11 rounded-lg border-slate-200" />
+                                <Label for="floor" class="text-sm font-medium"
+                                    >Lantai</Label
+                                >
+                                <Input
+                                    id="floor"
+                                    v-model="form.floor"
+                                    placeholder="Contoh: 2"
+                                    class="h-11 rounded-lg border-slate-200"
+                                />
                             </div>
                         </div>
 
                         <div class="space-y-1.5">
-                            <Label for="area_location" class="text-sm font-medium">Ruangan / Keterangan Lokasi</Label>
-                            <Input id="area_location" v-model="form.area_location" placeholder="Contoh: Server Room 1" class="h-11 rounded-lg border-slate-200" />
+                            <Label
+                                for="area_location"
+                                class="text-sm font-medium"
+                                >Ruangan / Keterangan Lokasi</Label
+                            >
+                            <Input
+                                id="area_location"
+                                v-model="form.area_location"
+                                placeholder="Contoh: Server Room 1"
+                                class="h-11 rounded-lg border-slate-200"
+                            />
                         </div>
 
                         <div class="space-y-4 pt-2">
-                             <LocationPicker 
-                                :latitude="form.latitude" 
+                            <LocationPicker
+                                :latitude="form.latitude"
                                 :longitude="form.longitude"
                                 @update:latitude="form.latitude = $event"
                                 @update:longitude="form.longitude = $event"
                             />
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="space-y-1.5">
-                                    <Label class="text-sm font-medium">Latitude</Label>
-                                    <Input v-model="form.latitude" placeholder="Latitude" class="h-11 rounded-lg border-slate-200" />
+                                    <Label class="text-sm font-medium"
+                                        >Latitude</Label
+                                    >
+                                    <Input
+                                        v-model="form.latitude"
+                                        placeholder="Latitude"
+                                        class="h-11 rounded-lg border-slate-200"
+                                    />
                                 </div>
                                 <div class="space-y-1.5">
-                                    <Label class="text-sm font-medium">Longitude</Label>
-                                    <Input v-model="form.longitude" placeholder="Longitude" class="h-11 rounded-lg border-slate-200" />
+                                    <Label class="text-sm font-medium"
+                                        >Longitude</Label
+                                    >
+                                    <Input
+                                        v-model="form.longitude"
+                                        placeholder="Longitude"
+                                        class="h-11 rounded-lg border-slate-200"
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -193,36 +342,105 @@ const getPhotosByCategory = (category: string) => {
                 <!-- Section 3: Dokumentasi -->
                 <Card class="border shadow-none">
                     <CardHeader class="pb-4">
-                        <CardTitle class="text-base font-semibold">Dokumentasi & Catatan</CardTitle>
-                        <CardDescription class="text-xs">Foto dokumentasi perangkat dan instalasi.</CardDescription>
+                        <CardTitle class="text-base font-semibold"
+                            >Dokumentasi & Catatan</CardTitle
+                        >
+                        <CardDescription class="text-xs"
+                            >Foto dokumentasi perangkat dan
+                            instalasi.</CardDescription
+                        >
                     </CardHeader>
                     <CardContent class="space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div v-for="category in ['Room', 'Rack', 'Installation', 'Cabling']" :key="category" class="space-y-3">
-                                <Label class="text-sm font-medium">{{ category === 'Room' ? 'Ruangan / Lingkungan' : category === 'Rack' ? 'Rack / Kabinet' : category === 'Installation' ? 'Instalasi Perangkat' : 'Kabel / Wiring' }}</Label>
-                                
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div
+                                v-for="category in [
+                                    'Room',
+                                    'Rack',
+                                    'Installation',
+                                    'Cabling',
+                                ]"
+                                :key="category"
+                                class="space-y-3"
+                            >
+                                <Label class="text-sm font-medium">{{
+                                    category === 'Room'
+                                        ? 'Ruangan / Lingkungan'
+                                        : category === 'Rack'
+                                          ? 'Rack / Kabinet'
+                                          : category === 'Installation'
+                                            ? 'Instalasi Perangkat'
+                                            : 'Kabel / Wiring'
+                                }}</Label>
+
                                 <!-- Existing Photos -->
-                                <div v-if="getPhotosByCategory(category).length > 0" class="grid grid-cols-4 gap-2 mb-2">
-                                    <div v-for="photo in getPhotosByCategory(category)" :key="photo.id" class="aspect-square rounded-md overflow-hidden border border-slate-100 group relative">
-                                        <img :src="'/storage/' + photo.path" class="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                <div
+                                    v-if="
+                                        getPhotosByCategory(category).length > 0
+                                    "
+                                    class="mb-2 grid grid-cols-4 gap-2"
+                                >
+                                    <div
+                                        v-for="photo in getPhotosByCategory(
+                                            category,
+                                        )"
+                                        :key="photo.id"
+                                        class="group relative aspect-square overflow-hidden rounded-md border border-slate-100"
+                                    >
+                                        <img
+                                            :src="'/storage/' + photo.path"
+                                            class="h-full w-full object-cover transition-transform group-hover:scale-105"
+                                        />
                                     </div>
                                 </div>
 
-                                <PhotoUpload v-model="form.photos[category as keyof typeof form.photos]" />
-                                <div v-if="(form.errors as any)[`photos.${category}`]" class="text-xs text-destructive mt-1">{{ (form.errors as any)[`photos.${category}`] }}</div>
+                                <PhotoUpload
+                                    v-model="
+                                        form.photos[
+                                            category as keyof typeof form.photos
+                                        ]
+                                    "
+                                />
+                                <div
+                                    v-if="
+                                        (form.errors as any)[
+                                            `photos.${category}`
+                                        ]
+                                    "
+                                    class="mt-1 text-xs text-destructive"
+                                >
+                                    {{
+                                        (form.errors as any)[
+                                            `photos.${category}`
+                                        ]
+                                    }}
+                                </div>
                             </div>
                         </div>
 
                         <div class="space-y-1.5">
-                            <Label for="description" class="text-sm font-medium">Catatan Tambahan</Label>
-                            <Textarea id="description" v-model="form.description" rows="4" placeholder="Keterangan tambahan..." class="min-h-[100px] rounded-lg border-slate-200 resize-none" />
+                            <Label for="description" class="text-sm font-medium"
+                                >Catatan Tambahan</Label
+                            >
+                            <Textarea
+                                id="description"
+                                v-model="form.description"
+                                rows="4"
+                                placeholder="Keterangan tambahan..."
+                                class="min-h-[100px] resize-none rounded-lg border-slate-200"
+                            />
                         </div>
                     </CardContent>
-                    <CardFooter class="border-t bg-slate-50/50 p-6 flex justify-end gap-3 rounded-b-lg">
+                    <CardFooter
+                        class="flex justify-end gap-3 rounded-b-lg border-t bg-slate-50/50 p-6"
+                    >
                         <Button variant="ghost" as-child class="font-medium">
                             <Link :href="serverIndex().url">Batal</Link>
                         </Button>
-                        <Button type="submit" :disabled="form.processing" class="px-10 font-bold bg-primary hover:bg-primary/90 rounded-lg">
+                        <Button
+                            type="submit"
+                            :disabled="form.processing"
+                            class="rounded-lg bg-primary px-10 font-bold hover:bg-primary/90"
+                        >
                             Simpan Perubahan
                         </Button>
                     </CardFooter>

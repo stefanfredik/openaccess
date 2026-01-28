@@ -1,8 +1,14 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
-import AppLayout from '@/layouts/AppLayout.vue';
+import DeleteAction from '@/components/DeleteAction.vue';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import {
     Table,
     TableBody,
@@ -11,9 +17,9 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, Eye } from 'lucide-vue-next';
-import DeleteAction from '@/components/DeleteAction.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { Head, Link } from '@inertiajs/vue3';
+import { Eye, Pencil, Plus } from 'lucide-vue-next';
 
 defineProps<{
     cpes: {
@@ -26,15 +32,17 @@ defineProps<{
 <template>
     <Head title="CPEs" />
 
-    <AppLayout :breadcrumbs="[{ title: 'CPEs', href: '#' }]">
+    <AppLayout :breadcrumbs="[{ title: 'CPEs', href: route('cpe.index') }]">
         <div class="flex flex-col gap-6 p-4 md:p-6">
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight">CPEs</h1>
-                    <p class="text-muted-foreground">Manage Customer Premises Equipment.</p>
+                    <p class="text-muted-foreground">
+                        Manage Customer Premises Equipment.
+                    </p>
                 </div>
                 <Button as-child>
-                    <Link href="/cpe/create">
+                    <Link :href="route('cpe.create')">
                         <Plus class="mr-2 h-4 w-4" />
                         Add CPE
                     </Link>
@@ -57,33 +65,65 @@ defineProps<{
                                 <TableHead>Area</TableHead>
                                 <TableHead>Type</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead class="text-right">Actions</TableHead>
+                                <TableHead class="text-right"
+                                    >Actions</TableHead
+                                >
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             <TableRow v-for="cpe in cpes.data" :key="cpe.id">
-                                <TableCell class="font-medium">{{ cpe.code }}</TableCell>
+                                <TableCell class="font-medium">{{
+                                    cpe.code
+                                }}</TableCell>
                                 <TableCell>{{ cpe.name }}</TableCell>
-                                <TableCell>{{ cpe.area?.name || '-' }}</TableCell>
+                                <TableCell>{{
+                                    cpe.area?.name || '-'
+                                }}</TableCell>
                                 <TableCell>{{ cpe.type || '-' }}</TableCell>
                                 <TableCell>
-                                    <Badge :variant="cpe.status === 'Active' ? 'default' : 'destructive'">
+                                    <Badge
+                                        :variant="
+                                            cpe.status === 'Active'
+                                                ? 'default'
+                                                : 'destructive'
+                                        "
+                                    >
                                         {{ cpe.status }}
                                     </Badge>
                                 </TableCell>
                                 <TableCell class="text-right">
                                     <div class="flex justify-end gap-2">
-                                        <Button variant="ghost" size="icon" as-child title="View Detail">
-                                            <Link :href="`/cpe/${cpe.id}`">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            as-child
+                                            title="View Detail"
+                                        >
+                                            <Link
+                                                :href="
+                                                    route('cpe.show', cpe.id)
+                                                "
+                                            >
                                                 <Eye class="h-4 w-4" />
                                             </Link>
                                         </Button>
-                                        <Button variant="ghost" size="icon" as-child title="Edit">
-                                            <Link :href="`/cpe/${cpe.id}/edit`">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            as-child
+                                            title="Edit"
+                                        >
+                                            <Link
+                                                :href="
+                                                    route('cpe.edit', cpe.id)
+                                                "
+                                            >
                                                 <Pencil class="h-4 w-4" />
                                             </Link>
                                         </Button>
-                                        <DeleteAction :href="`/cpe/${cpe.id}`" />
+                                        <DeleteAction
+                                            :href="route('cpe.destroy', cpe.id)"
+                                        />
                                     </div>
                                 </TableCell>
                             </TableRow>

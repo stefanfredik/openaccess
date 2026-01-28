@@ -17,15 +17,15 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
-import {
-    create as odfCreate,
-    destroy as odfDestroy,
-    edit as odfEdit,
-    index as odfIndex,
-    show as odfShow,
-} from '@/routes/passive-device/odf';
+// import {
+//     create as odfCreate,
+//     destroy as odfDestroy,
+//     edit as odfEdit,
+//     index as odfIndex,
+//     show as odfShow,
+// } from '@/routes/passive-device/odf';
 import { Head, Link } from '@inertiajs/vue3';
-import { Eye, Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { Eye, Pencil, Plus } from 'lucide-vue-next';
 
 defineProps<{
     odfs: {
@@ -38,7 +38,11 @@ defineProps<{
 <template>
     <Head title="ODFs" />
 
-    <AppLayout :breadcrumbs="[{ title: 'ODFs', href: odfIndex().url }]">
+    <AppLayout
+        :breadcrumbs="[
+            { title: 'ODFs', href: route('passive-device.odf.index') },
+        ]"
+    >
         <div class="flex flex-col gap-6 p-4 md:p-6">
             <div class="flex items-center justify-between">
                 <div>
@@ -48,7 +52,7 @@ defineProps<{
                     </p>
                 </div>
                 <Button as-child>
-                    <Link :href="odfCreate().url">
+                    <Link :href="route('passive-device.odf.create')">
                         <Plus class="mr-2 h-4 w-4" />
                         Add ODF
                     </Link>
@@ -112,7 +116,14 @@ defineProps<{
                                             as-child
                                             title="View Detail"
                                         >
-                                            <Link :href="odfShow(odf.id).url">
+                                            <Link
+                                                :href="
+                                                    route(
+                                                        'passive-device.odf.show',
+                                                        odf.id,
+                                                    )
+                                                "
+                                            >
                                                 <Eye class="h-4 w-4" />
                                             </Link>
                                         </Button>
@@ -122,19 +133,25 @@ defineProps<{
                                             as-child
                                             title="Edit"
                                         >
-                                            <Link :href="odfEdit(odf.id).url">
+                                            <Link
+                                                :href="
+                                                    route(
+                                                        'passive-device.odf.edit',
+                                                        odf.id,
+                                                    )
+                                                "
+                                            >
                                                 <Pencil class="h-4 w-4" />
                                             </Link>
                                         </Button>
-                                        <Link
-                                            :href="odfDestroy(odf.id).url"
-                                            method="delete"
-                                            as="button"
-                                            class="inline-flex h-10 w-10 items-center justify-center rounded-md text-sm font-medium whitespace-nowrap text-destructive ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
-                                            title="Delete"
-                                        >
-                                            <Trash2 class="h-4 w-4" />
-                                        </Link>
+                                        <DeleteAction
+                                            :href="
+                                                route(
+                                                    'passive-device.odf.destroy',
+                                                    odf.id,
+                                                )
+                                            "
+                                        />
                                     </div>
                                 </TableCell>
                             </TableRow>

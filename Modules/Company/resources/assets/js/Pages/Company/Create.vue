@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
-import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -11,10 +9,12 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ChevronLeft, Save } from 'lucide-vue-next';
-import { index as companiesIndex, create as companiesCreate, store as companiesStore } from '@/routes/companies';
+// import { index as companiesIndex, create as companiesCreate, store as companiesStore } from '@/routes/companies';
 
 const form = useForm({
     code: '',
@@ -28,7 +28,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(companiesStore().url, {
+    form.post(route('companies.store'), {
         forceFormData: true,
     });
 };
@@ -46,19 +46,21 @@ const handleLogoChange = (e: Event) => {
 
     <AppLayout
         :breadcrumbs="[
-            { title: 'Companies', href: companiesIndex().url },
-            { title: 'Create', href: companiesCreate().url },
+            { title: 'Companies', href: route('companies.index') },
+            { title: 'Create', href: route('companies.create') },
         ]"
     >
         <div class="flex flex-col gap-6 p-4 md:p-6">
             <div class="flex items-center gap-4">
                 <Button variant="outline" size="icon" as-child>
-                    <Link :href="companiesIndex().url">
+                    <Link :href="route('companies.index')">
                         <ChevronLeft class="h-4 w-4" />
                     </Link>
                 </Button>
                 <div class="flex-1">
-                    <h1 class="text-2xl font-bold tracking-tight">Create Company</h1>
+                    <h1 class="text-2xl font-bold tracking-tight">
+                        Create Company
+                    </h1>
                     <p class="text-muted-foreground">
                         Add a new ISP company to the system.
                     </p>
@@ -82,9 +84,15 @@ const handleLogoChange = (e: Event) => {
                                         id="code"
                                         v-model="form.code"
                                         placeholder="e.g. VIS-001"
-                                        :class="{ 'border-destructive': form.errors.code }"
+                                        :class="{
+                                            'border-destructive':
+                                                form.errors.code,
+                                        }"
                                     />
-                                    <span v-if="form.errors.code" class="text-xs text-destructive">
+                                    <span
+                                        v-if="form.errors.code"
+                                        class="text-xs text-destructive"
+                                    >
                                         {{ form.errors.code }}
                                     </span>
                                 </div>
@@ -94,9 +102,15 @@ const handleLogoChange = (e: Event) => {
                                         id="name"
                                         v-model="form.name"
                                         placeholder="e.g. Vision Internet"
-                                        :class="{ 'border-destructive': form.errors.name }"
+                                        :class="{
+                                            'border-destructive':
+                                                form.errors.name,
+                                        }"
                                     />
-                                    <span v-if="form.errors.name" class="text-xs text-destructive">
+                                    <span
+                                        v-if="form.errors.name"
+                                        class="text-xs text-destructive"
+                                    >
                                         {{ form.errors.name }}
                                     </span>
                                 </div>
@@ -108,9 +122,15 @@ const handleLogoChange = (e: Event) => {
                                     id="address"
                                     v-model="form.address"
                                     placeholder="Full office address"
-                                    :class="{ 'border-destructive': form.errors.address }"
+                                    :class="{
+                                        'border-destructive':
+                                            form.errors.address,
+                                    }"
                                 />
-                                <span v-if="form.errors.address" class="text-xs text-destructive">
+                                <span
+                                    v-if="form.errors.address"
+                                    class="text-xs text-destructive"
+                                >
                                     {{ form.errors.address }}
                                 </span>
                             </div>
@@ -122,9 +142,15 @@ const handleLogoChange = (e: Event) => {
                                         id="phone"
                                         v-model="form.phone"
                                         placeholder="+62..."
-                                        :class="{ 'border-destructive': form.errors.phone }"
+                                        :class="{
+                                            'border-destructive':
+                                                form.errors.phone,
+                                        }"
                                     />
-                                    <span v-if="form.errors.phone" class="text-xs text-destructive">
+                                    <span
+                                        v-if="form.errors.phone"
+                                        class="text-xs text-destructive"
+                                    >
                                         {{ form.errors.phone }}
                                     </span>
                                 </div>
@@ -135,9 +161,15 @@ const handleLogoChange = (e: Event) => {
                                         type="email"
                                         v-model="form.email"
                                         placeholder="contact@company.com"
-                                        :class="{ 'border-destructive': form.errors.email }"
+                                        :class="{
+                                            'border-destructive':
+                                                form.errors.email,
+                                        }"
                                     />
-                                    <span v-if="form.errors.email" class="text-xs text-destructive">
+                                    <span
+                                        v-if="form.errors.email"
+                                        class="text-xs text-destructive"
+                                    >
                                         {{ form.errors.email }}
                                     </span>
                                 </div>
@@ -145,14 +177,22 @@ const handleLogoChange = (e: Event) => {
 
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div class="space-y-2">
-                                    <Label for="website">Website (Optional)</Label>
+                                    <Label for="website"
+                                        >Website (Optional)</Label
+                                    >
                                     <Input
                                         id="website"
                                         v-model="form.website"
                                         placeholder="https://..."
-                                        :class="{ 'border-destructive': form.errors.website }"
+                                        :class="{
+                                            'border-destructive':
+                                                form.errors.website,
+                                        }"
                                     />
-                                    <span v-if="form.errors.website" class="text-xs text-destructive">
+                                    <span
+                                        v-if="form.errors.website"
+                                        class="text-xs text-destructive"
+                                    >
                                         {{ form.errors.website }}
                                     </span>
                                 </div>
@@ -165,7 +205,10 @@ const handleLogoChange = (e: Event) => {
                                         accept="image/*"
                                         class="cursor-pointer"
                                     />
-                                    <span v-if="form.errors.logo" class="text-xs text-destructive">
+                                    <span
+                                        v-if="form.errors.logo"
+                                        class="text-xs text-destructive"
+                                    >
                                         {{ form.errors.logo }}
                                     </span>
                                 </div>
@@ -182,9 +225,14 @@ const handleLogoChange = (e: Event) => {
 
                             <div class="flex justify-end gap-2">
                                 <Button variant="outline" as-child>
-                                    <Link :href="companiesIndex().url">Cancel</Link>
+                                    <Link :href="route('companies.index')"
+                                        >Cancel</Link
+                                    >
                                 </Button>
-                                <Button type="submit" :disabled="form.processing">
+                                <Button
+                                    type="submit"
+                                    :disabled="form.processing"
+                                >
                                     <Save class="mr-2 h-4 w-4" />
                                     Save Company
                                 </Button>

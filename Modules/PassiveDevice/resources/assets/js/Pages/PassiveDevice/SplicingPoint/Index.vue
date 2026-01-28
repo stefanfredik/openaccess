@@ -1,8 +1,13 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
-import AppLayout from '@/layouts/AppLayout.vue';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import {
     Table,
     TableBody,
@@ -11,8 +16,9 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, Eye } from 'lucide-vue-next';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { Head, Link } from '@inertiajs/vue3';
+import { Eye, Pencil, Plus } from 'lucide-vue-next';
 
 defineProps<{
     splicingPoints: {
@@ -24,15 +30,26 @@ defineProps<{
 <template>
     <Head title="Splicing Points" />
 
-    <AppLayout :breadcrumbs="[{ title: 'Splicing Points', href: '#' }]">
+    <AppLayout
+        :breadcrumbs="[
+            {
+                title: 'Splicing Points',
+                href: route('passive-device.splicing-point.index'),
+            },
+        ]"
+    >
         <div class="flex flex-col gap-6 p-4 md:p-6">
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight">Splicing Points</h1>
-                    <p class="text-muted-foreground">Manage fiber splicing points in Joint Boxes.</p>
+                    <h1 class="text-2xl font-bold tracking-tight">
+                        Splicing Points
+                    </h1>
+                    <p class="text-muted-foreground">
+                        Manage fiber splicing points in Joint Boxes.
+                    </p>
                 </div>
                 <Button as-child>
-                    <Link href="/passive-devices/splicing-point/create">
+                    <Link :href="route('passive-device.splicing-point.create')">
                         <Plus class="mr-2 h-4 w-4" />
                         Add Splicing Point
                     </Link>
@@ -56,30 +73,75 @@ defineProps<{
                                 <TableHead>Tray</TableHead>
                                 <TableHead>Type</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead class="text-right">Actions</TableHead>
+                                <TableHead class="text-right"
+                                    >Actions</TableHead
+                                >
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow v-for="item in splicingPoints.data" :key="item.id">
-                                <TableCell class="font-medium">{{ item.code }}</TableCell>
+                            <TableRow
+                                v-for="item in splicingPoints.data"
+                                :key="item.id"
+                            >
+                                <TableCell class="font-medium">{{
+                                    item.code
+                                }}</TableCell>
                                 <TableCell>{{ item.name }}</TableCell>
-                                <TableCell>{{ item.joint_box?.name || '-' }}</TableCell>
-                                <TableCell>{{ item.tray_number || '-' }}</TableCell>
-                                <TableCell>{{ item.splicing_type || '-' }}</TableCell>
+                                <TableCell>{{
+                                    item.joint_box?.name || '-'
+                                }}</TableCell>
+                                <TableCell>{{
+                                    item.tray_number || '-'
+                                }}</TableCell>
+                                <TableCell>{{
+                                    item.splicing_type || '-'
+                                }}</TableCell>
                                 <TableCell>
-                                    <Badge :variant="item.status === 'Active' ? 'default' : (item.status === 'Damaged' ? 'destructive' : 'secondary')">
+                                    <Badge
+                                        :variant="
+                                            item.status === 'Active'
+                                                ? 'default'
+                                                : item.status === 'Damaged'
+                                                  ? 'destructive'
+                                                  : 'secondary'
+                                        "
+                                    >
                                         {{ item.status }}
                                     </Badge>
                                 </TableCell>
                                 <TableCell class="text-right">
                                     <div class="flex justify-end gap-2">
-                                        <Button variant="ghost" size="icon" as-child title="View Detail">
-                                            <Link :href="`/passive-devices/splicing-point/${item.id}`">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            as-child
+                                            title="View Detail"
+                                        >
+                                            <Link
+                                                :href="
+                                                    route(
+                                                        'passive-device.splicing-point.show',
+                                                        item.id,
+                                                    )
+                                                "
+                                            >
                                                 <Eye class="h-4 w-4" />
                                             </Link>
                                         </Button>
-                                        <Button variant="ghost" size="icon" as-child title="Edit">
-                                            <Link :href="`/passive-devices/splicing-point/${item.id}/edit`">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            as-child
+                                            title="Edit"
+                                        >
+                                            <Link
+                                                :href="
+                                                    route(
+                                                        'passive-device.splicing-point.edit',
+                                                        item.id,
+                                                    )
+                                                "
+                                            >
                                                 <Pencil class="h-4 w-4" />
                                             </Link>
                                         </Button>

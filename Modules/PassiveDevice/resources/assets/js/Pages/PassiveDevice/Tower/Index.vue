@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
-import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import {
     Table,
     TableBody,
@@ -11,9 +15,10 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, Eye } from 'lucide-vue-next';
-import { index as towerIndex, create as towerCreate, edit as towerEdit, show as towerShow, destroy as towerDestroy } from '@/routes/passive-device/tower';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { Head, Link } from '@inertiajs/vue3';
+import { Eye, Pencil, Plus } from 'lucide-vue-next';
+// import { index as towerIndex, create as towerCreate, edit as towerEdit, show as towerShow, destroy as towerDestroy } from '@/routes/passive-device/tower';
 
 defineProps<{
     towers: {
@@ -25,15 +30,21 @@ defineProps<{
 <template>
     <Head title="Towers" />
 
-    <AppLayout :breadcrumbs="[{ title: 'Towers', href: towerIndex().url }]">
+    <AppLayout
+        :breadcrumbs="[
+            { title: 'Towers', href: route('passive-device.tower.index') },
+        ]"
+    >
         <div class="flex flex-col gap-6 p-4 md:p-6">
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight">Towers</h1>
-                    <p class="text-muted-foreground">Manage wireless tower/pole infrastructure.</p>
+                    <p class="text-muted-foreground">
+                        Manage wireless tower/pole infrastructure.
+                    </p>
                 </div>
                 <Button as-child>
-                    <Link :href="towerCreate().url">
+                    <Link :href="route('passive-device.tower.create')">
                         <Plus class="mr-2 h-4 w-4" />
                         Add Tower
                     </Link>
@@ -43,9 +54,7 @@ defineProps<{
             <Card>
                 <CardHeader>
                     <CardTitle>Towers</CardTitle>
-                    <CardDescription>
-                        List of all Towers.
-                    </CardDescription>
+                    <CardDescription> List of all Towers. </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Table>
@@ -56,37 +65,74 @@ defineProps<{
                                 <TableHead>Area</TableHead>
                                 <TableHead>Height</TableHead>
                                 <TableHead>Segments</TableHead>
-                                <TableHead class="text-right">Actions</TableHead>
+                                <TableHead class="text-right"
+                                    >Actions</TableHead
+                                >
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow v-for="tower in towers.data" :key="tower.id">
-                                <TableCell class="font-medium">{{ tower.code || '-' }}</TableCell>
+                            <TableRow
+                                v-for="tower in towers.data"
+                                :key="tower.id"
+                            >
+                                <TableCell class="font-medium">{{
+                                    tower.code || '-'
+                                }}</TableCell>
                                 <TableCell>{{ tower.name }}</TableCell>
-                                <TableCell>{{ tower.area?.name || '-' }}</TableCell>
+                                <TableCell>{{
+                                    tower.area?.name || '-'
+                                }}</TableCell>
                                 <TableCell>{{ tower.height }} m</TableCell>
-                                <TableCell>{{ tower.segment_count || 1 }} Segments</TableCell>
+                                <TableCell
+                                    >{{
+                                        tower.segment_count || 1
+                                    }}
+                                    Segments</TableCell
+                                >
                                 <TableCell class="text-right">
                                     <div class="flex justify-end gap-2">
-                                        <Button variant="ghost" size="icon" as-child title="View Detail">
-                                            <Link :href="towerShow(tower.id).url">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            as-child
+                                            title="View Detail"
+                                        >
+                                            <Link
+                                                :href="
+                                                    route(
+                                                        'passive-device.tower.show',
+                                                        tower.id,
+                                                    )
+                                                "
+                                            >
                                                 <Eye class="h-4 w-4" />
                                             </Link>
                                         </Button>
-                                        <Button variant="ghost" size="icon" as-child title="Edit">
-                                            <Link :href="towerEdit(tower.id).url">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            as-child
+                                            title="Edit"
+                                        >
+                                            <Link
+                                                :href="
+                                                    route(
+                                                        'passive-device.tower.edit',
+                                                        tower.id,
+                                                    )
+                                                "
+                                            >
                                                 <Pencil class="h-4 w-4" />
                                             </Link>
                                         </Button>
-                                        <Link
-                                            :href="towerDestroy(tower.id).url"
-                                            method="delete"
-                                            as="button"
-                                            class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10 text-destructive hover:text-destructive"
-                                            title="Delete"
-                                        >
-                                            <Trash2 class="h-4 w-4" />
-                                        </Link>
+                                        <DeleteAction
+                                            :href="
+                                                route(
+                                                    'passive-device.tower.destroy',
+                                                    tower.id,
+                                                )
+                                            "
+                                        />
                                     </div>
                                 </TableCell>
                             </TableRow>

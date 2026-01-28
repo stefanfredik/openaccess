@@ -14,12 +14,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
-import {
-    create as routerCreate,
-    destroy as routerDestroy,
-    edit as routerEdit,
-    show as routerShow,
-} from '@/routes/active-device/router';
+
 import { Head, Link } from '@inertiajs/vue3';
 import { Plus } from 'lucide-vue-next';
 
@@ -33,7 +28,11 @@ defineProps<{
 <template>
     <Head title="Routers" />
 
-    <AppLayout :breadcrumbs="[{ title: 'Routers', href: '#' }]">
+    <AppLayout
+        :breadcrumbs="[
+            { title: 'Routers', href: route('active-device.router.index') },
+        ]"
+    >
         <div class="flex flex-col gap-6 p-4 md:p-6">
             <div class="flex items-center justify-between">
                 <div>
@@ -41,7 +40,7 @@ defineProps<{
                     <p class="text-muted-foreground">Daftar Routers.</p>
                 </div>
                 <Button as-child>
-                    <Link :href="routerCreate().url">
+                    <Link :href="route('active-device.router.create')">
                         <Plus class="mr-2 h-4 w-4" />
                         Tambah
                     </Link>
@@ -108,23 +107,28 @@ defineProps<{
                                     <div class="flex justify-end gap-2">
                                         <ShowAction
                                             :href="
-                                                routerShow({ router: item.id })
-                                                    .url
+                                                route(
+                                                    'active-device.router.show',
+                                                    item.id,
+                                                )
                                             "
                                             title="View Detail"
                                         />
                                         <EditAction
                                             :href="
-                                                routerEdit({ router: item.id })
-                                                    .url
+                                                route(
+                                                    'active-device.router.edit',
+                                                    item.id,
+                                                )
                                             "
                                             title="Edit"
                                         />
                                         <DeleteAction
                                             :href="
-                                                routerDestroy({
-                                                    router: item.id,
-                                                }).url
+                                                route(
+                                                    'active-device.router.destroy',
+                                                    item.id,
+                                                )
                                             "
                                         />
                                     </div>

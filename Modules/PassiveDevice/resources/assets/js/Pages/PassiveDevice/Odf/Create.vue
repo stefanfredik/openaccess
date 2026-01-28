@@ -20,7 +20,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { index as odfIndex, store as odfStore } from '@/routes/passive-device/odf';
+// import { index as odfIndex, store as odfStore } from '@/routes/passive-device/odf';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { onMounted } from 'vue';
 
@@ -45,7 +45,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(odfStore().url);
+    form.post(route('passive-device.odf.store'));
 };
 
 onMounted(() => {
@@ -65,7 +65,7 @@ onMounted(() => {
 
     <AppLayout
         :breadcrumbs="[
-            { title: 'ODFs', href: odfIndex().url },
+            { title: 'ODFs', href: route('passive-device.odf.index') },
             { title: 'Add ODF', href: '#' },
         ]"
     >
@@ -338,7 +338,9 @@ onMounted(() => {
                         class="mt-6 flex justify-end gap-2 border-t p-6"
                     >
                         <Button variant="outline" as-child>
-                            <Link :href="odfIndex().url">Cancel</Link>
+                            <Link :href="route('passive-device.odf.index')"
+                                >Cancel</Link
+                            >
                         </Button>
                         <Button type="submit" :disabled="form.processing">
                             {{ form.processing ? 'Saving...' : 'Save ODF' }}

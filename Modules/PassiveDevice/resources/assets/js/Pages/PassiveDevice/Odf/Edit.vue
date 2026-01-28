@@ -20,10 +20,10 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/AppLayout.vue';
-import {
-    index as odfIndex,
-    update as odfUpdate,
-} from '@/routes/passive-device/odf';
+// import {
+//     index as odfIndex,
+//     update as odfUpdate,
+// } from '@/routes/passive-device/odf';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
 const props = defineProps<{
@@ -48,7 +48,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.put(odfUpdate(props.odf.id).url);
+    form.put(route('passive-device.odf.update', props.odf.id));
 };
 </script>
 
@@ -57,7 +57,7 @@ const submit = () => {
 
     <AppLayout
         :breadcrumbs="[
-            { title: 'ODFs', href: odfIndex().url },
+            { title: 'ODFs', href: route('passive-device.odf.index') },
             { title: 'Edit ODF', href: '#' },
         ]"
     >
@@ -329,7 +329,9 @@ const submit = () => {
                         class="mt-6 flex justify-end gap-2 border-t p-6"
                     >
                         <Button variant="outline" as-child>
-                            <Link :href="odfIndex().url">Cancel</Link>
+                            <Link :href="route('passive-device.odf.index')"
+                                >Cancel</Link
+                            >
                         </Button>
                         <Button type="submit" :disabled="form.processing">
                             {{ form.processing ? 'Updating...' : 'Update ODF' }}

@@ -1,8 +1,16 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
-import AppLayout from '@/layouts/AppLayout.vue';
+import DeleteAction from '@/components/DeleteAction.vue';
+import EditAction from '@/components/EditAction.vue';
+import ShowAction from '@/components/ShowAction.vue';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import {
     Table,
     TableBody,
@@ -11,12 +19,9 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, Eye } from 'lucide-vue-next';
-import DeleteAction from '@/components/DeleteAction.vue';
-import ShowAction from '@/components/ShowAction.vue';
-import EditAction from '@/components/EditAction.vue';
-import { create as apCreate, show as apShow, edit as apEdit, destroy as apDestroy } from '@/routes/active-device/access-point';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { Head, Link } from '@inertiajs/vue3';
+import { Plus } from 'lucide-vue-next';
 
 defineProps<{
     accessPoints: {
@@ -28,15 +33,26 @@ defineProps<{
 <template>
     <Head title="Access Points" />
 
-    <AppLayout :breadcrumbs="[{ title: 'Access Points', href: '#' }]">
+    <AppLayout
+        :breadcrumbs="[
+            {
+                title: 'Access Points',
+                href: route('active-device.access-point.index'),
+            },
+        ]"
+    >
         <div class="flex flex-col gap-6 p-4 md:p-6">
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight">Access Points</h1>
-                    <p class="text-muted-foreground">Manage Wireless Radios / Access Points.</p>
+                    <h1 class="text-2xl font-bold tracking-tight">
+                        Access Points
+                    </h1>
+                    <p class="text-muted-foreground">
+                        Manage Wireless Radios / Access Points.
+                    </p>
                 </div>
                 <Button as-child>
-                    <Link :href="apCreate().url">
+                    <Link :href="route('active-device.access-point.create')">
                         <Plus class="mr-2 h-4 w-4" />
                         Add AP
                     </Link>
@@ -60,26 +76,70 @@ defineProps<{
                                 <TableHead>Frequency</TableHead>
                                 <TableHead>SSIDs</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead class="text-right">Actions</TableHead>
+                                <TableHead class="text-right"
+                                    >Actions</TableHead
+                                >
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow v-for="item in accessPoints.data" :key="item.id">
-                                <TableCell class="font-medium">{{ item.code }}</TableCell>
+                            <TableRow
+                                v-for="item in accessPoints.data"
+                                :key="item.id"
+                            >
+                                <TableCell class="font-medium">{{
+                                    item.code
+                                }}</TableCell>
                                 <TableCell>{{ item.name }}</TableCell>
-                                <TableCell>{{ item.area?.name || '-' }}</TableCell>
-                                <TableCell>{{ item.frequency || '-' }}</TableCell>
+                                <TableCell>{{
+                                    item.area?.name || '-'
+                                }}</TableCell>
+                                <TableCell>{{
+                                    item.frequency || '-'
+                                }}</TableCell>
                                 <TableCell>{{ item.ssid_count }}</TableCell>
                                 <TableCell>
-                                    <Badge :variant="item.is_active ? 'default' : 'destructive'">
-                                        {{ item.is_active ? 'Active' : 'Inactive' }}
+                                    <Badge
+                                        :variant="
+                                            item.is_active
+                                                ? 'default'
+                                                : 'destructive'
+                                        "
+                                    >
+                                        {{
+                                            item.is_active
+                                                ? 'Active'
+                                                : 'Inactive'
+                                        }}
                                     </Badge>
                                 </TableCell>
                                 <TableCell class="text-right">
                                     <div class="flex justify-end gap-2">
-                                        <ShowAction :href="apShow({ access_point: item.id }).url" title="View Detail" />
-                                        <EditAction :href="apEdit({ access_point: item.id }).url" title="Edit" />
-                                        <DeleteAction :href="apDestroy({ access_point: item.id }).url" />
+                                        <ShowAction
+                                            :href="
+                                                route(
+                                                    'active-device.access-point.show',
+                                                    item.id,
+                                                )
+                                            "
+                                            title="View Detail"
+                                        />
+                                        <EditAction
+                                            :href="
+                                                route(
+                                                    'active-device.access-point.edit',
+                                                    item.id,
+                                                )
+                                            "
+                                            title="Edit"
+                                        />
+                                        <DeleteAction
+                                            :href="
+                                                route(
+                                                    'active-device.access-point.destroy',
+                                                    item.id,
+                                                )
+                                            "
+                                        />
                                     </div>
                                 </TableCell>
                             </TableRow>
