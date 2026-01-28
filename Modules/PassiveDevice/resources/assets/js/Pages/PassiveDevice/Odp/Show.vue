@@ -17,7 +17,7 @@ defineProps<{
 
     <AppLayout
         :breadcrumbs="[
-            { title: 'ODPs', href: route('passive-device.odp.index') },
+            { title: 'ODPs', href: route('passive-device.odps.index') },
             { title: odp.name, href: '#' },
         ]"
     >
@@ -25,7 +25,7 @@ defineProps<{
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
                     <Button variant="ghost" size="icon" as-child>
-                        <Link :href="route('passive-device.odp.index')">
+                        <Link :href="route('passive-device.odps.index')">
                             <ArrowLeft class="h-4 w-4" />
                         </Link>
                     </Button>
@@ -37,7 +37,7 @@ defineProps<{
                     </div>
                 </div>
                 <Button as-child>
-                    <Link :href="route('passive-device.odp.edit', odp.id)">
+                    <Link :href="route('passive-device.odps.edit', odp.id)">
                         <Pencil class="mr-2 h-4 w-4" />
                         Edit ODP
                     </Link>

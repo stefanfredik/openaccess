@@ -65,7 +65,7 @@ const summaryCards = [
         icon: Layers,
         color: 'text-emerald-600',
         bg: 'bg-emerald-50',
-        link: 'passive-device.odp.index',
+        link: 'passive-device.odps.index',
     },
     {
         title: 'Total Tiang',
@@ -162,7 +162,7 @@ const modules = [
         items: [
             {
                 name: 'ODP',
-                href: 'passive-device.odp.index',
+                href: 'passive-device.odps.index',
                 desc: `${props.stats.passive_devices.odp} Titik`,
             },
             {

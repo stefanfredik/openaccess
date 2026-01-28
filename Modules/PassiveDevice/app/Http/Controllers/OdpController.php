@@ -48,7 +48,7 @@ class OdpController extends Controller
             return back()->with('success', 'ODP created successfully.');
         }
 
-        return redirect()->route('passive-device.odp.index')
+        return redirect()->route('passive-device.odps.index')
             ->with('success', 'ODP created successfully.');
     }
 
@@ -85,7 +85,7 @@ class OdpController extends Controller
         $odp = Odp::findOrFail($id);
         $odp->update($request->validated());
 
-        return redirect()->route('passive-device.odp.index')
+        return redirect()->route('passive-device.odps.index')
             ->with('success', 'ODP updated successfully.');
     }
 
@@ -97,7 +97,7 @@ class OdpController extends Controller
         $odp = Odp::findOrFail($id);
         $odp->delete();
 
-        return redirect()->route('passive-device.odp.index')
+        return redirect()->route('passive-device.odps.index')
             ->with('success', 'ODP deleted successfully.');
     }
 }

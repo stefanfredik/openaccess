@@ -32,6 +32,8 @@ class UpdateAccessPointRequest extends FormRequest
             'ssid_count' => ['required', 'integer', 'min:0'],
             'is_active' => ['boolean'],
             'installed_at' => ['nullable', 'date'],
+            'latitude' => ['nullable', 'string'],
+            'longitude' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
         ];
     }

@@ -32,6 +32,8 @@ class UpdateSwitchRequest extends FormRequest
             'switch_type' => ['nullable', 'string', 'max:255'],
             'is_active' => ['boolean'],
             'installed_at' => ['nullable', 'date'],
+            'latitude' => ['nullable', 'string'],
+            'longitude' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
         ];
     }

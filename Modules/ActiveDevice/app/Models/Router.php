@@ -26,6 +26,8 @@ class Router extends Model
         'port_count',
         'is_active',
         'installed_at',
+        'latitude',
+        'longitude',
         'description',
     ];
 

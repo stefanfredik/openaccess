@@ -45,7 +45,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.put(route('passive-device.odp.update', props.odp.id));
+    form.put(route('passive-device.odps.update', props.odp.id));
 };
 </script>
 
@@ -54,7 +54,7 @@ const submit = () => {
 
     <AppLayout
         :breadcrumbs="[
-            { title: 'ODPs', href: route('passive-device.odp.index') },
+            { title: 'ODPs', href: route('passive-device.odps.index') },
             { title: 'Edit ODP', href: '#' },
         ]"
     >
@@ -325,7 +325,7 @@ const submit = () => {
                         class="mt-6 flex justify-end gap-2 border-t p-6"
                     >
                         <Button variant="outline" as-child>
-                            <Link :href="route('passive-device.odp.index')"
+                            <Link :href="route('passive-device.odps.index')"
                                 >Cancel</Link
                             >
                         </Button>

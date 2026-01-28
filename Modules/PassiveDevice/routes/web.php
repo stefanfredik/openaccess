@@ -14,7 +14,7 @@ use Modules\PassiveDevice\Http\Controllers\TowerController;
 Route::middleware(['auth', 'verified'])->prefix('pendataan/passive-devices')->name('passive-device.')->group(function () {
     Route::resource('odf', OdfController::class);
     Route::resource('pole', PoleController::class);
-    Route::resource('odp', OdpController::class);
+    Route::resource('odps', OdpController::class);
     Route::resource('cable', CableController::class);
     Route::resource('joint-box', JointBoxController::class);
     Route::resource('splicing-point', SplicingPointController::class);

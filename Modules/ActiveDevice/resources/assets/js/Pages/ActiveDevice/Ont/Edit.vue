@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import InputMap from '@/components/InputMap.vue';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -41,6 +42,8 @@ const form = useForm({
     onu_type: props.ont.onu_type || '',
     is_active: !!props.ont.is_active,
     installed_at: props.ont.installed_at || '',
+    latitude: props.ont.latitude || '',
+    longitude: props.ont.longitude || '',
     description: props.ont.description || '',
 });
 
@@ -233,6 +236,50 @@ const submit = () => {
                                     id="mac_address"
                                     v-model="form.mac_address"
                                 />
+                            </div>
+                        </div>
+
+                        <InputMap
+                            v-model:latitude="form.latitude"
+                            v-model:longitude="form.longitude"
+                            :area-id="form.infrastructure_area_id"
+                            :areas="areas"
+                        />
+
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div class="space-y-2">
+                                <Label for="latitude">Latitude</Label>
+                                <Input
+                                    id="latitude"
+                                    v-model="form.latitude"
+                                    :class="{
+                                        'border-destructive':
+                                            form.errors.latitude,
+                                    }"
+                                />
+                                <p
+                                    v-if="form.errors.latitude"
+                                    class="text-sm text-destructive"
+                                >
+                                    {{ form.errors.latitude }}
+                                </p>
+                            </div>
+                            <div class="space-y-2">
+                                <Label for="longitude">Longitude</Label>
+                                <Input
+                                    id="longitude"
+                                    v-model="form.longitude"
+                                    :class="{
+                                        'border-destructive':
+                                            form.errors.longitude,
+                                    }"
+                                />
+                                <p
+                                    v-if="form.errors.longitude"
+                                    class="text-sm text-destructive"
+                                >
+                                    {{ form.errors.longitude }}
+                                </p>
                             </div>
                         </div>
 

@@ -23,7 +23,7 @@ import { index as mapIndex } from '@/routes/map';
 import { index as cableIndex } from '@/routes/passive-device/cable';
 import { index as jointBoxIndex } from '@/routes/passive-device/joint-box';
 import { index as odfIndex } from '@/routes/passive-device/odf';
-import { index as odpIndex } from '@/routes/passive-device/odp';
+import { index as odpIndex } from '@/routes/passive-device/odps';
 import { index as poleIndex } from '@/routes/passive-device/pole';
 import { index as slackIndex } from '@/routes/passive-device/slack';
 import { index as splicingPointIndex } from '@/routes/passive-device/splicing-point';

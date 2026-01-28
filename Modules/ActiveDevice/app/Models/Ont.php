@@ -26,6 +26,8 @@ class Ont extends Model
         'onu_type',
         'is_active',
         'installed_at',
+        'latitude',
+        'longitude',
         'description',
     ];
 

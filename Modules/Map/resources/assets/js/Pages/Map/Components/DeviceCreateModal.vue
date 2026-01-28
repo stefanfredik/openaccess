@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import { useForm } from '@inertiajs/vue3';
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
@@ -9,10 +8,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
     Select,
     SelectContent,
@@ -20,6 +17,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { useForm } from '@inertiajs/vue3';
+import { watch } from 'vue';
 import { toast } from 'vue-sonner';
 
 const props = defineProps<{
@@ -47,6 +47,9 @@ const form = useForm({
     description: '',
     // specific fields
     port_count: 0,
+    used_port_count: 0,
+    input_count: 0,
+    output_count: 0,
     core_capacity: 0,
     onu_type: '',
     frequency: '',
@@ -62,30 +65,33 @@ const form = useForm({
     ownership: 'Sendiri',
     antenna_capacity: '',
 });
-watch(() => props.open, (newVal) => {
-    if (newVal) {
-        form.reset();
-        form.latitude = props.lat?.toString() || '';
-        form.longitude = props.lng?.toString() || '';
-        form.path = props.path || [];
-        form.infrastructure_area_id = '';
-        form.pop_id = '';
-    }
-});
+watch(
+    () => props.open,
+    (newVal) => {
+        if (newVal) {
+            form.reset();
+            form.latitude = props.lat?.toString() || '';
+            form.longitude = props.lng?.toString() || '';
+            form.path = props.path || [];
+            form.infrastructure_area_id = '';
+            form.pop_id = '';
+        }
+    },
+);
 
 const getStoreUrl = () => {
     const urls: Record<string, string> = {
-        'olt': '/active-devices/olt',
-        'ont': '/active-devices/ont',
-        'router': '/active-devices/router',
-        'switch': '/active-devices/switch',
-        'access-point': '/active-devices/access-point',
-        'odp': '/passive-devices/odp',
-        'odf': '/passive-devices/odf',
-        'pole': '/passive-devices/pole',
-        'tower': '/passive-devices/tower',
-        'joint-box': '/passive-devices/joint-box',
-        'cable': '/passive-devices/cable',
+        olt: route('active-device.olt.store'),
+        ont: route('active-device.ont.store'),
+        router: route('active-device.router.store'),
+        switch: route('active-device.switch.store'),
+        'access-point': route('active-device.access-point.store'),
+        odp: route('passive-device.odps.store'),
+        odf: route('passive-device.odf.store'),
+        pole: route('passive-device.pole.store'),
+        tower: route('passive-device.tower.store'),
+        'joint-box': route('passive-device.joint-box.store'),
+        cable: route('passive-device.cable.store'),
     };
     return urls[props.deviceType || ''] || '';
 };
@@ -100,12 +106,14 @@ const submit = () => {
         onError: (errors) => {
             toast.error('Failed to create device. Please check the form.');
             console.error(errors);
-        }
+        },
     });
 };
 
 const isActiveDevice = () => {
-    return ['olt', 'ont', 'router', 'switch', 'access-point'].includes(props.deviceType || '');
+    return ['olt', 'ont', 'router', 'switch', 'access-point'].includes(
+        props.deviceType || '',
+    );
 };
 </script>
 
@@ -113,9 +121,15 @@ const isActiveDevice = () => {
     <Dialog :open="open" @update:open="emit('update:open', $event)">
         <DialogContent class="sm:max-w-[500px]">
             <DialogHeader>
-                <DialogTitle>Add New {{ deviceType?.toUpperCase().replace('-', ' ') }}</DialogTitle>
+                <DialogTitle
+                    >Add New
+                    {{
+                        deviceType?.toUpperCase().replace('-', ' ')
+                    }}</DialogTitle
+                >
                 <DialogDescription>
-                    Fill in the details for the new device at the selected location.
+                    Fill in the details for the new device at the selected
+                    location.
                 </DialogDescription>
             </DialogHeader>
 
@@ -128,12 +142,21 @@ const isActiveDevice = () => {
                                 <SelectValue placeholder="Select Area" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem v-for="area in areas" :key="area.id" :value="area.id.toString()">
+                                <SelectItem
+                                    v-for="area in areas"
+                                    :key="area.id"
+                                    :value="area.id.toString()"
+                                >
                                     {{ area.name }}
                                 </SelectItem>
                             </SelectContent>
                         </Select>
-                        <p v-if="form.errors.infrastructure_area_id" class="text-xs text-red-500">{{ form.errors.infrastructure_area_id }}</p>
+                        <p
+                            v-if="form.errors.infrastructure_area_id"
+                            class="text-xs text-red-500"
+                        >
+                            {{ form.errors.infrastructure_area_id }}
+                        </p>
                     </div>
 
                     <div v-if="isActiveDevice()" class="space-y-2">
@@ -143,12 +166,21 @@ const isActiveDevice = () => {
                                 <SelectValue placeholder="Select POP" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem v-for="pop in pops" :key="pop.id" :value="pop.id.toString()">
+                                <SelectItem
+                                    v-for="pop in pops"
+                                    :key="pop.id"
+                                    :value="pop.id.toString()"
+                                >
                                     {{ pop.name }}
                                 </SelectItem>
                             </SelectContent>
                         </Select>
-                        <p v-if="form.errors.pop_id" class="text-xs text-red-500">{{ form.errors.pop_id }}</p>
+                        <p
+                            v-if="form.errors.pop_id"
+                            class="text-xs text-red-500"
+                        >
+                            {{ form.errors.pop_id }}
+                        </p>
                     </div>
                 </div>
 
@@ -156,27 +188,42 @@ const isActiveDevice = () => {
                     <div class="space-y-2">
                         <Label>Code</Label>
                         <Input v-model="form.code" placeholder="Device Code" />
-                        <p v-if="form.errors.code" class="text-xs text-red-500">{{ form.errors.code }}</p>
+                        <p v-if="form.errors.code" class="text-xs text-red-500">
+                            {{ form.errors.code }}
+                        </p>
                     </div>
                     <div class="space-y-2">
                         <Label>Name</Label>
                         <Input v-model="form.name" placeholder="Device Name" />
-                        <p v-if="form.errors.name" class="text-xs text-red-500">{{ form.errors.name }}</p>
+                        <p v-if="form.errors.name" class="text-xs text-red-500">
+                            {{ form.errors.name }}
+                        </p>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-2">
                         <Label>Latitude</Label>
-                        <Input v-model="form.latitude" readonly class="bg-gray-50" />
+                        <Input
+                            v-model="form.latitude"
+                            readonly
+                            class="bg-gray-50"
+                        />
                     </div>
                     <div class="space-y-2">
                         <Label>Longitude</Label>
-                        <Input v-model="form.longitude" readonly class="bg-gray-50" />
+                        <Input
+                            v-model="form.longitude"
+                            readonly
+                            class="bg-gray-50"
+                        />
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4" v-if="deviceType !== 'tower'">
+                <div
+                    class="grid grid-cols-2 gap-4"
+                    v-if="deviceType !== 'tower'"
+                >
                     <div class="space-y-2">
                         <Label>Brand</Label>
                         <Input v-model="form.brand" />
@@ -191,19 +238,59 @@ const isActiveDevice = () => {
                     <div class="space-y-2">
                         <Label>PON Port Count</Label>
                         <Input type="number" v-model="form.pon_port_count" />
-                        <p v-if="form.errors.pon_port_count" class="text-xs text-red-500">{{ form.errors.pon_port_count }}</p>
+                        <p
+                            v-if="form.errors.pon_port_count"
+                            class="text-xs text-red-500"
+                        >
+                            {{ form.errors.pon_port_count }}
+                        </p>
                     </div>
                     <div class="space-y-2">
                         <Label>Uplink Port Count</Label>
                         <Input type="number" v-model="form.uplink_port_count" />
-                        <p v-if="form.errors.uplink_port_count" class="text-xs text-red-500">{{ form.errors.uplink_port_count }}</p>
+                        <p
+                            v-if="form.errors.uplink_port_count"
+                            class="text-xs text-red-500"
+                        >
+                            {{ form.errors.uplink_port_count }}
+                        </p>
                     </div>
                 </div>
 
                 <!-- Type Specific Fields -->
-                <div v-if="deviceType === 'odp' || deviceType === 'router' || deviceType === 'switch'" class="space-y-2">
+                <div
+                    v-if="
+                        deviceType === 'odp' ||
+                        deviceType === 'odf' ||
+                        deviceType === 'router' ||
+                        deviceType === 'switch'
+                    "
+                    class="space-y-2"
+                >
                     <Label>Port Count</Label>
                     <Input type="number" v-model="form.port_count" />
+                </div>
+
+                <div
+                    v-if="deviceType === 'odp' || deviceType === 'odf'"
+                    class="space-y-2"
+                >
+                    <Label>Used Port Count</Label>
+                    <Input type="number" v-model="form.used_port_count" />
+                </div>
+
+                <div
+                    v-if="deviceType === 'joint-box'"
+                    class="grid grid-cols-2 gap-4"
+                >
+                    <div class="space-y-2">
+                        <Label>Input Count</Label>
+                        <Input type="number" v-model="form.input_count" />
+                    </div>
+                    <div class="space-y-2">
+                        <Label>Output Count</Label>
+                        <Input type="number" v-model="form.output_count" />
+                    </div>
                 </div>
 
                 <div v-if="deviceType === 'odf'" class="space-y-2">
@@ -218,17 +305,25 @@ const isActiveDevice = () => {
 
                 <div v-if="deviceType === 'access-point'" class="space-y-2">
                     <Label>Frequency</Label>
-                    <Input v-model="form.frequency" placeholder="2.4GHz / 5GHz" />
+                    <Input
+                        v-model="form.frequency"
+                        placeholder="2.4GHz / 5GHz"
+                    />
                 </div>
 
                 <!-- Pole Specific Fields -->
-                <div v-if="deviceType === 'pole'" class="space-y-4 pt-2 border-t">
+                <div
+                    v-if="deviceType === 'pole'"
+                    class="space-y-4 border-t pt-2"
+                >
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-2">
                             <Label>Material</Label>
                             <Select v-model="form.material">
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select Material" />
+                                    <SelectValue
+                                        placeholder="Select Material"
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="Beton">Beton</SelectItem>
@@ -258,8 +353,11 @@ const isActiveDevice = () => {
                 </div>
 
                 <!-- Tower Specific Fields -->
-                <div v-if="deviceType === 'tower'" class="space-y-4 pt-2 border-t">
-                     <div class="grid grid-cols-2 gap-4">
+                <div
+                    v-if="deviceType === 'tower'"
+                    class="space-y-4 border-t pt-2"
+                >
+                    <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-2">
                             <Label>Tower Type</Label>
                             <Select v-model="form.type">
@@ -268,7 +366,9 @@ const isActiveDevice = () => {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="SST">SST</SelectItem>
-                                    <SelectItem value="Monopole">Monopole</SelectItem>
+                                    <SelectItem value="Monopole"
+                                        >Monopole</SelectItem
+                                    >
                                     <SelectItem value="Guyed">Guyed</SelectItem>
                                 </SelectContent>
                             </Select>
@@ -279,14 +379,18 @@ const isActiveDevice = () => {
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
-                         <div class="space-y-2">
+                        <div class="space-y-2">
                             <Label>Ownership</Label>
                             <Select v-model="form.ownership">
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select Ownership" />
+                                    <SelectValue
+                                        placeholder="Select Ownership"
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="Sendiri">Sendiri</SelectItem>
+                                    <SelectItem value="Sendiri"
+                                        >Sendiri</SelectItem
+                                    >
                                     <SelectItem value="Sewa">Sewa</SelectItem>
                                 </SelectContent>
                             </Select>
@@ -299,7 +403,10 @@ const isActiveDevice = () => {
                 </div>
 
                 <!-- Cable Specific Fields -->
-                <div v-if="deviceType === 'cable'" class="space-y-4 pt-2 border-t">
+                <div
+                    v-if="deviceType === 'cable'"
+                    class="space-y-4 border-t pt-2"
+                >
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-2">
                             <Label>Cable Type</Label>
@@ -308,8 +415,12 @@ const isActiveDevice = () => {
                                     <SelectValue placeholder="Select Type" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="Single Mode">Single Mode</SelectItem>
-                                    <SelectItem value="Multi Mode">Multi Mode</SelectItem>
+                                    <SelectItem value="Single Mode"
+                                        >Single Mode</SelectItem
+                                    >
+                                    <SelectItem value="Multi Mode"
+                                        >Multi Mode</SelectItem
+                                    >
                                 </SelectContent>
                             </Select>
                         </div>
@@ -320,7 +431,11 @@ const isActiveDevice = () => {
                     </div>
                     <div class="space-y-2">
                         <Label>Approx. Length (m)</Label>
-                        <Input type="number" step="0.01" v-model="form.length" />
+                        <Input
+                            type="number"
+                            step="0.01"
+                            v-model="form.length"
+                        />
                     </div>
                 </div>
 
@@ -330,7 +445,11 @@ const isActiveDevice = () => {
                 </div>
 
                 <DialogFooter>
-                    <Button type="button" variant="outline" @click="emit('update:open', false)">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="emit('update:open', false)"
+                    >
                         Cancel
                     </Button>
                     <Button type="submit" :disabled="form.processing">

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import InputMap from '@/components/InputMap.vue';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -250,6 +251,13 @@ onMounted(() => {
                                 />
                             </div>
                         </div>
+
+                        <InputMap
+                            v-model:latitude="form.latitude"
+                            v-model:longitude="form.longitude"
+                            :area-id="form.infrastructure_area_id"
+                            :areas="areas"
+                        />
 
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div class="space-y-2">

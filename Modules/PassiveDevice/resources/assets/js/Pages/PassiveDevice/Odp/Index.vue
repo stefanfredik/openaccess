@@ -32,7 +32,7 @@ defineProps<{
 
     <AppLayout
         :breadcrumbs="[
-            { title: 'ODPs', href: route('passive-device.odp.index') },
+            { title: 'ODPs', href: route('passive-device.odps.index') },
         ]"
     >
         <div class="flex flex-col gap-6 p-4 md:p-6">
@@ -44,7 +44,7 @@ defineProps<{
                     </p>
                 </div>
                 <Button as-child>
-                    <Link :href="route('passive-device.odp.create')">
+                    <Link :href="route('passive-device.odps.create')">
                         <Plus class="mr-2 h-4 w-4" />
                         Add ODP
                     </Link>
@@ -97,7 +97,7 @@ defineProps<{
                                             <Link
                                                 :href="
                                                     route(
-                                                        'passive-device.odp.show',
+                                                        'passive-device.odps.show',
                                                         odp.id,
                                                     )
                                                 "
@@ -114,7 +114,7 @@ defineProps<{
                                             <Link
                                                 :href="
                                                     route(
-                                                        'passive-device.odp.edit',
+                                                        'passive-device.odps.edit',
                                                         odp.id,
                                                     )
                                                 "
@@ -125,7 +125,7 @@ defineProps<{
                                         <DeleteAction
                                             :href="
                                                 route(
-                                                    'passive-device.odp.destroy',
+                                                    'passive-device.odps.destroy',
                                                     odp.id,
                                                 )
                                             "

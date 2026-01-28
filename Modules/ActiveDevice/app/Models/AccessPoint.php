@@ -27,6 +27,8 @@ class AccessPoint extends Model
         'ssid_count',
         'is_active',
         'installed_at',
+        'latitude',
+        'longitude',
         'description',
     ];
 

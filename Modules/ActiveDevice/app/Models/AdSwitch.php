@@ -27,6 +27,8 @@ class AdSwitch extends Model
         'switch_type',
         'is_active',
         'installed_at',
+        'latitude',
+        'longitude',
         'description',
     ];
 
