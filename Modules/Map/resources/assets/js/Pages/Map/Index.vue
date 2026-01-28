@@ -30,7 +30,7 @@ import { Switch } from '@/components/ui/switch';
 import axios from 'axios';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Filter, MapPin, Plus, X } from 'lucide-vue-next';
+import { Filter, MapPin, Plus } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import DeviceCreateModal from './Components/DeviceCreateModal.vue';
@@ -49,7 +49,6 @@ const showCreateModal = ref(false);
 const showWarningModal = ref(false);
 const showFilter = ref(true); // Default open
 const isFilterMinimized = ref(false);
-const showLegend = ref(false);
 const relocatingDevice = ref<{ id: number; type: string; name: string } | null>(
     null,
 );
@@ -64,7 +63,7 @@ const isDrawingCable = ref(false);
 const mapData = ref<any>(null); // Store fetched GeoJSON
 
 const getSavedFilters = () => {
-    const saved = localStorage.getItem('map_device_filters');
+    // Default: Show all devices
     const defaults = {
         pop: true,
         olt: true,
@@ -80,17 +79,20 @@ const getSavedFilters = () => {
         cpe: true,
         cable: true,
     };
+    // Force default state to be 'All On' every time the map loads
     return defaults;
 };
 
 const deviceFilters = ref<Record<string, boolean>>(getSavedFilters());
 
 const updateFilter = (type: string, value: boolean) => {
+    console.log(`Updating filter: ${type} -> ${value}`);
     deviceFilters.value[type] = value;
     renderMap();
 };
 
 const toggleAllFilters = (value: boolean) => {
+    console.log(`Toggling all filters: ${value}`);
     Object.keys(deviceFilters.value).forEach(
         (key) => (deviceFilters.value[key] = value),
     );
@@ -142,30 +144,6 @@ const iconPaths = {
     joint_box:
         '<path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/><path d="M3 7l9 6 9-6"/>', // Box
     cpe: '<path d="M15 10v4"/><path d="M17.84 7.17a4 4 0 0 0-5.66 0"/><path d="M20.66 4.34a8 8 0 0 0-11.31 0"/><rect x="2" y="14" width="20" height="8" rx="2"/>', // CPE
-};
-
-// Legend grouping for display
-const legendGroups = {
-    infrastructure: [{ label: 'POP', icon: iconPaths.pop, color: colors.blue }],
-    active: [
-        { label: 'OLT', icon: iconPaths.olt, color: colors.green },
-        { label: 'ONT', icon: iconPaths.ont, color: colors.violet },
-        { label: 'Router', icon: iconPaths.router, color: colors.red },
-        { label: 'Switch', icon: iconPaths.switch, color: colors.yellow },
-        {
-            label: 'Access Point',
-            icon: iconPaths.access_point,
-            color: colors.grey,
-        },
-    ],
-    passive: [
-        { label: 'ODP', icon: iconPaths.odp, color: colors.orange },
-        { label: 'ODF', icon: iconPaths.odf, color: colors.gold },
-        { label: 'Pole', icon: iconPaths.pole, color: colors.black },
-        { label: 'Tower', icon: iconPaths.tower, color: colors.red },
-        { label: 'Joint Box', icon: iconPaths.joint_box, color: colors.grey },
-    ],
-    customer: [{ label: 'CPE', icon: iconPaths.cpe, color: colors.violet }],
 };
 
 const mapIcons = {
@@ -798,12 +776,9 @@ watch(pendingDeviceType, (newVal) => {
     }
 });
 
-watch(showCreateModal, (val: boolean) => {
+watch(showCreateModal, (val) => {
     if (!val) {
         if (pendingDeviceType.value === 'cable') {
-            // If canceled modal while drawing
-            // we keep it or clear it based on UX.
-            // Let's clear for now if it was successfully saved or explicitly canceled.
         }
 
         if (tempMarker && map) {
@@ -815,10 +790,6 @@ watch(showCreateModal, (val: boolean) => {
 
 watch(selectedAreaId, (newVal) => {
     localStorage.setItem('map_selected_area', newVal);
-});
-
-watch(showLegend, (newVal) => {
-    localStorage.setItem('map_show_legend', newVal.toString());
 });
 </script>
 
@@ -832,19 +803,16 @@ watch(showLegend, (newVal) => {
             :class="['map-page-container', { 'cursor-pin': pendingDeviceType }]"
         >
             <div ref="mapContainer" class="absolute inset-0 z-0"></div>
-
-            <!-- Configuration Panel (Filter & Legend) -->
-            <!-- Configuration Panel (Filter & Legend) -->
             <div
                 v-if="showFilter"
                 :class="[
                     'absolute top-3 right-3 z-10 flex w-60 animate-in flex-col gap-2 overflow-hidden rounded-lg bg-white/95 p-3 shadow-lg backdrop-blur-md transition-all slide-in-from-right-5',
-                    isFilterMinimized ? 'h-auto w-auto' : 'max-h-[80vh]',
+                    isFilterMinimized ? 'h-auto w-8' : 'max-h-[80vh]',
                 ]"
             >
                 <!-- Header -->
                 <div class="flex items-center justify-between border-b pb-2">
-                    <h3 class="font-bold text-gray-800">Map Configuration</h3>
+                    <h3 class="font-bold text-gray-800">Filter</h3>
                     <div class="flex items-center gap-1">
                         <Button
                             variant="ghost"
@@ -875,17 +843,19 @@ watch(showLegend, (newVal) => {
                     <div class="space-y-2">
                         <label
                             class="text-xs font-semibold tracking-wider text-gray-500 uppercase"
-                            >Area Coverage</label
+                            >Wilayah</label
                         >
                         <Select
                             v-model="selectedAreaId"
                             @update:modelValue="loadMapData"
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="Select Area" />
+                                <SelectValue placeholder="Pilih Wilayah" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all"> All Areas </SelectItem>
+                                <SelectItem value="all">
+                                    Semua Wilayah
+                                </SelectItem>
                                 <SelectItem
                                     v-for="area in areas"
                                     :key="area.id"
@@ -903,7 +873,7 @@ watch(showLegend, (newVal) => {
                             <label
                                 class="text-xs font-semibold tracking-wider text-gray-500 uppercase"
                             >
-                                Devices
+                                Perangkat
                             </label>
                             <Button
                                 variant="ghost"
@@ -911,7 +881,7 @@ watch(showLegend, (newVal) => {
                                 class="h-6 px-2 text-xs text-blue-600 hover:bg-blue-50 hover:text-blue-700"
                                 @click="toggleAllFilters(true)"
                             >
-                                Show All
+                                Tampilkan Semua
                             </Button>
                         </div>
                         <div class="mt-2 space-y-2">
@@ -960,84 +930,12 @@ watch(showLegend, (newVal) => {
                                     >
                                 </div>
                                 <Switch
-                                    :checked="deviceFilters[item.key]"
+                                    :checked="!!deviceFilters[item.key]"
                                     @update:checked="
                                         (v) => updateFilter(item.key, v)
                                     "
                                 />
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Legend Panel (Floating separately or integrated if preferred, keeping separate for now) -->
-            <div
-                v-if="showLegend"
-                class="flex max-h-[60vh] w-64 animate-in flex-col gap-2 overflow-hidden rounded-xl bg-white/95 p-4 shadow-2xl backdrop-blur-md transition-all slide-in-from-right-5"
-            >
-                <div class="flex items-center justify-between border-b pb-2">
-                    <h3 class="font-bold text-gray-800">Legend</h3>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        class="h-6 w-6 rounded-full hover:bg-gray-100"
-                        @click="showLegend = false"
-                    >
-                        <X class="h-4 w-4 text-gray-500" />
-                    </Button>
-                </div>
-                <div class="custom-scrollbar space-y-3 overflow-y-auto pr-1">
-                    <!-- Legend Content (Refactored to loop) -->
-                    <div v-for="(group, name) in legendGroups" :key="name">
-                        <div
-                            class="mb-1 text-[10px] font-bold text-gray-500 uppercase"
-                        >
-                            {{ name }}
-                        </div>
-                        <div class="space-y-1">
-                            <div
-                                v-for="item in group"
-                                :key="item.label"
-                                class="flex items-center gap-2 text-xs"
-                            >
-                                <div
-                                    class="flex h-6 w-6 items-center justify-center rounded-full border bg-white shadow-sm"
-                                    :style="{ borderColor: item.color }"
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="12"
-                                        height="12"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        :stroke="item.color"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        v-html="item.icon"
-                                    ></svg>
-                                </div>
-                                <span>{{ item.label }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Cable Legend -->
-                    <div>
-                        <div
-                            class="mb-1 text-[10px] font-bold text-gray-500 uppercase"
-                        >
-                            Cables
-                        </div>
-                        <div class="flex items-center gap-2 text-xs">
-                            <div class="h-1 w-6 rounded-full bg-blue-600"></div>
-                            <span>Active Path</span>
-                        </div>
-                        <div class="mt-1 flex items-center gap-2 text-xs">
-                            <div
-                                class="h-1 w-6 border-t-2 border-dashed border-blue-400"
-                            ></div>
-                            <span>Draft Path</span>
                         </div>
                     </div>
                 </div>
