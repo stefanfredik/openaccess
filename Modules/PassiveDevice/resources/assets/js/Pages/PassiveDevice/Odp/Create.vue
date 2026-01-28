@@ -65,7 +65,7 @@ onMounted(() => {
 
     <AppLayout
         :breadcrumbs="[
-            { title: 'ODPs', href: route('passive-device.odps.index') },
+            { title: 'ODPs', href: route('pepassive-device.odps.index') },
             { title: 'Add ODP', href: '#' },
         ]"
     >

@@ -26,12 +26,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
+import { Switch as UiSwitch } from '@/components/ui/switch';
 import axios from 'axios';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Filter, MapPin, Plus } from 'lucide-vue-next';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import DeviceCreateModal from './Components/DeviceCreateModal.vue';
 
@@ -83,20 +83,48 @@ const getSavedFilters = () => {
     return defaults;
 };
 
-const deviceFilters = ref<Record<string, boolean>>(getSavedFilters());
+const deviceFilters = reactive<Record<string, boolean>>(getSavedFilters());
 
-const updateFilter = (type: string, value: boolean) => {
-    console.log(`Updating filter: ${type} -> ${value}`);
-    deviceFilters.value[type] = value;
-    renderMap();
+const deviceTypes = {
+    active: [
+        { label: 'OLT', value: 'olt' },
+        { label: 'ONT', value: 'ont' },
+        { label: 'Router', value: 'router' },
+        { label: 'Switch', value: 'switch' },
+        { label: 'Access Point', value: 'access_point' },
+        { label: 'CPE', value: 'cpe' },
+    ],
+    passive: [
+        { label: 'ODP', value: 'odp' },
+        { label: 'ODF', value: 'odf' },
+        { label: 'Pole', value: 'pole' },
+        { label: 'Tower', value: 'tower' },
+        { label: 'Joint Box', value: 'joint_box' },
+        { label: 'Cable', value: 'cable' },
+    ],
 };
 
-const toggleAllFilters = (value: boolean) => {
-    console.log(`Toggling all filters: ${value}`);
-    Object.keys(deviceFilters.value).forEach(
-        (key) => (deviceFilters.value[key] = value),
+const updateFilter = (type: string, value: boolean) => {
+    console.log(`[DEBUG] ===== updateFilter START =====`);
+    console.log(`[DEBUG] Type: ${type}, New Value: ${value}`);
+    console.log(
+        `[DEBUG] Old state:`,
+        JSON.parse(JSON.stringify(deviceFilters)),
     );
+
+    // Update the filter
+    deviceFilters[type] = value;
+
+    console.log(
+        `[DEBUG] New state:`,
+        JSON.parse(JSON.stringify(deviceFilters)),
+    );
+    console.log(`[DEBUG] Calling renderMap()...`);
+
+    // Force re-render
     renderMap();
+
+    console.log(`[DEBUG] ===== updateFilter END =====`);
 };
 
 // Helper to create valid SVG string (using Lucide style paths)
@@ -229,29 +257,51 @@ const isPointInPolygon = (lat: number, lng: number, polygon: any[]) => {
 };
 
 const renderMap = () => {
-    if (!map || !mapData.value) return;
+    if (!map || !mapData.value) {
+        console.warn('Map or Data not ready');
+        return;
+    }
+
+    console.log('--- RenderMap Start ---');
+    console.log('DeviceFilters State:', JSON.stringify(deviceFilters));
 
     // Clear existing layers
-    if (markersLayer) markersLayer.clearLayers();
+    if (markersLayer) {
+        markersLayer.clearLayers();
+        console.log('markersLayer cleared');
+    }
 
     const geojson = mapData.value;
+    if (!geojson.features || !Array.isArray(geojson.features)) {
+        console.warn('Invalid GeoJSON features');
+        return;
+    }
 
     // Filter features based on deviceFilters
     const filteredFeatures = geojson.features.filter((feature: any) => {
-        const type = feature.properties.type;
+        const type = (feature.properties?.type || '').toLowerCase().trim();
+        const isLine = feature.geometry?.type === 'LineString';
 
-        // Check explicit device types
-        if (deviceFilters.value[type] !== undefined) {
-            return deviceFilters.value[type];
+        // Use 'cable' filter for all LineStrings
+        if (isLine) {
+            return deviceFilters.cable === true;
         }
 
-        // Special handling for cables (might be labeled differently or implicitly)
-        if (type === 'cable' || feature.geometry.type === 'LineString') {
-            return deviceFilters.value.cable;
+        // Check explicit device types for Points and others
+        if (deviceFilters[type] !== undefined) {
+            return deviceFilters[type] === true;
         }
 
-        return true; // Unknown types shown by default
+        // Default: If type is unknown, only show if at least one filter matches?
+        // Actually, let's keep showing unknown items to avoid total disappearance if data has typos.
+        return true;
     });
+
+    console.log(
+        `Total: ${geojson.features.length}, Filtered: ${filteredFeatures.length}`,
+    );
+
+    console.log('Filtered features count:', filteredFeatures.length);
 
     const filteredGeojson = { ...geojson, features: filteredFeatures };
 
@@ -393,9 +443,14 @@ const loadMapData = async () => {
     }
 };
 
+// Watch deviceFilters for changes
 watch(
     deviceFilters,
     (newVal) => {
+        console.log(
+            '[DEBUG] deviceFilters watcher triggered:',
+            JSON.stringify(newVal),
+        );
         localStorage.setItem('map_device_filters', JSON.stringify(newVal));
         renderMap();
     },
@@ -806,8 +861,8 @@ watch(selectedAreaId, (newVal) => {
             <div
                 v-if="showFilter"
                 :class="[
-                    'absolute top-3 right-3 z-10 flex w-60 animate-in flex-col gap-2 overflow-hidden rounded-lg bg-white/95 p-3 shadow-lg backdrop-blur-md transition-all slide-in-from-right-5',
-                    isFilterMinimized ? 'h-auto w-8' : 'max-h-[80vh]',
+                    'absolute top-3 right-3 z-[1000] flex w-60 animate-in flex-col gap-2 rounded-lg bg-white/95 p-3 shadow-lg backdrop-blur-md transition-all slide-in-from-right-5',
+                    isFilterMinimized ? 'h-auto w-8' : '',
                 ]"
             >
                 <!-- Header -->
@@ -852,7 +907,7 @@ watch(selectedAreaId, (newVal) => {
                             <SelectTrigger>
                                 <SelectValue placeholder="Pilih Wilayah" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent class="z-[2001]">
                                 <SelectItem value="all">
                                     Semua Wilayah
                                 </SelectItem>
@@ -868,27 +923,27 @@ watch(selectedAreaId, (newVal) => {
                     </div>
 
                     <!-- Device Filters -->
-                    <div class="space-y-3">
+                    <div
+                        class="custom-scrollbar max-h-[50vh] space-y-3 overflow-y-auto pr-1"
+                    >
                         <div class="flex items-center justify-between">
                             <label
                                 class="text-xs font-semibold tracking-wider text-gray-500 uppercase"
                             >
                                 Perangkat
                             </label>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                class="h-6 px-2 text-xs text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-                                @click="toggleAllFilters(true)"
-                            >
-                                Tampilkan Semua
-                            </Button>
                         </div>
                         <div class="mt-2 space-y-2">
                             <div
                                 v-for="item in availableFilters"
                                 :key="item.key"
-                                class="flex items-center justify-between rounded-lg border border-gray-100 p-2 transition-colors hover:bg-gray-50"
+                                class="flex cursor-pointer items-center justify-between rounded-lg border border-gray-100 p-2 transition-colors hover:bg-gray-50"
+                                @click="
+                                    updateFilter(
+                                        item.key,
+                                        !deviceFilters[item.key],
+                                    )
+                                "
                             >
                                 <div class="flex items-center gap-3">
                                     <!-- Icon Preview -->
@@ -929,11 +984,8 @@ watch(selectedAreaId, (newVal) => {
                                         >{{ item.label }}</span
                                     >
                                 </div>
-                                <Switch
-                                    :checked="!!deviceFilters[item.key]"
-                                    @update:checked="
-                                        (v) => updateFilter(item.key, v)
-                                    "
+                                <UiSwitch
+                                    v-model:checked="deviceFilters[item.key]"
                                 />
                             </div>
                         </div>
@@ -1160,5 +1212,22 @@ watch(selectedAreaId, (newVal) => {
     width: 100%;
     position: relative;
     overflow: hidden;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1;
 }
 </style>
