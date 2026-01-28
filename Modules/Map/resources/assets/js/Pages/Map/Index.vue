@@ -19,13 +19,19 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import axios from 'axios';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Info, MapPin, Plus } from 'lucide-vue-next';
-import { onMounted, ref, watch } from 'vue';
+import { Filter, MapPin, Plus, X } from 'lucide-vue-next';
+import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import DeviceCreateModal from './Components/DeviceCreateModal.vue';
 
@@ -41,7 +47,9 @@ const selectedAreaId = ref<string>(
 const pendingDeviceType = ref<string | null>(null);
 const showCreateModal = ref(false);
 const showWarningModal = ref(false);
-const showLegend = ref(localStorage.getItem('map_show_legend') !== 'false');
+const showFilter = ref(true); // Default open
+const isFilterMinimized = ref(false);
+const showLegend = ref(false);
 const relocatingDevice = ref<{ id: number; type: string; name: string } | null>(
     null,
 );
@@ -57,40 +65,36 @@ const mapData = ref<any>(null); // Store fetched GeoJSON
 
 const getSavedFilters = () => {
     const saved = localStorage.getItem('map_device_filters');
-    if (saved) {
-        try {
-            return JSON.parse(saved);
-        } catch (e) {
-            console.error('Failed to parse saved filters', e);
-        }
-    }
-    return {
-        infrastructure: true,
-        active: true,
-        passive: true,
-        customer: true,
-        cables: true,
+    const defaults = {
+        pop: true,
+        olt: true,
+        ont: true,
+        router: true,
+        switch: true,
+        access_point: true,
+        odp: true,
+        odf: true,
+        pole: true,
+        tower: true,
+        joint_box: true,
+        cpe: true,
+        cable: true,
     };
+    return defaults;
 };
 
-const deviceFilters = ref(getSavedFilters());
+const deviceFilters = ref<Record<string, boolean>>(getSavedFilters());
 
-const deviceTypes = {
-    active: [
-        { label: 'OLT', value: 'olt' },
-        { label: 'ONT', value: 'ont' },
-        { label: 'Router', value: 'router' },
-        { label: 'Switch', value: 'switch' },
-        { label: 'Access Point', value: 'access-point' },
-    ],
-    passive: [
-        { label: 'ODP', value: 'odp' },
-        { label: 'ODF', value: 'odf' },
-        { label: 'Pole', value: 'pole' },
-        { label: 'Tower', value: 'tower' },
-        { label: 'Joint Box', value: 'joint-box' },
-        { label: 'Jalur Kabel', value: 'cable' },
-    ],
+const updateFilter = (type: string, value: boolean) => {
+    deviceFilters.value[type] = value;
+    renderMap();
+};
+
+const toggleAllFilters = (value: boolean) => {
+    Object.keys(deviceFilters.value).forEach(
+        (key) => (deviceFilters.value[key] = value),
+    );
+    renderMap();
 };
 
 // Helper to create valid SVG string (using Lucide style paths)
@@ -106,7 +110,7 @@ const createIcon = (color: string, svgPath: string) =>
     L.divIcon({
         className: 'custom-map-icon',
         html: getIconHtml(color, svgPath),
-        iconSize: [32, 32],
+        iconSize: [32, 16],
         iconAnchor: [16, 16],
         popupAnchor: [0, -18],
     });
@@ -140,6 +144,30 @@ const iconPaths = {
     cpe: '<path d="M15 10v4"/><path d="M17.84 7.17a4 4 0 0 0-5.66 0"/><path d="M20.66 4.34a8 8 0 0 0-11.31 0"/><rect x="2" y="14" width="20" height="8" rx="2"/>', // CPE
 };
 
+// Legend grouping for display
+const legendGroups = {
+    infrastructure: [{ label: 'POP', icon: iconPaths.pop, color: colors.blue }],
+    active: [
+        { label: 'OLT', icon: iconPaths.olt, color: colors.green },
+        { label: 'ONT', icon: iconPaths.ont, color: colors.violet },
+        { label: 'Router', icon: iconPaths.router, color: colors.red },
+        { label: 'Switch', icon: iconPaths.switch, color: colors.yellow },
+        {
+            label: 'Access Point',
+            icon: iconPaths.access_point,
+            color: colors.grey,
+        },
+    ],
+    passive: [
+        { label: 'ODP', icon: iconPaths.odp, color: colors.orange },
+        { label: 'ODF', icon: iconPaths.odf, color: colors.gold },
+        { label: 'Pole', icon: iconPaths.pole, color: colors.black },
+        { label: 'Tower', icon: iconPaths.tower, color: colors.red },
+        { label: 'Joint Box', icon: iconPaths.joint_box, color: colors.grey },
+    ],
+    customer: [{ label: 'CPE', icon: iconPaths.cpe, color: colors.violet }],
+};
+
 const mapIcons = {
     pop: createIcon(colors.blue, iconPaths.pop),
     olt: createIcon(colors.green, iconPaths.olt),
@@ -154,6 +182,48 @@ const mapIcons = {
     joint_box: createIcon(colors.grey, iconPaths.joint_box),
     cpe: createIcon(colors.violet, iconPaths.cpe),
 };
+
+const availableFilters = computed(() => [
+    { key: 'pop', label: 'POP', icon: iconPaths.pop, color: colors.blue },
+    { key: 'olt', label: 'OLT', icon: iconPaths.olt, color: colors.green },
+    { key: 'ont', label: 'ONT', icon: iconPaths.ont, color: colors.violet },
+    {
+        key: 'router',
+        label: 'Router',
+        icon: iconPaths.router,
+        color: colors.red,
+    },
+    {
+        key: 'switch',
+        label: 'Switch',
+        icon: iconPaths.switch,
+        color: colors.yellow,
+    },
+    {
+        key: 'access_point',
+        label: 'Access Point',
+        icon: iconPaths.access_point,
+        color: colors.grey,
+    },
+    { key: 'odp', label: 'ODP', icon: iconPaths.odp, color: colors.orange },
+    { key: 'odf', label: 'ODF', icon: iconPaths.odf, color: colors.gold },
+    { key: 'pole', label: 'Pole', icon: iconPaths.pole, color: colors.black },
+    { key: 'tower', label: 'Tower', icon: iconPaths.tower, color: colors.red },
+    {
+        key: 'joint_box',
+        label: 'Joint Box',
+        icon: iconPaths.joint_box,
+        color: colors.grey,
+    },
+    { key: 'cpe', label: 'CPE', icon: iconPaths.cpe, color: colors.violet },
+    { key: 'cable', label: 'Cables', icon: null, color: '#3b82f6' },
+]);
+
+const selectedAreaName = computed(() => {
+    if (selectedAreaId.value === 'all') return 'All Areas';
+    const area = props.areas.find((a) => String(a.id) === selectedAreaId.value);
+    return area ? area.name : 'Unknown Area';
+});
 
 let map: L.Map | null = null;
 let markersLayer: L.FeatureGroup | null = null;
@@ -192,18 +262,17 @@ const renderMap = () => {
     const filteredFeatures = geojson.features.filter((feature: any) => {
         const type = feature.properties.type;
 
-        // Map types to filter categories
-        if (['pop'].includes(type)) return deviceFilters.value.infrastructure;
-        if (['olt', 'ont', 'router', 'switch', 'access_point'].includes(type))
-            return deviceFilters.value.active;
-        if (['odp', 'odf', 'pole', 'tower', 'joint_box'].includes(type))
-            return deviceFilters.value.passive;
-        if (['cpe'].includes(type)) return deviceFilters.value.customer;
-        // Check geometry type for cables, as they might be labeled 'cable' or implicitly line strings
-        if (feature.geometry.type === 'LineString' || type === 'cable')
-            return deviceFilters.value.cables;
+        // Check explicit device types
+        if (deviceFilters.value[type] !== undefined) {
+            return deviceFilters.value[type];
+        }
 
-        return true; // Default show
+        // Special handling for cables (might be labeled differently or implicitly)
+        if (type === 'cable' || feature.geometry.type === 'LineString') {
+            return deviceFilters.value.cable;
+        }
+
+        return true; // Unknown types shown by default
     });
 
     const filteredGeojson = { ...geojson, features: filteredFeatures };
@@ -239,7 +308,7 @@ const renderMap = () => {
             if (feature.geometry.type === 'Point') {
                 popupContent += `
                     <div class="pt-2 border-t">
-                        <button 
+                        <button
                             onclick="window.startRelocation(${props.id}, '${props.type}', '${props.name.replace(/'/g, "\\'")}')"
                             class="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs font-bold py-2 px-3 rounded-md transition-colors flex items-center justify-center gap-2"
                         >
@@ -260,7 +329,7 @@ const renderMap = () => {
                         ${props.end_point ? `<div class="text-xs text-gray-700"><strong>End:</strong> ${props.end_point}</div>` : ''}
                     </div>
                     <div class="pt-2 border-t mt-2">
-                        <button 
+                        <button
                             onclick="window.editCable(${props.id})"
                             class="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs font-bold py-2 px-3 rounded-md transition-colors flex items-center justify-center gap-2"
                         >
@@ -764,382 +833,211 @@ watch(showLegend, (newVal) => {
         >
             <div ref="mapContainer" class="absolute inset-0 z-0"></div>
 
-            <!-- Map Controls Overlay (Top Right) -->
+            <!-- Configuration Panel (Filter & Legend) -->
+            <!-- Configuration Panel (Filter & Legend) -->
             <div
-                class="absolute top-4 right-4 z-[1000] flex flex-col items-end gap-2"
+                v-if="showFilter"
+                :class="[
+                    'absolute top-3 right-3 z-10 flex w-60 animate-in flex-col gap-2 overflow-hidden rounded-lg bg-white/95 p-3 shadow-lg backdrop-blur-md transition-all slide-in-from-right-5',
+                    isFilterMinimized ? 'h-auto w-auto' : 'max-h-[80vh]',
+                ]"
             >
-                <!-- Legend Toggle Button -->
-                <Button
-                    variant="secondary"
-                    size="sm"
-                    class="h-9 gap-2 border-blue-100 bg-white font-semibold text-blue-600 shadow-md hover:bg-blue-50"
-                    @click="showLegend = !showLegend"
-                >
-                    <Info class="h-4 w-4" />
-                    {{ showLegend ? 'Sembunyikan Legend' : 'Tampilkan Legend' }}
-                </Button>
+                <!-- Header -->
+                <div class="flex items-center justify-between border-b pb-2">
+                    <h3 class="font-bold text-gray-800">Map Configuration</h3>
+                    <div class="flex items-center gap-1">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            class="h-6 w-6 rounded-full hover:bg-gray-100"
+                            @click="isFilterMinimized = !isFilterMinimized"
+                            :title="isFilterMinimized ? 'Expand' : 'Minimize'"
+                        >
+                            <Filter class="h-4 w-4 text-gray-500" />
+                        </Button>
+                    </div>
+                </div>
 
-                <!-- Info Overlay -->
+                <!-- Minimized View -->
                 <div
-                    class="max-h-[70vh] w-64 space-y-4 overflow-y-auto rounded-lg bg-white p-4 shadow-lg"
+                    v-if="isFilterMinimized"
+                    class="text-sm font-medium text-gray-600"
                 >
+                    {{ selectedAreaName }}
+                </div>
+
+                <!-- Expanded View -->
+                <div
+                    v-else
+                    class="custom-scrollbar space-y-4 overflow-y-auto pr-2"
+                >
+                    <!-- Area Filter -->
                     <div class="space-y-2">
-                        <h3 class="mb-1 text-sm font-bold text-gray-900">
-                            Filter by Area
-                        </h3>
-                        <select
+                        <label
+                            class="text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                            >Area Coverage</label
+                        >
+                        <Select
                             v-model="selectedAreaId"
-                            @change="loadMapData"
-                            class="w-full rounded-md border-gray-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            @update:modelValue="loadMapData"
                         >
-                            <option value="all">All Areas</option>
-                            <option
-                                v-for="area in areas"
-                                :key="area.id"
-                                :value="area.id"
-                            >
-                                {{ area.name }}
-                            </option>
-                        </select>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select Area" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all"> All Areas </SelectItem>
+                                <SelectItem
+                                    v-for="area in areas"
+                                    :key="area.id"
+                                    :value="String(area.id)"
+                                >
+                                    {{ area.name }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
 
+                    <!-- Device Filters -->
                     <div class="space-y-3">
-                        <h3
-                            class="border-b pb-1 text-sm font-bold text-gray-900"
-                        >
-                            Filter Perangkat
-                        </h3>
-
                         <div class="flex items-center justify-between">
-                            <Label
-                                for="filter-infra"
-                                class="cursor-pointer text-xs"
-                                >Infrastructure (POP)</Label
+                            <label
+                                class="text-xs font-semibold tracking-wider text-gray-500 uppercase"
                             >
-                            <Switch
-                                id="filter-infra"
-                                :checked="deviceFilters.infrastructure"
-                                @update:checked="
-                                    (v) => (deviceFilters.infrastructure = v)
-                                "
-                            />
+                                Devices
+                            </label>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                class="h-6 px-2 text-xs text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                                @click="toggleAllFilters(true)"
+                            >
+                                Show All
+                            </Button>
                         </div>
-                        <div class="flex items-center justify-between">
-                            <Label
-                                for="filter-active"
-                                class="cursor-pointer text-xs"
-                                >Active Devices</Label
+                        <div class="mt-2 space-y-2">
+                            <div
+                                v-for="item in availableFilters"
+                                :key="item.key"
+                                class="flex items-center justify-between rounded-lg border border-gray-100 p-2 transition-colors hover:bg-gray-50"
                             >
-                            <Switch
-                                id="filter-active"
-                                :checked="deviceFilters.active"
-                                @update:checked="
-                                    (v) => (deviceFilters.active = v)
-                                "
-                            />
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <Label
-                                for="filter-passive"
-                                class="cursor-pointer text-xs"
-                                >Passive Devices</Label
-                            >
-                            <Switch
-                                id="filter-passive"
-                                :checked="deviceFilters.passive"
-                                @update:checked="
-                                    (v) => (deviceFilters.passive = v)
-                                "
-                            />
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <Label
-                                for="filter-customer"
-                                class="cursor-pointer text-xs"
-                                >Customer (CPE)</Label
-                            >
-                            <Switch
-                                id="filter-customer"
-                                :checked="deviceFilters.customer"
-                                @update:checked="
-                                    (v) => (deviceFilters.customer = v)
-                                "
-                            />
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <Label
-                                for="filter-cables"
-                                class="cursor-pointer text-xs"
-                                >Cables</Label
-                            >
-                            <Switch
-                                id="filter-cables"
-                                :checked="deviceFilters.cables"
-                                @update:checked="
-                                    (v) => (deviceFilters.cables = v)
-                                "
-                            />
+                                <div class="flex items-center gap-3">
+                                    <!-- Icon Preview -->
+                                    <div
+                                        class="flex h-8 w-8 items-center justify-center rounded-full border-2 bg-white shadow-sm"
+                                        :style="{
+                                            borderColor: item.color || '#ccc',
+                                        }"
+                                    >
+                                        <svg
+                                            v-if="item.icon"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="16"
+                                            height="16"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            :stroke="item.color || '#ccc'"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            v-html="item.icon"
+                                        ></svg>
+                                        <!-- Fallback for Cable or others without specific icon paths -->
+                                        <div
+                                            v-else-if="item.key === 'cable'"
+                                            class="h-1 w-6 -rotate-45 transform"
+                                            :style="{
+                                                backgroundColor: '#3b82f6',
+                                            }"
+                                        ></div>
+                                        <div
+                                            v-else
+                                            class="h-2 w-2 rounded-full bg-gray-400"
+                                        ></div>
+                                    </div>
+                                    <span
+                                        class="text-sm font-medium text-gray-700"
+                                        >{{ item.label }}</span
+                                    >
+                                </div>
+                                <Switch
+                                    :checked="deviceFilters[item.key]"
+                                    @update:checked="
+                                        (v) => updateFilter(item.key, v)
+                                    "
+                                />
+                            </div>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <div
-                        v-show="showLegend"
-                        class="animate-in space-y-2 border-t pt-2 duration-300 fade-in slide-in-from-top-2"
+            <!-- Legend Panel (Floating separately or integrated if preferred, keeping separate for now) -->
+            <div
+                v-if="showLegend"
+                class="flex max-h-[60vh] w-64 animate-in flex-col gap-2 overflow-hidden rounded-xl bg-white/95 p-4 shadow-2xl backdrop-blur-md transition-all slide-in-from-right-5"
+            >
+                <div class="flex items-center justify-between border-b pb-2">
+                    <h3 class="font-bold text-gray-800">Legend</h3>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        class="h-6 w-6 rounded-full hover:bg-gray-100"
+                        @click="showLegend = false"
                     >
-                        <h3 class="mb-2 text-sm font-bold text-gray-900">
-                            Legend
-                        </h3>
-
-                        <div class="mt-2 text-xs font-semibold text-gray-600">
-                            Infrastructure
+                        <X class="h-4 w-4 text-gray-500" />
+                    </Button>
+                </div>
+                <div class="custom-scrollbar space-y-3 overflow-y-auto pr-1">
+                    <!-- Legend Content (Refactored to loop) -->
+                    <div v-for="(group, name) in legendGroups" :key="name">
+                        <div
+                            class="mb-1 text-[10px] font-bold text-gray-500 uppercase"
+                        >
+                            {{ name }}
                         </div>
-                        <div class="flex items-center gap-2 text-xs">
+                        <div class="space-y-1">
                             <div
-                                class="flex h-6 w-6 items-center justify-center rounded-full border border-blue-500 bg-white shadow-sm"
+                                v-for="item in group"
+                                :key="item.label"
+                                class="flex items-center gap-2 text-xs"
                             >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="12"
-                                    height="12"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="#2563eb"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    v-html="iconPaths.pop"
-                                ></svg>
+                                <div
+                                    class="flex h-6 w-6 items-center justify-center rounded-full border bg-white shadow-sm"
+                                    :style="{ borderColor: item.color }"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="12"
+                                        height="12"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        :stroke="item.color"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        v-html="item.icon"
+                                    ></svg>
+                                </div>
+                                <span>{{ item.label }}</span>
                             </div>
-                            <span>POP</span>
                         </div>
-
-                        <div class="mt-2 text-xs font-semibold text-gray-600">
-                            Active Devices
-                        </div>
-                        <div class="flex items-center gap-2 text-xs">
-                            <div
-                                class="flex h-6 w-6 items-center justify-center rounded-full border border-green-500 bg-white shadow-sm"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="12"
-                                    height="12"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="#16a34a"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    v-html="iconPaths.olt"
-                                ></svg>
-                            </div>
-                            <span>OLT</span>
-                        </div>
-                        <div class="flex items-center gap-2 text-xs">
-                            <div
-                                class="flex h-6 w-6 items-center justify-center rounded-full border border-violet-500 bg-white shadow-sm"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="12"
-                                    height="12"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="#7c3aed"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    v-html="iconPaths.ont"
-                                ></svg>
-                            </div>
-                            <span>ONT</span>
-                        </div>
-                        <div class="flex items-center gap-2 text-xs">
-                            <div
-                                class="flex h-6 w-6 items-center justify-center rounded-full border border-red-500 bg-white shadow-sm"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="12"
-                                    height="12"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="#dc2626"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    v-html="iconPaths.router"
-                                ></svg>
-                            </div>
-                            <span>Router</span>
-                        </div>
-                        <div class="flex items-center gap-2 text-xs">
-                            <div
-                                class="flex h-6 w-6 items-center justify-center rounded-full border border-yellow-500 bg-white shadow-sm"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="12"
-                                    height="12"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="#ca8a04"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    v-html="iconPaths.switch"
-                                ></svg>
-                            </div>
-                            <span>Switch</span>
-                        </div>
-                        <div class="flex items-center gap-2 text-xs">
-                            <div
-                                class="flex h-6 w-6 items-center justify-center rounded-full border border-gray-500 bg-white shadow-sm"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="12"
-                                    height="12"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="#4b5563"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    v-html="iconPaths.access_point"
-                                ></svg>
-                            </div>
-                            <span>Access Point</span>
-                        </div>
-
-                        <div class="mt-2 text-xs font-semibold text-gray-600">
-                            Passive Devices
-                        </div>
-                        <div class="flex items-center gap-2 text-xs">
-                            <div
-                                class="flex h-6 w-6 items-center justify-center rounded-full border border-orange-500 bg-white shadow-sm"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="12"
-                                    height="12"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="#ea580c"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    v-html="iconPaths.odp"
-                                ></svg>
-                            </div>
-                            <span>ODP</span>
-                        </div>
-                        <div class="flex items-center gap-2 text-xs">
-                            <div
-                                class="flex h-6 w-6 items-center justify-center rounded-full border border-yellow-600 bg-white shadow-sm"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="12"
-                                    height="12"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="#d97706"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    v-html="iconPaths.odf"
-                                ></svg>
-                            </div>
-                            <span>ODF</span>
-                        </div>
-                        <div class="flex items-center gap-2 text-xs">
-                            <div
-                                class="flex h-6 w-6 items-center justify-center rounded-full border border-black bg-white shadow-sm"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="12"
-                                    height="12"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="#000000"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    v-html="iconPaths.pole"
-                                ></svg>
-                            </div>
-                            <span>Pole</span>
-                        </div>
-                        <div class="flex items-center gap-2 text-xs">
-                            <div
-                                class="flex h-6 w-6 items-center justify-center rounded-full border border-red-600 bg-white shadow-sm"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="12"
-                                    height="12"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="#dc2626"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    v-html="iconPaths.tower"
-                                ></svg>
-                            </div>
-                            <span>Tower</span>
-                        </div>
-                        <div class="flex items-center gap-2 text-xs">
-                            <div
-                                class="flex h-6 w-6 items-center justify-center rounded-full border border-gray-400 bg-white shadow-sm"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="12"
-                                    height="12"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="#4b5563"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    v-html="iconPaths.joint_box"
-                                ></svg>
-                            </div>
-                            <span>Joint Box</span>
-                        </div>
-
-                        <div class="mt-2 text-xs font-semibold text-gray-600">
-                            Customer
-                        </div>
-                        <div class="flex items-center gap-2 text-xs">
-                            <div
-                                class="flex h-6 w-6 items-center justify-center rounded-full border border-purple-400 bg-white shadow-sm"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="12"
-                                    height="12"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="#7c3aed"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    v-html="iconPaths.cpe"
-                                ></svg>
-                            </div>
-                            <span>CPE</span>
-                        </div>
-
-                        <div class="mt-2 text-xs font-semibold text-gray-600">
+                    </div>
+                    <!-- Cable Legend -->
+                    <div>
+                        <div
+                            class="mb-1 text-[10px] font-bold text-gray-500 uppercase"
+                        >
                             Cables
                         </div>
                         <div class="flex items-center gap-2 text-xs">
-                            <div class="h-0.5 w-4 bg-blue-600"></div>
+                            <div class="h-1 w-6 rounded-full bg-blue-600"></div>
                             <span>Active Path</span>
+                        </div>
+                        <div class="mt-1 flex items-center gap-2 text-xs">
+                            <div
+                                class="h-1 w-6 border-t-2 border-dashed border-blue-400"
+                            ></div>
+                            <span>Draft Path</span>
                         </div>
                     </div>
                 </div>
