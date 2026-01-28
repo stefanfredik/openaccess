@@ -1170,6 +1170,7 @@ watch(selectedAreaId, (newVal) => {
             :path="pendingPath"
             :areas="areas"
             :pops="pops"
+            :selected-area-id="selectedAreaId"
             @success="
                 loadMapData();
                 pendingDeviceType = null;
@@ -1202,13 +1203,7 @@ watch(selectedAreaId, (newVal) => {
         crosshair !important;
 }
 
-/* Fix: Remove scrollbars and force full height for map page */
-:global(html),
-:global(body) {
-    height: 100vh !important;
-    overflow: hidden !important;
-}
-
+/* Full height logic handled by map-page-container */
 :global(#app) {
     height: 100vh !important;
 }

@@ -30,6 +30,7 @@ const props = defineProps<{
     path?: Array<[number, number]> | null;
     areas: Array<any>;
     pops: Array<any>;
+    selectedAreaId?: string | null;
 }>();
 
 const emit = defineEmits(['update:open', 'success']);
@@ -73,7 +74,14 @@ watch(
             form.latitude = props.lat?.toString() || '';
             form.longitude = props.lng?.toString() || '';
             form.path = props.path || [];
-            form.infrastructure_area_id = '';
+
+            // Auto-populate area if selected
+            if (props.selectedAreaId && props.selectedAreaId !== 'all') {
+                form.infrastructure_area_id = props.selectedAreaId;
+            } else {
+                form.infrastructure_area_id = '';
+            }
+
             form.pop_id = '';
         }
     },
@@ -134,54 +142,52 @@ const isActiveDevice = () => {
             </DialogHeader>
 
             <form @submit.prevent="submit" class="space-y-4 py-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-2">
-                        <Label>Area</Label>
-                        <Select v-model="form.infrastructure_area_id">
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select Area" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem
-                                    v-for="area in areas"
-                                    :key="area.id"
-                                    :value="area.id.toString()"
-                                >
-                                    {{ area.name }}
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <p
-                            v-if="form.errors.infrastructure_area_id"
-                            class="text-xs text-red-500"
-                        >
-                            {{ form.errors.infrastructure_area_id }}
-                        </p>
-                    </div>
+                <div class="space-y-2">
+                    <Label>Area</Label>
+                    <Select
+                        v-model="form.infrastructure_area_id"
+                        :disabled="!!selectedAreaId && selectedAreaId !== 'all'"
+                    >
+                        <SelectTrigger class="w-full">
+                            <SelectValue placeholder="Select Area" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem
+                                v-for="area in areas"
+                                :key="area.id"
+                                :value="area.id.toString()"
+                            >
+                                {{ area.name }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <p
+                        v-if="form.errors.infrastructure_area_id"
+                        class="text-xs text-red-500"
+                    >
+                        {{ form.errors.infrastructure_area_id }}
+                    </p>
+                </div>
 
-                    <div v-if="isActiveDevice()" class="space-y-2">
-                        <Label>POP</Label>
-                        <Select v-model="form.pop_id">
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select POP" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem
-                                    v-for="pop in pops"
-                                    :key="pop.id"
-                                    :value="pop.id.toString()"
-                                >
-                                    {{ pop.name }}
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <p
-                            v-if="form.errors.pop_id"
-                            class="text-xs text-red-500"
-                        >
-                            {{ form.errors.pop_id }}
-                        </p>
-                    </div>
+                <div v-if="isActiveDevice()" class="space-y-2">
+                    <Label>POP</Label>
+                    <Select v-model="form.pop_id">
+                        <SelectTrigger class="w-full">
+                            <SelectValue placeholder="Select POP" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem
+                                v-for="pop in pops"
+                                :key="pop.id"
+                                :value="pop.id.toString()"
+                            >
+                                {{ pop.name }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <p v-if="form.errors.pop_id" class="text-xs text-red-500">
+                        {{ form.errors.pop_id }}
+                    </p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
