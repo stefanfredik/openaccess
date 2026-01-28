@@ -204,6 +204,52 @@ const submit = () => {
                             </p>
                         </div>
 
+                        <div class="space-y-2">
+                            <InputMap
+                                v-model:latitude="form.latitude"
+                                v-model:longitude="form.longitude"
+                                :area-id="form.infrastructure_area_id"
+                                :areas="areas"
+                            />
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div class="space-y-2">
+                                <Label for="latitude">Latitude</Label>
+                                <Input
+                                    id="latitude"
+                                    v-model="form.latitude"
+                                    :class="{
+                                        'border-destructive':
+                                            form.errors.latitude,
+                                    }"
+                                />
+                                <p
+                                    v-if="form.errors.latitude"
+                                    class="text-sm text-destructive"
+                                >
+                                    {{ form.errors.latitude }}
+                                </p>
+                            </div>
+                            <div class="space-y-2">
+                                <Label for="longitude">Longitude</Label>
+                                <Input
+                                    id="longitude"
+                                    v-model="form.longitude"
+                                    :class="{
+                                        'border-destructive':
+                                            form.errors.longitude,
+                                    }"
+                                />
+                                <p
+                                    v-if="form.errors.longitude"
+                                    class="text-sm text-destructive"
+                                >
+                                    {{ form.errors.longitude }}
+                                </p>
+                            </div>
+                        </div>
+
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div class="space-y-2">
                                 <Label for="brand">Brand</Label>

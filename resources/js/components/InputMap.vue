@@ -13,9 +13,18 @@ const props = defineProps<{
 const emit = defineEmits(['update:latitude', 'update:longitude']);
 
 const mapContainer = ref<HTMLElement | null>(null);
+const isInteractive = ref(false);
 let map: L.Map | null = null;
 let marker: L.Marker | null = null;
 let areaLayer: L.Polygon | null = null;
+
+const enableInteraction = () => {
+    isInteractive.value = true;
+    if (map) {
+        map.dragging.enable();
+        map.scrollWheelZoom.enable();
+    }
+};
 
 const initMap = () => {
     if (!mapContainer.value) return;
@@ -28,6 +37,7 @@ const initMap = () => {
 
     map = L.map(mapContainer.value, {
         scrollWheelZoom: false,
+        dragging: false,
     }).setView([lat, lng], zoom);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -60,6 +70,7 @@ const initMap = () => {
     }
 
     map.on('click', (e) => {
+        if (!isInteractive.value) return; // Should be covered by overlay, but just in case
         const { lat, lng } = e.latlng;
         addMarker(lat, lng);
         emit('update:latitude', lat.toString());
@@ -180,11 +191,24 @@ watch(
             >Lokasi Pemasangan (Map)</label
         >
         <div
-            ref="mapContainer"
-            class="z-0 h-[350px] w-full rounded-lg border border-slate-200"
-        ></div>
+            class="relative h-[350px] w-full overflow-hidden rounded-lg border border-slate-200"
+        >
+            <div
+                v-if="!isInteractive"
+                class="absolute inset-0 z-10 flex cursor-pointer items-center justify-center bg-black/5 transition-colors hover:bg-black/10"
+                @click="enableInteraction"
+            >
+                <div
+                    class="rounded-md bg-white/90 px-4 py-2 text-sm font-medium shadow-sm backdrop-blur-sm"
+                >
+                    Klik untuk interaksi peta
+                </div>
+            </div>
+            <div ref="mapContainer" class="z-0 h-full w-full"></div>
+        </div>
         <p class="text-[11px] text-muted-foreground">
-            Klik pada peta untuk menandai lokasi pemasangan.
+            Klik pada peta untuk mengaktifkan interaksi, lalu klik untuk
+            menandai lokasi.
         </p>
     </div>
 </template>
