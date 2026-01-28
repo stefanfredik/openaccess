@@ -44,8 +44,8 @@ import {
     HardDrive,
     Layers,
     LayoutGrid,
-    Map,
     MapPin,
+    MapPinned,
     Network,
     Radio,
     Server,
@@ -108,7 +108,7 @@ const generalNavItems: NavItem[] = [
     {
         title: 'GIS Map',
         href: mapIndex().url,
-        icon: Map,
+        icon: MapPinned,
     },
     {
         title: 'Topology',

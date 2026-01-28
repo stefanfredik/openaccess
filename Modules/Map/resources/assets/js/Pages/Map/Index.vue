@@ -30,7 +30,7 @@ import { Switch as UiSwitch } from '@/components/ui/switch';
 import axios from 'axios';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Filter, Plus } from 'lucide-vue-next';
+import { Layers, Plus } from 'lucide-vue-next';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import DeviceCreateModal from './Components/DeviceCreateModal.vue';
@@ -552,7 +552,10 @@ const initMap = async () => {
             // Show Pin Point
             if (tempMarker) map?.removeLayer(tempMarker);
             tempMarker = L.marker(e.latlng, {
-                icon: createIcon(colors.blue, '<path d="M12 5v14M5 12h14"/>'), // Plus icon for new device
+                icon: createIcon(
+                    colors.yellow,
+                    '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+                ),
             }).addTo(map!);
 
             showCreateModal.value = true;
@@ -836,8 +839,8 @@ watch(pendingDeviceType, (newVal) => {
 
 watch(showCreateModal, (val) => {
     if (!val) {
-        if (pendingDeviceType.value === 'cable') {
-        }
+        // Reset device type when modal closes
+        pendingDeviceType.value = null;
 
         if (tempMarker && map) {
             map.removeLayer(tempMarker);
@@ -879,7 +882,7 @@ watch(selectedAreaId, (newVal) => {
                             @click="isFilterMinimized = !isFilterMinimized"
                             :title="isFilterMinimized ? 'Expand' : 'Minimize'"
                         >
-                            <Filter class="h-4 w-4 text-gray-500" />
+                            <Layers class="h-4 w-4 text-gray-500" />
                         </Button>
                     </div>
                 </div>
@@ -1184,18 +1187,18 @@ watch(selectedAreaId, (newVal) => {
 }
 
 .cursor-pin {
-    /* Sniper Crosshair SVG */
+    /* Yellow Map Pin Cursor */
     cursor:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='8' x2='12' y2='16'/%3E%3Cline x1='8' y1='12' x2='16' y2='12'/%3E%3C/svg%3E")
-            16 16,
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='%23f59e0b' stroke='%23fff' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z'/%3E%3Ccircle cx='12' cy='10' r='3' fill='%23fff'/%3E%3C/svg%3E")
+            16 32,
         crosshair !important;
 }
 
 .cursor-pin :deep(.leaflet-container),
 .cursor-pin :deep(.leaflet-interactive) {
     cursor:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='8' x2='12' y2='16'/%3E%3Cline x1='8' y1='12' x2='16' y2='12'/%3E%3C/svg%3E")
-            16 16,
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='%23f59e0b' stroke='%23fff' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z'/%3E%3Ccircle cx='12' cy='10' r='3' fill='%23fff'/%3E%3C/svg%3E")
+            16 32,
         crosshair !important;
 }
 
