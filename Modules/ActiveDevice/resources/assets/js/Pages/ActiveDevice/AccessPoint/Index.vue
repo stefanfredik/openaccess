@@ -14,6 +14,9 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Plus, Pencil, Trash2, Eye } from 'lucide-vue-next';
 import DeleteAction from '@/components/DeleteAction.vue';
+import ShowAction from '@/components/ShowAction.vue';
+import EditAction from '@/components/EditAction.vue';
+import { create as apCreate, show as apShow, edit as apEdit, destroy as apDestroy } from '@/routes/active-device/access-point';
 
 defineProps<{
     accessPoints: {
@@ -33,7 +36,7 @@ defineProps<{
                     <p class="text-muted-foreground">Manage Wireless Radios / Access Points.</p>
                 </div>
                 <Button as-child>
-                    <Link href="/active-devices/access-point/create">
+                    <Link :href="apCreate().url">
                         <Plus class="mr-2 h-4 w-4" />
                         Add AP
                     </Link>
@@ -74,17 +77,9 @@ defineProps<{
                                 </TableCell>
                                 <TableCell class="text-right">
                                     <div class="flex justify-end gap-2">
-                                        <Button variant="ghost" size="icon" as-child title="View Detail">
-                                            <Link :href="`/active-devices/access-point/${item.id}`">
-                                                <Eye class="h-4 w-4" />
-                                            </Link>
-                                        </Button>
-                                        <Button variant="ghost" size="icon" as-child title="Edit">
-                                            <Link :href="`/active-devices/access-point/${item.id}/edit`">
-                                                <Pencil class="h-4 w-4" />
-                                            </Link>
-                                        </Button>
-                                        <DeleteAction :href="`/active-devices/access-point/${item.id}`" />
+                                        <ShowAction :href="apShow({ access_point: item.id }).url" title="View Detail" />
+                                        <EditAction :href="apEdit({ access_point: item.id }).url" title="Edit" />
+                                        <DeleteAction :href="apDestroy({ access_point: item.id }).url" />
                                     </div>
                                 </TableCell>
                             </TableRow>

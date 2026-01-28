@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { onMounted } from 'vue';
+import { store, index as apIndex } from '@/routes/active-device/access-point';
 
 defineProps<{
     areas: Array<any>;
@@ -60,7 +61,7 @@ onMounted(() => {
     <Head title="Add Access Point" />
 
     <AppLayout :breadcrumbs="[
-        { title: 'Access Points', href: '/active-devices/access-point' },
+        { title: 'Access Points', href: apIndex().url },
         { title: 'Add AP', href: '#' }
     ]">
         <div class="flex flex-col gap-6 p-4 md:p-6 lg:p-8 max-w-4xl mx-auto">

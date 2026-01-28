@@ -14,6 +14,9 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Plus, Pencil, Trash2, Eye } from 'lucide-vue-next';
 import DeleteAction from '@/components/DeleteAction.vue';
+import ShowAction from '@/components/ShowAction.vue';
+import EditAction from '@/components/EditAction.vue';
+import { create as ontCreate, show as ontShow, edit as ontEdit, destroy as ontDestroy } from '@/routes/active-device/ont';
 
 defineProps<{
     onts: {
@@ -33,7 +36,7 @@ defineProps<{
                     <p class="text-muted-foreground">Manage Optical Network Terminal devices.</p>
                 </div>
                 <Button as-child>
-                    <Link href="/active-devices/ont/create">
+                    <Link :href="ontCreate().url">
                         <Plus class="mr-2 h-4 w-4" />
                         Add ONT
                     </Link>
@@ -72,17 +75,9 @@ defineProps<{
                                 </TableCell>
                                 <TableCell class="text-right">
                                     <div class="flex justify-end gap-2">
-                                        <Button variant="ghost" size="icon" as-child title="View Detail">
-                                            <Link :href="`/active-devices/ont/${ont.id}`">
-                                                <Eye class="h-4 w-4" />
-                                            </Link>
-                                        </Button>
-                                        <Button variant="ghost" size="icon" as-child title="Edit">
-                                            <Link :href="`/active-devices/ont/${ont.id}/edit`">
-                                                <Pencil class="h-4 w-4" />
-                                            </Link>
-                                        </Button>
-                                        <DeleteAction :href="`/active-devices/ont/${ont.id}`" />
+                                        <ShowAction :href="ontShow({ ont: ont.id }).url" title="View Detail" />
+                                        <EditAction :href="ontEdit({ ont: ont.id }).url" title="Edit" />
+                                        <DeleteAction :href="ontDestroy({ ont: ont.id }).url" />
                                     </div>
                                 </TableCell>
                             </TableRow>

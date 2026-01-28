@@ -14,6 +14,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { update, index } from '@/routes/active-device/ont';
 
 const props = defineProps<{
     ont: any;
@@ -38,7 +39,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.put(`/active-devices/ont/${props.ont.id}`);
+    form.put(update({ ont: props.ont.id }).url);
 };
 </script>
 
@@ -46,7 +47,7 @@ const submit = () => {
     <Head title="Edit ONT" />
 
     <AppLayout :breadcrumbs="[
-        { title: 'ONTs', href: '/active-devices/ont' },
+        { title: 'ONTs', href: index().url },
         { title: 'Edit ONT', href: '#' }
     ]">
         <div class="flex flex-col gap-6 p-4 md:p-6 lg:p-8 max-w-4xl mx-auto">

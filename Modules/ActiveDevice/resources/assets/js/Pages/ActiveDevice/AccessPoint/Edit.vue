@@ -14,6 +14,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { update, index } from '@/routes/active-device/access-point';
 
 const props = defineProps<{
     accessPoint: any;
@@ -39,7 +40,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.put(`/active-devices/access-point/${props.accessPoint.id}`);
+    form.put(update({ access_point: props.accessPoint.id }).url);
 };
 </script>
 
@@ -47,7 +48,7 @@ const submit = () => {
     <Head title="Edit Access Point" />
 
     <AppLayout :breadcrumbs="[
-        { title: 'Access Points', href: '/active-devices/access-point' },
+        { title: 'Access Points', href: index().url },
         { title: 'Edit AP', href: '#' }
     ]">
         <div class="flex flex-col gap-6 p-4 md:p-6 lg:p-8 max-w-4xl mx-auto">

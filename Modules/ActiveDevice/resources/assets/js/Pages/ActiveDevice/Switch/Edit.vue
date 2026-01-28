@@ -14,6 +14,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { update, index as switchIndex } from '@/routes/active-device/switch';
 
 const props = defineProps<{
     networkSwitch: any;
@@ -47,7 +48,7 @@ const submit = () => {
     <Head title="Edit Switch" />
 
     <AppLayout :breadcrumbs="[
-        { title: 'Switches', href: '/active-devices/switch' },
+        { title: 'Switches', href: switchIndex().url },
         { title: 'Edit Switch', href: '#' }
     ]">
         <div class="flex flex-col gap-6 p-4 md:p-6 lg:p-8 max-w-4xl mx-auto">

@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { onMounted } from 'vue';
+import { store, index } from '@/routes/active-device/router';
 
 defineProps<{
     areas: Array<any>;
@@ -59,7 +60,7 @@ onMounted(() => {
     <Head title="Add Router" />
 
     <AppLayout :breadcrumbs="[
-        { title: 'Routers', href: '/pendataan/active-devices/router' },
+        { title: 'Routers', href: routerIndex().url },
         { title: 'Add Router', href: '#' }
     ]">
         <div class="flex flex-col gap-6 p-4 md:p-6 lg:p-8 max-w-4xl mx-auto">

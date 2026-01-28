@@ -14,6 +14,9 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Plus, Pencil, Trash2, Eye } from 'lucide-vue-next';
 import DeleteAction from '@/components/DeleteAction.vue';
+import ShowAction from '@/components/ShowAction.vue';
+import EditAction from '@/components/EditAction.vue';
+import { create as switchCreate, show as switchShow, edit as switchEdit, destroy as switchDestroy } from '@/routes/active-device/switch';
 
 defineProps<{
     switches: {
@@ -33,7 +36,7 @@ defineProps<{
                     <p class="text-muted-foreground">Manage Network Switches (L2/L3).</p>
                 </div>
                 <Button as-child>
-                    <Link href="/active-devices/switch/create">
+                    <Link :href="switchCreate().url">
                         <Plus class="mr-2 h-4 w-4" />
                         Add Switch
                     </Link>
@@ -74,17 +77,9 @@ defineProps<{
                                 </TableCell>
                                 <TableCell class="text-right">
                                     <div class="flex justify-end gap-2">
-                                        <Button variant="ghost" size="icon" as-child title="View Detail">
-                                            <Link :href="`/active-devices/switch/${item.id}`">
-                                                <Eye class="h-4 w-4" />
-                                            </Link>
-                                        </Button>
-                                        <Button variant="ghost" size="icon" as-child title="Edit">
-                                            <Link :href="`/active-devices/switch/${item.id}/edit`">
-                                                <Pencil class="h-4 w-4" />
-                                            </Link>
-                                        </Button>
-                                        <DeleteAction :href="`/active-devices/switch/${item.id}`" />
+                                        <ShowAction :href="switchShow({ switch: item.id }).url" title="View Detail" />
+                                        <EditAction :href="switchEdit({ switch: item.id }).url" title="Edit" />
+                                        <DeleteAction :href="switchDestroy({ switch: item.id }).url" />
                                     </div>
                                 </TableCell>
                             </TableRow>

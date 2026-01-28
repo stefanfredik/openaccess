@@ -19,6 +19,7 @@ import FileUploader from '@/components/FileUploader.vue';
 import { onMounted, ref, watch } from 'vue';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { store, index } from '@/routes/active-device/olt';
 
 const props = defineProps<{
     areas: Array<any>;
@@ -205,8 +206,8 @@ watch(() => [form.latitude, form.longitude], ([newLat, newLng]) => {
     <Head title="Tambah OLT" />
 
     <AppLayout :breadcrumbs="[
-        { title: 'OLT', href: '/active-devices/olt' },
-        { title: 'Tambah', href: '#' }
+        { title: 'OLT', href: oltIndex().url },
+        { title: 'Add OLT', href: '#' }
     ]">
         <div class="max-w-4xl mx-4 p-4 md:p-4 space-y-6">
             <!-- Header -->

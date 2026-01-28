@@ -14,6 +14,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { update, index as routerIndex } from '@/routes/active-device/router';
 
 const props = defineProps<{
     router: any;
@@ -38,7 +39,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.put(`/pendataan/active-devices/router/${props.router.id}`);
+    form.put(update({ router: props.router.id }).url);
 };
 </script>
 
@@ -46,7 +47,7 @@ const submit = () => {
     <Head title="Edit Router" />
 
     <AppLayout :breadcrumbs="[
-        { title: 'Routers', href: '/pendataan/active-devices/router' },
+        { title: 'Routers', href: routerIndex().url },
         { title: 'Edit Router', href: '#' }
     ]">
         <div class="flex flex-col gap-6 p-4 md:p-6 lg:p-8 max-w-4xl mx-auto">

@@ -19,6 +19,7 @@ import FileUploader from '@/components/FileUploader.vue';
 import { onMounted, ref, watch } from 'vue';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { update, index as oltIndex } from '@/routes/active-device/olt';
 
 const props = defineProps<{
     olt: any;
@@ -52,7 +53,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(`/pendataan/active-devices/olt/${props.olt.id}`);
+    form.post(update({ olt: props.olt.id }).url);
 };
 
 const serviceOptions = ['Telnet', 'SSH', 'WEB'];
@@ -205,8 +206,8 @@ watch(() => [form.latitude, form.longitude], ([newLat, newLng]) => {
     <Head title="Edit OLT" />
 
     <AppLayout :breadcrumbs="[
-        { title: 'OLT', href: '/pendataan/active-devices/olt' },
-        { title: 'Edit', href: '#' }
+        { title: 'OLT', href: index().url },
+        { title: 'Edit OLT', href: '#' }
     ]">
         <div class="max-w-4xl mx-4 p-4 md:p-4 space-y-6">
             <!-- Header -->
