@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
-import AppLayout from '@/layouts/AppLayout.vue';
+import DeleteAction from '@/components/DeleteAction.vue';
+import EditAction from '@/components/EditAction.vue';
+import ShowAction from '@/components/ShowAction.vue';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
     Table,
     TableBody,
@@ -11,9 +13,15 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, Eye } from 'lucide-vue-next';
-import DeleteAction from '@/components/DeleteAction.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import {
+    create as routerCreate,
+    destroy as routerDestroy,
+    edit as routerEdit,
+    show as routerShow,
+} from '@/routes/active-device/router';
+import { Head, Link } from '@inertiajs/vue3';
+import { Plus } from 'lucide-vue-next';
 
 defineProps<{
     routers: {
@@ -30,23 +38,17 @@ defineProps<{
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight">Routers</h1>
-                    <p class="text-muted-foreground">Manage IP Routers.</p>
+                    <p class="text-muted-foreground">Daftar Routers.</p>
                 </div>
                 <Button as-child>
-                    <Link href="/pendataan/active-devices/router/create">
+                    <Link :href="routerCreate().url">
                         <Plus class="mr-2 h-4 w-4" />
-                        Add Router
+                        Tambah
                     </Link>
                 </Button>
             </div>
 
             <Card>
-                <CardHeader>
-                    <CardTitle>Routers</CardTitle>
-                    <CardDescription>
-                        List of all registered Routers.
-                    </CardDescription>
-                </CardHeader>
                 <CardContent>
                     <Table>
                         <TableHeader>
@@ -57,34 +59,74 @@ defineProps<{
                                 <TableHead>Ports</TableHead>
                                 <TableHead>IP Address</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead class="text-right">Actions</TableHead>
+                                <TableHead class="text-right"
+                                    >Actions</TableHead
+                                >
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow v-for="item in routers.data" :key="item.id">
-                                <TableCell class="font-medium">{{ item.code }}</TableCell>
-                                <TableCell>{{ item.name }}</TableCell>
-                                <TableCell>{{ item.area?.name || '-' }}</TableCell>
-                                <TableCell>{{ item.port_count }}</TableCell>
-                                <TableCell class="font-mono">{{ item.ip_address || '-' }}</TableCell>
+                            <TableRow
+                                v-for="item in routers.data"
+                                :key="item.id"
+                            >
+                                <TableCell class="font-medium">{{
+                                    item.code
+                                }}</TableCell>
                                 <TableCell>
-                                    <Badge :variant="item.is_active ? 'default' : 'destructive'">
-                                        {{ item.is_active ? 'Active' : 'Inactive' }}
+                                    <div class="flex flex-col">
+                                        <span>{{ item.name }}</span>
+                                        <span
+                                            class="text-xs text-muted-foreground"
+                                            >{{ item.brand }}
+                                            {{ item.model }}</span
+                                        >
+                                    </div>
+                                </TableCell>
+                                <TableCell>{{
+                                    item.area?.name || '-'
+                                }}</TableCell>
+                                <TableCell>{{ item.port_count }}</TableCell>
+                                <TableCell class="font-mono text-xs">{{
+                                    item.ip_address || '-'
+                                }}</TableCell>
+                                <TableCell>
+                                    <Badge
+                                        :variant="
+                                            item.is_active
+                                                ? 'default'
+                                                : 'destructive'
+                                        "
+                                    >
+                                        {{
+                                            item.is_active
+                                                ? 'Active'
+                                                : 'Inactive'
+                                        }}
                                     </Badge>
                                 </TableCell>
                                 <TableCell class="text-right">
                                     <div class="flex justify-end gap-2">
-                                        <Button variant="ghost" size="icon" as-child title="View Detail">
-                                            <Link :href="`/pendataan/active-devices/router/${item.id}`">
-                                                <Eye class="h-4 w-4" />
-                                            </Link>
-                                        </Button>
-                                        <Button variant="ghost" size="icon" as-child title="Edit">
-                                            <Link :href="`/pendataan/active-devices/router/${item.id}/edit`">
-                                                <Pencil class="h-4 w-4" />
-                                            </Link>
-                                        </Button>
-                                        <DeleteAction :href="`/pendataan/active-devices/router/${item.id}`" />
+                                        <ShowAction
+                                            :href="
+                                                routerShow({ router: item.id })
+                                                    .url
+                                            "
+                                            title="View Detail"
+                                        />
+                                        <EditAction
+                                            :href="
+                                                routerEdit({ router: item.id })
+                                                    .url
+                                            "
+                                            title="Edit"
+                                        />
+                                        <DeleteAction
+                                            :href="
+                                                routerDestroy({
+                                                    router: item.id,
+                                                }).url
+                                            "
+                                        />
                                     </div>
                                 </TableCell>
                             </TableRow>

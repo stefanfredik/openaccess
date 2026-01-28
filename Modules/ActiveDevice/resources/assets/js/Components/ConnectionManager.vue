@@ -6,8 +6,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Trash2, Link as LinkIcon, Plus } from 'lucide-vue-next';
+import { Trash2, Link as LinkIcon, Plus, ArrowRight, Server } from 'lucide-vue-next';
 import { ref } from 'vue';
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 const props = defineProps<{
     device: any;
@@ -156,31 +165,59 @@ const deleteConnection = (id: number) => {
             </CardContent>
         </Card>
 
-        <div v-if="connections.length > 0" class="grid gap-3">
-            <Card v-for="conn in connections" :key="conn.id" class="shadow-sm border-muted/60">
-                <CardContent class="flex items-center justify-between p-4">
-                    <div class="flex items-center gap-4">
-                        <div class="bg-green-500/10 p-2 rounded-lg">
-                            <LinkIcon class="h-4 w-4 text-green-500" />
-                        </div>
-                        <div>
-                            <div class="font-bold text-sm">
-                                {{ conn.destination?.name }} ({{ conn.destination?.code }})
-                            </div>
-                            <div class="text-xs text-muted-foreground">
-                                Local: <span class="text-primary font-mono">{{ conn.source_port || '-' }}</span> 
-                                → Target: <span class="text-primary font-mono">{{ conn.destination_port || '-' }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <Badge variant="secondary" class="text-[10px]">{{ conn.connection_type }}</Badge>
-                        <Button variant="ghost" size="icon" @click="deleteConnection(conn.id)">
-                            <Trash2 class="h-4 w-4 text-destructive opacity-50 hover:opacity-100" />
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
+        <div v-if="connections.length > 0">
+            <div class="rounded-md border bg-card">
+                <Table>
+                    <TableHeader class="bg-muted/50">
+                        <TableRow>
+                            <TableHead class="w-[100px]">Port</TableHead>
+                            <TableHead>Destination</TableHead>
+                            <TableHead class="w-[100px]">Port</TableHead>
+                            <TableHead>Label</TableHead>
+                            <TableHead class="w-[50px]"></TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <TableRow v-for="conn in connections" :key="conn.id" class="hover:bg-muted/5">
+                            <TableCell>
+                                <div class="flex items-center gap-2">
+                                     <Badge variant="outline" class="font-mono text-xs bg-background shadow-sm border-primary/20">{{ conn.source_port || 'N/A' }}</Badge>
+                                     <ArrowRight class="h-3 w-3 text-muted-foreground/50" />
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <div class="flex items-center gap-3">
+                                    <div class="h-8 w-8 rounded bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                                        <Server class="h-4 w-4" />
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="font-bold text-sm text-foreground">{{ conn.destination?.name }}</span>
+                                        <div class="text-[10px] text-muted-foreground flex items-center gap-1.5">
+                                            <span class="font-mono bg-muted/60 px-1 rounded border border-border/50">{{ conn.destination?.code }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <Badge variant="outline" class="font-mono text-xs bg-muted/50">{{ conn.destination_port || 'N/A' }}</Badge>
+                            </TableCell>
+                            <TableCell>
+                                <div class="flex flex-col items-start gap-1">
+                                    <span class="font-medium text-sm text-foreground/90" v-if="conn.description">{{ conn.description }}</span>
+                                    <Badge :variant="conn.connection_type === 'Uplink' ? 'default' : 'secondary'" class="text-[10px] h-4.5 px-1.5">
+                                        {{ conn.connection_type }}
+                                    </Badge>
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <Button variant="ghost" size="icon" class="h-8 w-8 text-destructive opacity-70 hover:opacity-100 hover:bg-destructive/10" @click="deleteConnection(conn.id)">
+                                    <Trash2 class="h-4 w-4" />
+                                </Button>
+                            </TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
+            </div>
         </div>
         <div v-else-if="!showAddForm" class="text-center py-10 border rounded-xl border-dashed bg-muted/10">
             <LinkIcon class="h-8 w-8 mx-auto text-muted-foreground/30 mb-2" />
