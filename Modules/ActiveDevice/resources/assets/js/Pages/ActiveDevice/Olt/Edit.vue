@@ -25,6 +25,7 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Plus, Trash2 } from 'lucide-vue-next';
 
 const props = defineProps<{
     olt: any;
@@ -649,8 +650,8 @@ const serviceOptions = ['Telnet', 'SSH', 'WEB'];
                 </CardHeader>
                 <CardContent>
                     <InterfaceManager
-                        :olt-id="olt.id"
-                        :olt-type="'Modules\\ActiveDevice\\Models\\Olt'"
+                        :device-id="olt.id"
+                        :device-type="'Modules\\ActiveDevice\\Models\\Olt'"
                         :interfaces="olt.interfaces || []"
                     />
                 </CardContent>

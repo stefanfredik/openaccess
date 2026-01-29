@@ -2,7 +2,6 @@
 import DeviceDetailPreview from '@/../../Modules/ActiveDevice/resources/assets/js/Components/DeviceDetailPreview.vue';
 import DeviceStatusBadge from '@/../../Modules/ActiveDevice/resources/assets/js/Components/DeviceStatusBadge.vue';
 import InventoryHeader from '@/../../Modules/ActiveDevice/resources/assets/js/Components/InventoryHeader.vue';
-import DeleteAction from '@/components/DeleteAction.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -287,29 +286,33 @@ const openDrawer = (networkSwitch: any) => {
                                                     </Link>
                                                 </DropdownMenuItem>
                                                 <DropdownMenuSeparator />
-                                                <div @click.stop>
-                                                    <DeleteAction
+                                                <DropdownMenuItem
+                                                    as-child
+                                                    class="cursor-pointer text-red-600 hover:bg-red-50 hover:text-red-700 focus:bg-red-50 focus:text-red-700"
+                                                >
+                                                    <Link
                                                         :href="
                                                             route(
                                                                 'active-device.switch.destroy',
                                                                 item.id,
                                                             )
                                                         "
-                                                        title="Hapus Switch"
-                                                        class="h-auto w-full justify-start px-2 py-1.5 font-normal text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
+                                                        method="delete"
+                                                        as="button"
+                                                        class="flex w-full items-center justify-start px-2 py-1.5"
+                                                        :onBefore="
+                                                            () =>
+                                                                confirm(
+                                                                    'Are you sure you want to delete this switch?',
+                                                                )
+                                                        "
                                                     >
-                                                        <template #trigger>
-                                                            <div
-                                                                class="flex items-center"
-                                                            >
-                                                                <Trash
-                                                                    class="mr-2 h-4 w-4"
-                                                                />
-                                                                Hapus Perangkat
-                                                            </div>
-                                                        </template>
-                                                    </DeleteAction>
-                                                </div>
+                                                        <Trash
+                                                            class="mr-2 h-4 w-4"
+                                                        />
+                                                        Hapus Perangkat
+                                                    </Link>
+                                                </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </div>

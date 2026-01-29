@@ -22,7 +22,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { useForm } from '@inertiajs/vue3';
 import { Pencil, Plus, Trash2 } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 const props = defineProps<{
     deviceId: number;
@@ -32,6 +32,8 @@ const props = defineProps<{
 
 const isAddOpen = ref(false);
 const editingInterface = ref<any>(null);
+
+const isBulkMode = ref(false);
 
 const form = useForm({
     interfacable_id: props.deviceId,
@@ -45,6 +47,11 @@ const form = useForm({
     prefix: '',
     start_number: 1,
     count: 1,
+});
+
+// Sync local ref with form
+watch(isBulkMode, (val) => {
+    form.is_bulk = val;
 });
 
 const submit = () => {
@@ -92,6 +99,7 @@ const deleteInterface = (id: number) => {
 
 const openAdd = () => {
     editingInterface.value = null;
+    isBulkMode.value = false;
     form.reset();
     isAddOpen.value = true;
 };
@@ -218,16 +226,27 @@ defineExpose({ openAdd });
                         <div class="col-span-3 flex items-center gap-2">
                             <Switch
                                 id="bulk"
-                                :checked="form.is_bulk"
-                                @update:checked="form.is_bulk = $event"
+                                :checked="isBulkMode"
+                                @update:checked="
+                                    (val: boolean) => {
+                                        console.log('Switch toggled:', val);
+                                        isBulkMode = val;
+                                    }
+                                "
                             />
                             <Label for="bulk" class="font-normal"
                                 >Create multiple interfaces sequentially</Label
                             >
+                            <span class="text-xs text-muted-foreground"
+                                >({{ isBulkMode ? 'ON' : 'OFF' }})</span
+                            >
                         </div>
                     </div>
 
-                    <template v-if="form.is_bulk && !editingInterface">
+                    <div
+                        v-if="isBulkMode && !editingInterface"
+                        class="grid gap-4"
+                    >
                         <div class="grid grid-cols-4 items-center gap-4">
                             <Label for="prefix" class="text-right"
                                 >Prefix</Label
@@ -262,9 +281,12 @@ defineExpose({ openAdd });
                                 max="48"
                             />
                         </div>
-                    </template>
+                    </div>
 
-                    <div v-else class="grid grid-cols-4 items-center gap-4">
+                    <div
+                        v-if="!isBulkMode && !editingInterface"
+                        class="grid grid-cols-4 items-center gap-4"
+                    >
                         <Label for="name" class="text-right">Name</Label>
                         <Input
                             id="name"
@@ -343,7 +365,9 @@ defineExpose({ openAdd });
                         {{
                             editingInterface
                                 ? 'Save Changes'
-                                : 'Create Interface'
+                                : isBulkMode
+                                  ? `Create ${form.count} Interfaces`
+                                  : 'Create Interface'
                         }}
                     </Button>
                 </DialogFooter>
