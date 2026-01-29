@@ -19,6 +19,36 @@ class DeviceConnectionController extends Controller
         $data = $request->validated();
         $data['company_id'] = auth()->user()->company_id;
 
+        // Check if Source Port is already occupied
+        $isSourceBusy = DeviceConnection::where(function ($query) use ($data) {
+            $query->where('source_type', $data['source_type'])
+                  ->where('source_id', $data['source_id'])
+                  ->where('source_port', $data['source_port']);
+        })->orWhere(function ($query) use ($data) {
+            $query->where('destination_type', $data['source_type'])
+                  ->where('destination_id', $data['source_id'])
+                  ->where('destination_port', $data['source_port']);
+        })->exists();
+
+        if ($isSourceBusy) {
+            return back()->withErrors(['source_port' => 'The selected source port is already connected to another device.']);
+        }
+
+        // Check if Destination Port is already occupied
+        $isDestBusy = DeviceConnection::where(function ($query) use ($data) {
+            $query->where('source_type', $data['destination_type'])
+                  ->where('source_id', $data['destination_id'])
+                  ->where('source_port', $data['destination_port']);
+        })->orWhere(function ($query) use ($data) {
+            $query->where('destination_type', $data['destination_type'])
+                  ->where('destination_id', $data['destination_id'])
+                  ->where('destination_port', $data['destination_port']);
+        })->exists();
+
+        if ($isDestBusy) {
+            return back()->withErrors(['destination_port' => 'The selected destination port is already connected to another device.']);
+        }
+
         DeviceConnection::create($data);
 
         return redirect()->back()->with('success', 'Connection created successfully.');
