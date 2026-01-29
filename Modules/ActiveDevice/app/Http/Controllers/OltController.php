@@ -18,12 +18,40 @@ class OltController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): Response
+    public function index(\Illuminate\Http\Request $request): Response
     {
-        $olts = Olt::with(['area', 'pop', 'servicePorts', 'interfaces', 'sourceConnections.destination', 'sourceConnections.destinationInterface', 'sourceConnections.sourceInterface', 'destinationConnections.source', 'destinationConnections.sourceInterface', 'destinationConnections.destinationInterface'])->latest()->paginate(10);
+        $olts = Olt::query()
+            ->with([
+                'area',
+                'pop',
+                'servicePorts',
+                'interfaces',
+                'sourceConnections.destination',
+                'sourceConnections.destinationInterface',
+                'sourceConnections.sourceInterface',
+                'destinationConnections.source',
+                'destinationConnections.sourceInterface',
+                'destinationConnections.destinationInterface',
+            ])
+            ->when($request->search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('ip_address', 'like', "%{$search}%")
+                        ->orWhere('brand', 'like', "%{$search}%")
+                        ->orWhere('model', 'like', "%{$search}%")
+                        ->orWhere('code', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->area_id && $request->area_id !== 'all', function ($query, $areaId) {
+                $query->where('infrastructure_area_id', $areaId);
+            })
+            ->latest()
+            ->paginate(10);
 
         return Inertia::render('ActiveDevice::Olt/Index', [
             'olts' => $olts,
+            'areas' => InfrastructureArea::all(),
+            'filters' => $request->only(['search', 'area_id']),
         ]);
     }
 

@@ -5,11 +5,10 @@ import RouterOverview from '@/../../Modules/ActiveDevice/resources/assets/js/Com
 import ServicePortsManager from '@/../../Modules/ActiveDevice/resources/assets/js/Components/ServicePortsManager.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
-import { ArrowLeft, Pencil, Plus } from 'lucide-vue-next';
+import { ArrowLeft, Pencil } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 const props = defineProps<{
@@ -93,77 +92,28 @@ const connectionManagerRef = ref<InstanceType<typeof ConnectionManager> | null>(
                 </div>
 
                 <!-- Service Ports -->
-                <div class="space-y-4">
-                    <h3 class="text-lg font-semibold">Service Ports</h3>
-                    <ServicePortsManager
-                        :device="router"
-                        device-type="Modules\ActiveDevice\Models\Router"
-                    />
-                </div>
+                <ServicePortsManager
+                    :device="router"
+                    device-type="Modules\ActiveDevice\Models\Router"
+                />
 
                 <!-- Physical Interfaces -->
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-semibold">
-                            Physical Interfaces
-                        </h3>
-                        <Button
-                            size="sm"
-                            class="h-8 gap-1"
-                            @click="interfaceManagerRef?.openAdd()"
-                        >
-                            <Plus class="h-4 w-4" />
-                            <span
-                                class="sr-only sm:not-sr-only sm:whitespace-nowrap"
-                            >
-                                Add Interface
-                            </span>
-                        </Button>
-                    </div>
-                    <Card>
-                        <CardContent class="pt-6">
-                            <InterfaceManager
-                                ref="interfaceManagerRef"
-                                :device-id="router.id"
-                                :device-type="'Modules\\ActiveDevice\\Models\\Router'"
-                                :interfaces="router.interfaces || []"
-                            />
-                        </CardContent>
-                    </Card>
-                </div>
+                <InterfaceManager
+                    ref="interfaceManagerRef"
+                    :device-id="router.id"
+                    :device-type="'Modules\\ActiveDevice\\Models\\Router'"
+                    :interfaces="router.interfaces || []"
+                />
 
                 <!-- Connectivity -->
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-semibold">Connectivity</h3>
-                        <Button
-                            size="sm"
-                            class="h-8 gap-1"
-                            @click="connectionManagerRef?.openAdd()"
-                        >
-                            <Plus class="h-4 w-4" />
-                            <span
-                                class="sr-only sm:not-sr-only sm:whitespace-nowrap"
-                            >
-                                Add Link
-                            </span>
-                        </Button>
-                    </div>
-                    <Card>
-                        <CardContent class="pt-6">
-                            <ConnectionManager
-                                ref="connectionManagerRef"
-                                :device="router"
-                                device-type="Modules\ActiveDevice\Models\Router"
-                                :connections="router.source_connections"
-                                :incoming-connections="
-                                    router.destination_connections
-                                "
-                                :available-devices="availableDevices"
-                            />
-                        </CardContent>
-                    </Card>
-                </div>
+                <ConnectionManager
+                    ref="connectionManagerRef"
+                    :device="router"
+                    device-type="Modules\ActiveDevice\Models\Router"
+                    :connections="router.source_connections"
+                    :incoming-connections="router.destination_connections"
+                    :available-devices="availableDevices"
+                />
             </div>
 
             <!-- Desktop View: Tabs Layout -->
@@ -216,74 +166,26 @@ const connectionManagerRef = ref<InstanceType<typeof ConnectionManager> | null>(
 
                     <!-- Tab 3: Physical Interfaces -->
                     <TabsContent value="interfaces" class="mt-0 space-y-6">
-                        <Card>
-                            <CardHeader
-                                class="flex flex-row items-center justify-between pb-3"
-                            >
-                                <CardTitle
-                                    class="text-sm font-medium tracking-wider text-muted-foreground uppercase"
-                                    >Physical Interfaces</CardTitle
-                                >
-                                <Button
-                                    size="sm"
-                                    class="h-8 gap-1"
-                                    @click="interfaceManagerRef?.openAdd()"
-                                >
-                                    <Plus class="h-4 w-4" />
-                                    <span
-                                        class="sr-only sm:not-sr-only sm:whitespace-nowrap"
-                                    >
-                                        Add Interface
-                                    </span>
-                                </Button>
-                            </CardHeader>
-                            <CardContent>
-                                <InterfaceManager
-                                    ref="interfaceManagerRef"
-                                    :device-id="router.id"
-                                    :device-type="'Modules\\ActiveDevice\\Models\\Router'"
-                                    :interfaces="router.interfaces || []"
-                                />
-                            </CardContent>
-                        </Card>
+                        <InterfaceManager
+                            ref="interfaceManagerRef"
+                            :device-id="router.id"
+                            :device-type="'Modules\\ActiveDevice\\Models\\Router'"
+                            :interfaces="router.interfaces || []"
+                        />
                     </TabsContent>
 
                     <!-- Tab 4: Connectivity -->
                     <TabsContent value="connectivity" class="mt-0 space-y-6">
-                        <Card>
-                            <CardHeader
-                                class="flex flex-row items-center justify-between pb-3"
-                            >
-                                <CardTitle
-                                    class="text-sm font-medium tracking-wider text-muted-foreground uppercase"
-                                    >Konektivitas</CardTitle
-                                >
-                                <Button
-                                    size="sm"
-                                    class="h-8 gap-1"
-                                    @click="connectionManagerRef?.openAdd()"
-                                >
-                                    <Plus class="h-4 w-4" />
-                                    <span
-                                        class="sr-only sm:not-sr-only sm:whitespace-nowrap"
-                                    >
-                                        Add Link
-                                    </span>
-                                </Button>
-                            </CardHeader>
-                            <CardContent>
-                                <ConnectionManager
-                                    ref="connectionManagerRef"
-                                    :device="router"
-                                    device-type="Modules\ActiveDevice\Models\Router"
-                                    :connections="router.source_connections"
-                                    :incoming-connections="
-                                        router.destination_connections
-                                    "
-                                    :available-devices="availableDevices"
-                                />
-                            </CardContent>
-                        </Card>
+                        <ConnectionManager
+                            ref="connectionManagerRef"
+                            :device="router"
+                            device-type="Modules\ActiveDevice\Models\Router"
+                            :connections="router.source_connections"
+                            :incoming-connections="
+                                router.destination_connections
+                            "
+                            :available-devices="availableDevices"
+                        />
                     </TabsContent>
                 </div>
             </Tabs>

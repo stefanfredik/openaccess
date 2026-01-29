@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import InventoryHeader from '@/../../Modules/ActiveDevice/resources/assets/js/Components/InventoryHeader.vue';
 import DeleteAction from '@/components/DeleteAction.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,36 +19,61 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
-import { Eye, Pencil, Plus } from 'lucide-vue-next';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { debounce } from 'lodash';
+import { Eye, Pencil } from 'lucide-vue-next';
+import { ref, watch } from 'vue';
 
-defineProps<{
+const props = defineProps<{
     cpes: {
         data: Array<any>;
         links: Array<any>;
     };
+    areas: any[];
+    filters: {
+        search?: string;
+        area_id?: string;
+    };
 }>();
+
+const searchQuery = ref(props.filters.search || '');
+const areaId = ref(props.filters.area_id || 'all');
+
+const updateFilters = debounce(() => {
+    router.get(
+        route('cpe.index'),
+        {
+            search: searchQuery.value,
+            area_id: areaId.value,
+        },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+        },
+    );
+}, 300);
+
+watch([searchQuery, areaId], () => {
+    updateFilters();
+});
 </script>
 
 <template>
     <Head title="CPEs" />
 
     <AppLayout :breadcrumbs="[{ title: 'CPEs', href: route('cpe.index') }]">
-        <div class="flex flex-col gap-6 p-4 md:p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-2xl font-bold tracking-tight">CPEs</h1>
-                    <p class="text-muted-foreground">
-                        Manage Customer Premises Equipment.
-                    </p>
-                </div>
-                <Button as-child>
-                    <Link :href="route('cpe.create')">
-                        <Plus class="mr-2 h-4 w-4" />
-                        Add CPE
-                    </Link>
-                </Button>
-            </div>
+        <div class="flex flex-col gap-6 p-4 md:p-8">
+            <InventoryHeader
+                title="CPE Inventory"
+                description="Kelola inventori perangkat Customer Premises Equipment (CPE)."
+                search-placeholder="Cari IP, Port, atau Nama..."
+                add-button-text="Tambah CPE"
+                :add-route="route('cpe.create')"
+                v-model="searchQuery"
+                v-model:area-id="areaId"
+                :areas="areas"
+            />
 
             <Card>
                 <CardHeader>

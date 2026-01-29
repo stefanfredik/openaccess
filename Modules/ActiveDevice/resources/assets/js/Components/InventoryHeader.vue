@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Link } from '@inertiajs/vue3';
-import { Plus, Search } from 'lucide-vue-next';
+import { MapPin, Plus, Search } from 'lucide-vue-next';
 
 defineProps<{
     title: string;
@@ -10,9 +17,11 @@ defineProps<{
     addButtonText: string;
     addRoute: string;
     modelValue?: string;
+    areaId?: string | number;
+    areas?: any[];
 }>();
 
-defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'update:areaId']);
 </script>
 
 <template>
@@ -30,6 +39,7 @@ defineEmits(['update:modelValue']);
             </p>
         </div>
         <div class="flex items-center gap-3">
+            <!-- Search Input -->
             <div class="relative hidden sm:block">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3">
                     <Search class="h-4 w-4 text-gray-400" />
@@ -47,6 +57,32 @@ defineEmits(['update:modelValue']);
                     :placeholder="searchPlaceholder || 'Search...'"
                 />
             </div>
+
+            <!-- Area Filter Dropdown -->
+            <div v-if="areas" class="w-48">
+                <Select
+                    :model-value="areaId?.toString()"
+                    @update:model-value="$emit('update:areaId', $event)"
+                >
+                    <SelectTrigger class="h-9 bg-gray-50 text-xs shadow-none">
+                        <div class="flex items-center gap-2">
+                            <MapPin class="h-3.5 w-3.5 text-gray-400" />
+                            <SelectValue placeholder="Semua Wilayah" />
+                        </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Semua Wilayah</SelectItem>
+                        <SelectItem
+                            v-for="area in areas"
+                            :key="area.id"
+                            :value="area.id.toString()"
+                        >
+                            {{ area.name }}
+                        </SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+
             <Button
                 as-child
                 class="bg-blue-600 shadow-sm transition-all duration-200 hover:bg-blue-700"

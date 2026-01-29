@@ -1,17 +1,21 @@
 <script setup lang="ts">
-import { Badge } from '@/components/ui/badge';
+import ConnectionManager from '@/../../Modules/ActiveDevice/resources/assets/js/Components/ConnectionManager.vue';
+import CpeOverview from '@/../../Modules/ActiveDevice/resources/assets/js/Components/CpeOverview.vue';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { ArrowLeft, Pencil } from 'lucide-vue-next';
-
-import ConnectionManager from '@/../../Modules/ActiveDevice/resources/assets/js/Components/ConnectionManager.vue';
+import { ref } from 'vue';
 
 const props = defineProps<{
     cpe: any;
     availableDevices: Array<any>;
 }>();
+
+const connectionManagerRef = ref<InstanceType<typeof ConnectionManager> | null>(
+    null,
+);
 </script>
 
 <template>
@@ -20,154 +24,110 @@ const props = defineProps<{
     <AppLayout
         :breadcrumbs="[
             { title: 'CPEs', href: route('cpe.index') },
-            { title: 'CPE Detail', href: '#' },
+            { title: cpe.name, href: '#' },
         ]"
     >
-        <div class="flex w-full flex-col gap-6 p-4 md:p-6 lg:p-8">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                    <Button variant="outline" size="icon" as-child>
-                        <Link :href="route('cpe.index')">
-                            <ArrowLeft class="h-4 w-4" />
-                        </Link>
-                    </Button>
-                    <div>
+        <div class="max-w-7xl space-y-6 p-4 md:p-6">
+            <!-- Page Header -->
+            <div
+                class="flex flex-col justify-between gap-4 md:flex-row md:items-center"
+            >
+                <div class="space-y-1">
+                    <div class="flex items-center gap-3">
                         <h1 class="text-2xl font-bold tracking-tight">
                             {{ cpe.name }}
                         </h1>
-                        <p class="text-muted-foreground">
-                            Detail information for CPE {{ cpe.code }}
-                        </p>
                     </div>
+                    <p
+                        class="flex items-center gap-2 text-sm text-muted-foreground"
+                    >
+                        <span
+                            class="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] uppercase"
+                            >{{ cpe.code }}</span
+                        >
+                        <span>&bull;</span>
+                        <span
+                            >{{ cpe.brand }} {{ cpe.model }} ({{
+                                cpe.type
+                            }})</span
+                        >
+                    </p>
                 </div>
-                <Button as-child>
-                    <Link :href="route('cpe.edit', cpe.id)">
-                        <Pencil class="mr-2 h-4 w-4" />
-                        Edit CPE
-                    </Link>
-                </Button>
-            </div>
-
-            <div class="flex flex-col gap-6">
-                <div class="grid gap-6 md:grid-cols-2">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Basic Information</CardTitle>
-                        </CardHeader>
-                        <CardContent class="grid gap-4">
-                            <div class="grid grid-cols-2 gap-1">
-                                <span
-                                    class="text-sm font-medium text-muted-foreground"
-                                    >Code</span
-                                >
-                                <span>{{ cpe.code }}</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-1">
-                                <span
-                                    class="text-sm font-medium text-muted-foreground"
-                                    >Type</span
-                                >
-                                <span>{{ cpe.type }}</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-1">
-                                <span
-                                    class="text-sm font-medium text-muted-foreground"
-                                    >Status</span
-                                >
-                                <div>
-                                    <Badge
-                                        :variant="
-                                            cpe.status === 'Active'
-                                                ? 'default'
-                                                : 'destructive'
-                                        "
-                                    >
-                                        {{ cpe.status }}
-                                    </Badge>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-1">
-                                <span
-                                    class="text-sm font-medium text-muted-foreground"
-                                    >Area</span
-                                >
-                                <span>{{ cpe.area?.name || '-' }}</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-1">
-                                <span
-                                    class="text-sm font-medium text-muted-foreground"
-                                    >Address</span
-                                >
-                                <span>{{ cpe.address }}</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-1">
-                                <span
-                                    class="text-sm font-medium text-muted-foreground"
-                                    >Installed At</span
-                                >
-                                <span>{{ cpe.installed_at || '-' }}</span>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Hardware Details</CardTitle>
-                        </CardHeader>
-                        <CardContent class="grid gap-4">
-                            <div class="grid grid-cols-2 gap-1">
-                                <span
-                                    class="text-sm font-medium text-muted-foreground"
-                                    >Brand</span
-                                >
-                                <span>{{ cpe.brand || '-' }}</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-1">
-                                <span
-                                    class="text-sm font-medium text-muted-foreground"
-                                    >Model</span
-                                >
-                                <span>{{ cpe.model || '-' }}</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-1">
-                                <span
-                                    class="text-sm font-medium text-muted-foreground"
-                                    >Serial Number</span
-                                >
-                                <span>{{ cpe.serial_number || '-' }}</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-1">
-                                <span
-                                    class="text-sm font-medium text-muted-foreground"
-                                    >MAC Address</span
-                                >
-                                <span>{{ cpe.mac_address || '-' }}</span>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Description</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p class="whitespace-pre-wrap">
-                            {{ cpe.description || 'No description provided.' }}
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <div class="mt-4">
-                    <ConnectionManager
-                        :device="cpe"
-                        device-type="Modules\Cpe\Models\Cpe"
-                        :connections="cpe.source_connections"
-                        :incoming-connections="cpe.destination_connections"
-                        :available-devices="availableDevices"
-                    />
+                <div class="flex items-center gap-2">
+                    <Button variant="outline" size="sm" as-child>
+                        <Link :href="route('cpe.index')">
+                            <ArrowLeft class="mr-2 h-4 w-4" />
+                            Back to List
+                        </Link>
+                    </Button>
+                    <Button size="sm" as-child>
+                        <Link :href="route('cpe.edit', cpe.id)">
+                            <Pencil class="mr-2 h-4 w-4" />
+                            Edit CPE
+                        </Link>
+                    </Button>
                 </div>
             </div>
+
+            <!-- Mobile View: Stacked Layout -->
+            <div class="flex flex-col space-y-8 md:hidden">
+                <!-- Overview -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold">Overview</h3>
+                    <CpeOverview :cpe="cpe" />
+                </div>
+
+                <!-- Connectivity -->
+                <ConnectionManager
+                    :device="cpe"
+                    device-type="Modules\Cpe\Models\Cpe"
+                    :connections="cpe.source_connections || []"
+                    :incoming-connections="cpe.destination_connections || []"
+                    :available-devices="availableDevices"
+                />
+            </div>
+
+            <!-- Desktop View: Tabs Layout -->
+            <Tabs
+                default-value="overview"
+                class="hidden w-full flex-col gap-8 md:flex md:flex-row"
+            >
+                <TabsList
+                    class="h-auto w-full flex-col justify-start space-y-1 bg-transparent p-0 md:w-64"
+                >
+                    <TabsTrigger
+                        value="overview"
+                        class="w-full justify-start px-4 py-2 text-left transition-all data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
+                    >
+                        Overview
+                    </TabsTrigger>
+                    <TabsTrigger
+                        value="connectivity"
+                        class="w-full justify-start px-4 py-2 text-left transition-all data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
+                    >
+                        Connectivity
+                    </TabsTrigger>
+                </TabsList>
+
+                <div class="flex-1">
+                    <!-- Tab 1: Overview -->
+                    <TabsContent value="overview" class="mt-0 space-y-6">
+                        <CpeOverview :cpe="cpe" />
+                    </TabsContent>
+
+                    <!-- Tab 2: Connectivity -->
+                    <TabsContent value="connectivity" class="mt-0 space-y-6">
+                        <ConnectionManager
+                            ref="connectionManagerRef"
+                            :device="cpe"
+                            device-type="Modules\Cpe\Models\Cpe"
+                            :connections="cpe.source_connections"
+                            :incoming-connections="cpe.destination_connections"
+                            :available-devices="availableDevices"
+                        />
+                    </TabsContent>
+                </div>
+            </Tabs>
         </div>
     </AppLayout>
 </template>

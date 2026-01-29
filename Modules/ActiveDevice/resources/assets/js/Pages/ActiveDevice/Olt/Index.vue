@@ -29,19 +29,45 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { debounce } from 'lodash';
 import { Eye, FileText, MoreVertical, Settings, Trash } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{
     olts: {
         data: any[];
     };
+    areas: any[];
+    filters: {
+        search?: string;
+        area_id?: string;
+    };
 }>();
 
 const selectedOltId = ref<number | null>(null);
 const isDrawerOpen = ref(false);
-const searchQuery = ref('');
+const searchQuery = ref(props.filters.search || '');
+const areaId = ref(props.filters.area_id || 'all');
+
+const updateFilters = debounce(() => {
+    router.get(
+        route('active-device.olt.index'),
+        {
+            search: searchQuery.value,
+            area_id: areaId.value,
+        },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+        },
+    );
+}, 300);
+
+watch([searchQuery, areaId], () => {
+    updateFilters();
+});
 
 const selectedOlt = computed(() => {
     return (
@@ -83,6 +109,8 @@ const getPortAbbreviation = (name: string) => {
                 add-button-text="Tambah OLT"
                 :add-route="route('active-device.olt.create')"
                 v-model="searchQuery"
+                v-model:area-id="areaId"
+                :areas="areas"
             />
 
             <!-- Table section -->

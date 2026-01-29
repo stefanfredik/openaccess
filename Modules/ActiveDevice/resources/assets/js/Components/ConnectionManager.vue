@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -8,6 +9,7 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
+    DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -163,15 +165,24 @@ defineExpose({ openAdd });
 </script>
 
 <template>
-    <div class="space-y-6">
-        <div class="flex items-center justify-between">
-            <h2
-                class="flex items-center gap-2 text-sm font-bold tracking-widest text-muted-foreground uppercase"
+    <Card>
+        <CardHeader class="flex flex-row items-center justify-between pb-3">
+            <CardTitle
+                class="text-sm font-medium tracking-wider text-muted-foreground uppercase"
             >
-                <div class="h-1 w-4 rounded-full bg-primary/50"></div>
-                Connection Status
-            </h2>
+                Connectivity
+            </CardTitle>
             <Dialog v-model:open="showAddForm">
+                <DialogTrigger as-child>
+                    <Button size="sm" class="h-8 gap-1">
+                        <Plus class="h-4 w-4" />
+                        <span
+                            class="sr-only sm:not-sr-only sm:whitespace-nowrap"
+                        >
+                            Add Link
+                        </span>
+                    </Button>
+                </DialogTrigger>
                 <DialogContent class="sm:max-w-[500px]">
                     <DialogHeader>
                         <DialogTitle>Add New Link</DialogTitle>
@@ -490,167 +501,178 @@ defineExpose({ openAdd });
                     </form>
                 </DialogContent>
             </Dialog>
-        </div>
+        </CardHeader>
 
-        <div class="rounded-md border bg-card">
-            <Table>
-                <TableHeader class="bg-muted/50">
-                    <TableRow>
-                        <TableHead class="w-[100px]">Interface</TableHead>
-                        <TableHead class="w-[120px]">Status</TableHead>
-                        <TableHead>Connected To</TableHead>
-                        <TableHead class="w-[120px]">Type</TableHead>
-                        <TableHead class="w-[50px]"></TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    <TableRow
-                        v-for="(row, index) in portTableData"
-                        :key="index"
-                        class="hover:bg-muted/5"
-                    >
-                        <TableCell>
-                            <div class="flex items-center gap-2">
-                                <span class="font-mono font-bold">{{
-                                    row.interface.name
-                                }}</span>
-                                <Badge
-                                    v-if="row.interface.status === 'up'"
-                                    variant="outline"
-                                    class="border-green-500/50 text-[10px] text-green-600 uppercase"
-                                >
-                                    UP
-                                </Badge>
-                                <Badge
-                                    v-else
-                                    variant="outline"
-                                    class="text-[10px] text-muted-foreground uppercase"
-                                >
-                                    {{ row.interface.status }}
-                                </Badge>
-                            </div>
-                        </TableCell>
-                        <TableCell>
-                            <div v-if="row.status === 'connected_out'">
-                                <Badge class="bg-green-500 hover:bg-green-600">
-                                    <ArrowRight class="mr-1 h-3 w-3" />
-                                    Uplink
-                                </Badge>
-                            </div>
-                            <div v-else-if="row.status === 'connected_in'">
-                                <Badge class="bg-blue-500 hover:bg-blue-600">
-                                    <LinkIcon class="mr-1 h-3 w-3" />
-                                    Downlink
-                                </Badge>
-                            </div>
-                            <div v-else>
-                                <Badge
-                                    variant="outline"
-                                    class="border-dashed text-muted-foreground"
-                                >
-                                    Available
-                                </Badge>
-                            </div>
-                        </TableCell>
-                        <TableCell>
-                            <div
-                                v-if="row.connection"
-                                class="flex items-center gap-3"
-                            >
-                                <div
-                                    class="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-primary/10 text-primary"
-                                >
-                                    <Server class="h-4 w-4" />
+        <CardContent>
+            <div class="rounded-md border bg-card">
+                <Table>
+                    <TableHeader class="bg-muted/50">
+                        <TableRow>
+                            <TableHead class="w-[100px]">Interface</TableHead>
+                            <TableHead class="w-[120px]">Status</TableHead>
+                            <TableHead>Connected To</TableHead>
+                            <TableHead class="w-[120px]">Type</TableHead>
+                            <TableHead class="w-[50px]"></TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <TableRow
+                            v-for="(row, index) in portTableData"
+                            :key="index"
+                            class="hover:bg-muted/5"
+                        >
+                            <TableCell>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-mono font-bold">{{
+                                        row.interface.name
+                                    }}</span>
+                                    <Badge
+                                        v-if="row.interface.status === 'up'"
+                                        variant="outline"
+                                        class="border-green-500/50 text-[10px] text-green-600 uppercase"
+                                    >
+                                        UP
+                                    </Badge>
+                                    <Badge
+                                        v-else
+                                        variant="outline"
+                                        class="text-[10px] text-muted-foreground uppercase"
+                                    >
+                                        {{ row.interface.status }}
+                                    </Badge>
                                 </div>
-                                <div class="flex flex-col">
-                                    <span
-                                        class="text-sm font-bold text-foreground"
+                            </TableCell>
+                            <TableCell>
+                                <div v-if="row.status === 'connected_out'">
+                                    <Badge
+                                        class="bg-green-500 hover:bg-green-600"
                                     >
-                                        {{
-                                            row.is_parent
-                                                ? row.connection.source?.name
-                                                : row.connection.destination
-                                                      ?.name
-                                        }}
-                                    </span>
+                                        <ArrowRight class="mr-1 h-3 w-3" />
+                                        Uplink
+                                    </Badge>
+                                </div>
+                                <div v-else-if="row.status === 'connected_in'">
+                                    <Badge
+                                        class="bg-blue-500 hover:bg-blue-600"
+                                    >
+                                        <LinkIcon class="mr-1 h-3 w-3" />
+                                        Downlink
+                                    </Badge>
+                                </div>
+                                <div v-else>
+                                    <Badge
+                                        variant="outline"
+                                        class="border-dashed text-muted-foreground"
+                                    >
+                                        Available
+                                    </Badge>
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <div
+                                    v-if="row.connection"
+                                    class="flex items-center gap-3"
+                                >
                                     <div
-                                        class="flex items-center gap-1.5 text-[10px] text-muted-foreground"
+                                        class="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-primary/10 text-primary"
                                     >
-                                        <span class="mr-1">
-                                            {{
-                                                row.is_parent
-                                                    ? 'Source Port:'
-                                                    : 'Dest Port:'
-                                            }}
-                                        </span>
+                                        <Server class="h-4 w-4" />
+                                    </div>
+                                    <div class="flex flex-col">
                                         <span
-                                            class="rounded border border-border/50 bg-muted/60 px-1 font-mono"
+                                            class="text-sm font-bold text-foreground"
                                         >
                                             {{
                                                 row.is_parent
-                                                    ? (row.connection
-                                                          .source_interface
-                                                          ?.name ??
-                                                      row.connection
-                                                          .source_port)
-                                                    : (row.connection
-                                                          .destination_interface
-                                                          ?.name ??
-                                                      row.connection
-                                                          .destination_port)
+                                                    ? row.connection.source
+                                                          ?.name
+                                                    : row.connection.destination
+                                                          ?.name
                                             }}
                                         </span>
+                                        <div
+                                            class="flex items-center gap-1.5 text-[10px] text-muted-foreground"
+                                        >
+                                            <span class="mr-1">
+                                                {{
+                                                    row.is_parent
+                                                        ? 'Source Port:'
+                                                        : 'Dest Port:'
+                                                }}
+                                            </span>
+                                            <span
+                                                class="rounded border border-border/50 bg-muted/60 px-1 font-mono"
+                                            >
+                                                {{
+                                                    row.is_parent
+                                                        ? (row.connection
+                                                              .source_interface
+                                                              ?.name ??
+                                                          row.connection
+                                                              .source_port)
+                                                        : (row.connection
+                                                              .destination_interface
+                                                              ?.name ??
+                                                          row.connection
+                                                              .destination_port)
+                                                }}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <span v-else class="text-xs text-muted-foreground"
-                                >-</span
+                                <span
+                                    v-else
+                                    class="text-xs text-muted-foreground"
+                                    >-</span
+                                >
+                            </TableCell>
+                            <TableCell>
+                                <Badge
+                                    v-if="row.connection"
+                                    variant="outline"
+                                    class="font-mono text-xs"
+                                >
+                                    {{ row.connection.connection_type }}
+                                </Badge>
+                                <span
+                                    v-else
+                                    class="text-xs text-muted-foreground"
+                                    >-</span
+                                >
+                            </TableCell>
+                            <TableCell>
+                                <Button
+                                    v-if="row.connection && !row.is_parent"
+                                    variant="ghost"
+                                    size="icon"
+                                    class="h-8 w-8 text-destructive opacity-70 hover:bg-destructive/10 hover:opacity-100"
+                                    @click="deleteConnection(row.connection.id)"
+                                >
+                                    <Trash2 class="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    v-else-if="!row.connection"
+                                    variant="ghost"
+                                    size="icon"
+                                    class="h-8 w-8 text-primary opacity-70 hover:bg-primary/10 hover:opacity-100"
+                                    @click="openAdd(row.interface.id)"
+                                >
+                                    <Plus class="h-4 w-4" />
+                                </Button>
+                            </TableCell>
+                        </TableRow>
+                        <TableRow v-if="portTableData.length === 0">
+                            <TableCell
+                                colspan="5"
+                                class="py-8 text-center text-muted-foreground"
                             >
-                        </TableCell>
-                        <TableCell>
-                            <Badge
-                                v-if="row.connection"
-                                variant="outline"
-                                class="font-mono text-xs"
-                            >
-                                {{ row.connection.connection_type }}
-                            </Badge>
-                            <span v-else class="text-xs text-muted-foreground"
-                                >-</span
-                            >
-                        </TableCell>
-                        <TableCell>
-                            <Button
-                                v-if="row.connection && !row.is_parent"
-                                variant="ghost"
-                                size="icon"
-                                class="h-8 w-8 text-destructive opacity-70 hover:bg-destructive/10 hover:opacity-100"
-                                @click="deleteConnection(row.connection.id)"
-                            >
-                                <Trash2 class="h-4 w-4" />
-                            </Button>
-                            <Button
-                                v-else-if="!row.connection"
-                                variant="ghost"
-                                size="icon"
-                                class="h-8 w-8 text-primary opacity-70 hover:bg-primary/10 hover:opacity-100"
-                                @click="openAdd(row.interface.id)"
-                            >
-                                <Plus class="h-4 w-4" />
-                            </Button>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow v-if="portTableData.length === 0">
-                        <TableCell
-                            colspan="5"
-                            class="py-8 text-center text-muted-foreground"
-                        >
-                            No interfaces found. Please add Physical Interfaces
-                            first.
-                        </TableCell>
-                    </TableRow>
-                </TableBody>
-            </Table>
-        </div>
-    </div>
+                                No interfaces found. Please add Physical
+                                Interfaces first.
+                            </TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
+            </div>
+        </CardContent>
+    </Card>
 </template>

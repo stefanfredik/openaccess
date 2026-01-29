@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -19,7 +20,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useForm } from '@inertiajs/vue3';
-import { Pencil, Trash2 } from 'lucide-vue-next';
+import { Pencil, Plus, Trash2 } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 const props = defineProps<{
@@ -95,87 +96,100 @@ defineExpose({ openAdd });
 </script>
 
 <template>
-    <div class="space-y-4">
-        <div class="overflow-hidden rounded-lg border bg-white shadow-sm">
-            <table class="w-full text-left text-sm">
-                <thead class="border-b bg-slate-50">
-                    <tr>
-                        <th class="px-4 py-2 font-semibold">Name</th>
-                        <th class="px-4 py-2 font-semibold">Type</th>
-                        <th class="px-4 py-2 font-semibold">Status</th>
-                        <th class="px-4 py-2 text-right font-semibold">
-                            Actions
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-50">
-                    <tr
-                        v-for="inf in interfaces"
-                        :key="inf.id"
-                        class="transition-colors hover:bg-slate-50/50"
-                    >
-                        <td class="px-4 py-3">
-                            <div class="font-medium text-slate-900">
-                                {{ inf.name }}
-                            </div>
-                            <div class="font-mono text-[10px] text-slate-500">
-                                {{ inf.mac_address || 'No MAC' }}
-                            </div>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="text-xs text-slate-600">
-                                {{ inf.type }}
-                            </div>
-                            <div class="text-[10px] text-slate-400">
-                                {{ inf.speed }}
-                            </div>
-                        </td>
-                        <td class="px-4 py-3">
-                            <Badge
-                                :variant="
-                                    inf.status === 'up'
-                                        ? 'default'
-                                        : inf.status === 'error'
-                                          ? 'destructive'
-                                          : 'secondary'
-                                "
-                                class="capitalize"
-                            >
-                                {{ inf.status }}
-                            </Badge>
-                        </td>
-                        <td class="px-4 py-3 text-right">
-                            <div class="flex justify-end gap-1">
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    @click="editInterface(inf)"
-                                    class="h-8 w-8"
-                                >
-                                    <Pencil class="h-3.5 w-3.5" />
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    @click="deleteInterface(inf.id)"
-                                    class="h-8 w-8 text-red-500 hover:text-red-700"
-                                >
-                                    <Trash2 class="h-3.5 w-3.5" />
-                                </Button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr v-if="interfaces.length === 0">
-                        <td
-                            colspan="4"
-                            class="px-4 py-8 text-center text-sm text-slate-400 italic"
+    <Card>
+        <CardHeader class="flex flex-row items-center justify-between pb-3">
+            <CardTitle
+                class="text-sm font-medium tracking-wider text-muted-foreground uppercase"
+            >
+                Physical Interfaces
+            </CardTitle>
+            <Button size="sm" class="h-8 gap-1" @click="openAdd">
+                <Plus class="h-4 w-4" />
+                <span class="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                    Add Interface
+                </span>
+            </Button>
+        </CardHeader>
+        <CardContent>
+            <div class="overflow-hidden rounded-md border">
+                <table class="w-full text-left text-sm">
+                    <thead class="border-b bg-muted/50">
+                        <tr>
+                            <th class="px-4 py-2 font-semibold">Name</th>
+                            <th class="px-4 py-2 font-semibold">Type</th>
+                            <th class="px-4 py-2 font-semibold">Status</th>
+                            <th class="px-4 py-2 text-right font-semibold">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y">
+                        <tr
+                            v-for="inf in interfaces"
+                            :key="inf.id"
+                            class="transition-colors hover:bg-muted/30"
                         >
-                            No interfaces configured yet.
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+                            <td class="px-4 py-3">
+                                <div class="font-medium">
+                                    {{ inf.name }}
+                                </div>
+                                <div
+                                    class="font-mono text-[10px] text-muted-foreground"
+                                >
+                                    {{ inf.mac_address || 'No MAC' }}
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 text-xs text-muted-foreground">
+                                <div>{{ inf.type }}</div>
+                                <div class="text-[10px]">{{ inf.speed }}</div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <Badge
+                                    :variant="
+                                        inf.status === 'up'
+                                            ? 'default'
+                                            : inf.status === 'error'
+                                              ? 'destructive'
+                                              : 'secondary'
+                                    "
+                                    class="h-5 px-1.5 py-0 text-[10px] capitalize"
+                                >
+                                    {{ inf.status }}
+                                </Badge>
+                            </td>
+                            <td class="px-4 py-3 text-right">
+                                <div class="flex justify-end gap-1">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        @click="editInterface(inf)"
+                                        class="h-7 w-7"
+                                    >
+                                        <Pencil class="h-3.5 w-3.5" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        @click="deleteInterface(inf.id)"
+                                        class="h-7 w-7 text-destructive"
+                                    >
+                                        <Trash2 class="h-3.5 w-3.5" />
+                                    </Button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr v-if="interfaces.length === 0">
+                            <td
+                                colspan="4"
+                                class="px-4 py-8 text-center text-sm text-muted-foreground italic"
+                            >
+                                No interfaces configured yet.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </CardContent>
 
         <Dialog :open="isAddOpen" @update:open="isAddOpen = $event">
             <DialogContent class="sm:max-w-[425px]">
@@ -277,5 +291,5 @@ defineExpose({ openAdd });
                 </DialogFooter>
             </DialogContent>
         </Dialog>
-    </div>
+    </Card>
 </template>
