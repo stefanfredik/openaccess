@@ -96,7 +96,10 @@ const connectionManagerRef = ref<InstanceType<typeof ConnectionManager> | null>(
                 <!-- Service Ports -->
                 <div class="space-y-4">
                     <h3 class="text-lg font-semibold">Service Ports</h3>
-                    <ServicePortsManager :olt="olt" />
+                    <ServicePortsManager
+                        :device="olt"
+                        device-type="Modules\ActiveDevice\Models\Olt"
+                    />
                 </div>
 
                 <!-- Physical Interfaces -->
@@ -122,8 +125,8 @@ const connectionManagerRef = ref<InstanceType<typeof ConnectionManager> | null>(
                         <CardContent class="pt-6">
                             <InterfaceManager
                                 ref="interfaceManagerRef"
-                                :olt-id="olt.id"
-                                :olt-type="'Modules\\ActiveDevice\\Models\\Olt'"
+                                :device-id="olt.id"
+                                :device-type="'Modules\\ActiveDevice\\Models\\Olt'"
                                 :interfaces="olt.interfaces || []"
                             />
                         </CardContent>
@@ -206,7 +209,10 @@ const connectionManagerRef = ref<InstanceType<typeof ConnectionManager> | null>(
 
                     <!-- Tab 2: Service Ports -->
                     <TabsContent value="services" class="mt-0 space-y-6">
-                        <ServicePortsManager :olt="olt" />
+                        <ServicePortsManager
+                            :device="olt"
+                            device-type="Modules\ActiveDevice\Models\Olt"
+                        />
                     </TabsContent>
 
                     <!-- Tab 3: Physical Interfaces -->
@@ -235,8 +241,8 @@ const connectionManagerRef = ref<InstanceType<typeof ConnectionManager> | null>(
                             <CardContent>
                                 <InterfaceManager
                                     ref="interfaceManagerRef"
-                                    :olt-id="olt.id"
-                                    :olt-type="'Modules\\ActiveDevice\\Models\\Olt'"
+                                    :device-id="olt.id"
+                                    :device-type="'Modules\\ActiveDevice\\Models\\Olt'"
                                     :interfaces="olt.interfaces || []"
                                 />
                             </CardContent>

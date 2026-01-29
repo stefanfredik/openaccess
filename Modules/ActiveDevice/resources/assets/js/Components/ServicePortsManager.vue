@@ -24,20 +24,32 @@ import { Plus, Trash2 } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 const props = defineProps<{
-    olt: any;
+    device: any;
+    deviceType?: string; // Optional if we extract from device, but better explicit for polymorphic
 }>();
+
+// Determines the polymorphic type.
+// If explicitly passed, use it. Otherwise, try to infer or default.
+// Ideally, the parent passes the full class name e.g. "Modules\ActiveDevice\Models\Olt"
+const polymorphicType =
+    props.deviceType ||
+    props.device.type ||
+    'Modules\\ActiveDevice\\Models\\Olt'; // Fallback if needed
 
 const isAddPortOpen = ref(false);
 
 const form = useForm({
-    portable_id: props.olt.id,
-    portable_type: 'Modules\\ActiveDevice\\Models\\Olt',
+    portable_id: props.device.id,
+    portable_type: polymorphicType,
     name: '',
     port: '',
     status: 'Active',
 });
 
 const addPort = () => {
+    // Ensure we use the correct type before submitting
+    form.portable_type = polymorphicType;
+
     form.post(route('active-device.service-ports.store'), {
         onSuccess: () => {
             isAddPortOpen.value = false;
@@ -165,7 +177,7 @@ const deletePort = (id: number) => {
                     </thead>
                     <tbody class="divide-y">
                         <tr
-                            v-for="port in olt.service_ports"
+                            v-for="port in device.service_ports"
                             :key="port.id"
                             class="hover:bg-muted/30"
                         >
@@ -198,7 +210,7 @@ const deletePort = (id: number) => {
                                 </Button>
                             </td>
                         </tr>
-                        <tr v-if="!olt.service_ports?.length">
+                        <tr v-if="!device.service_ports?.length">
                             <td
                                 colspan="4"
                                 class="px-4 py-4 text-center text-muted-foreground italic"

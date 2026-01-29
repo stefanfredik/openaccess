@@ -23,8 +23,8 @@ import { Pencil, Trash2 } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 const props = defineProps<{
-    oltId: number;
-    oltType: string;
+    deviceId: number;
+    deviceType: string;
     interfaces: any[];
 }>();
 
@@ -32,8 +32,8 @@ const isAddOpen = ref(false);
 const editingInterface = ref<any>(null);
 
 const form = useForm({
-    interfacable_id: props.oltId,
-    interfacable_type: props.oltType,
+    interfacable_id: props.deviceId,
+    interfacable_type: props.deviceType,
     name: '',
     type: 'Gigabit',
     speed: '1000Mbps',
@@ -43,6 +43,10 @@ const form = useForm({
 });
 
 const submit = () => {
+    // Ensure correct polymorphic types are set before submit
+    form.interfacable_id = props.deviceId;
+    form.interfacable_type = props.deviceType;
+
     if (editingInterface.value) {
         form.patch(
             route('active-device.interfaces.update', editingInterface.value.id),
@@ -183,7 +187,7 @@ defineExpose({ openAdd });
                     }}</DialogTitle>
                     <DialogDescription>
                         Konfigurasi port fisik pada perangkat
-                        {{ oltType.split('\\').pop() }}.
+                        {{ deviceType.split('\\').pop() }}.
                     </DialogDescription>
                 </DialogHeader>
 

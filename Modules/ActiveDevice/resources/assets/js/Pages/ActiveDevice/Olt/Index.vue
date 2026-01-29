@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import DeviceDetailPreview from '@/../../Modules/ActiveDevice/resources/assets/js/Components/DeviceDetailPreview.vue';
+import DeviceStatusBadge from '@/../../Modules/ActiveDevice/resources/assets/js/Components/DeviceStatusBadge.vue';
+import InventoryHeader from '@/../../Modules/ActiveDevice/resources/assets/js/Components/InventoryHeader.vue';
 import DeleteAction from '@/components/DeleteAction.vue';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -28,17 +30,8 @@ import {
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
-import {
-    Eye,
-    FileText,
-    MoreVertical,
-    Plus,
-    Search,
-    Settings,
-    Trash,
-} from 'lucide-vue-next';
+import { Eye, FileText, MoreVertical, Settings, Trash } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
-import OltDetailPreview from '../../../Components/OltDetailPreview.vue';
 
 const props = defineProps<{
     olts: {
@@ -48,6 +41,7 @@ const props = defineProps<{
 
 const selectedOltId = ref<number | null>(null);
 const isDrawerOpen = ref(false);
+const searchQuery = ref('');
 
 const selectedOlt = computed(() => {
     return (
@@ -82,43 +76,14 @@ const getPortAbbreviation = (name: string) => {
     >
         <div class="flex flex-col gap-6 p-4 md:p-8">
             <!-- Header section -->
-            <div
-                class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
-            >
-                <div>
-                    <h1
-                        class="font-inter text-2xl font-bold tracking-tight text-slate-900"
-                    >
-                        OLT Inventory
-                    </h1>
-                    <p class="text-sm text-muted-foreground italic">
-                        Kelola inventori perangkat OLT dan jalur fiber.
-                    </p>
-                </div>
-                <div class="flex items-center gap-3">
-                    <div class="relative hidden sm:block">
-                        <span
-                            class="absolute inset-y-0 left-0 flex items-center pl-3"
-                        >
-                            <Search class="h-4 w-4 text-gray-400" />
-                        </span>
-                        <input
-                            type="text"
-                            class="block w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pr-3 pl-10 text-sm transition focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                            placeholder="Cari IP, Port, atau Nama..."
-                        />
-                    </div>
-                    <Button
-                        as-child
-                        class="bg-blue-600 shadow-sm transition-all duration-200 hover:bg-blue-700"
-                    >
-                        <Link :href="route('active-device.olt.create')">
-                            <Plus class="mr-2 h-4 w-4" />
-                            Tambah OLT
-                        </Link>
-                    </Button>
-                </div>
-            </div>
+            <InventoryHeader
+                title="OLT Inventory"
+                description="Kelola inventori perangkat OLT dan jalur fiber."
+                search-placeholder="Cari IP, Port, atau Nama..."
+                add-button-text="Tambah OLT"
+                :add-route="route('active-device.olt.create')"
+                v-model="searchQuery"
+            />
 
             <!-- Table section -->
             <Card
@@ -230,18 +195,7 @@ const getPortAbbreviation = (name: string) => {
                                     </div>
                                 </TableCell>
                                 <TableCell class="px-6 py-4">
-                                    <Badge
-                                        :variant="
-                                            olt.status === 'Active'
-                                                ? 'default'
-                                                : olt.status === 'Planned'
-                                                  ? 'secondary'
-                                                  : 'destructive'
-                                        "
-                                        class="rounded-md px-2 py-0.5 text-[10px] font-bold tracking-tight"
-                                    >
-                                        {{ olt.status }}
-                                    </Badge>
+                                    <DeviceStatusBadge :status="olt.status" />
                                 </TableCell>
                                 <TableCell
                                     class="px-6 py-4 text-right"
@@ -369,7 +323,10 @@ const getPortAbbreviation = (name: string) => {
                             perangkat ini.</SheetDescription
                         >
                     </SheetHeader>
-                    <OltDetailPreview v-if="selectedOlt" :olt="selectedOlt" />
+                    <DeviceDetailPreview
+                        v-if="selectedOlt"
+                        :device="selectedOlt"
+                    />
                 </SheetContent>
             </Sheet>
         </div>
