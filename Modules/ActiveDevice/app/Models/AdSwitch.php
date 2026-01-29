@@ -57,4 +57,9 @@ class AdSwitch extends Model
     {
         return $this->morphMany(ServicePort::class, 'portable');
     }
+
+    public function interfaces()
+    {
+        return $this->morphMany(DeviceInterface::class, 'interfacable');
+    }
 }

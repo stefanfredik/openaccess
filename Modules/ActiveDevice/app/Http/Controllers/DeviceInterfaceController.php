@@ -18,6 +18,23 @@ class DeviceInterfaceController extends Controller
     }
 
     /**
+     * Get interfaces for a specific device.
+     */
+    public function getByDevice(Request $request)
+    {
+        $validated = $request->validate([
+            'type' => 'required|string',
+            'id' => 'required|integer',
+        ]);
+
+        $interfaces = DeviceInterface::where('interfacable_type', $validated['type'])
+            ->where('interfacable_id', $validated['id'])
+            ->get();
+
+        return response()->json($interfaces);
+    }
+
+    /**
      * Show the form for creating a new resource.
      */
     public function create()

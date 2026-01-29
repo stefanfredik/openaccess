@@ -28,8 +28,9 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { router, useForm } from '@inertiajs/vue3';
+import axios from 'axios';
 import { ArrowRight, Link as LinkIcon, Server, Trash2 } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 const props = defineProps<{
     device: any;
@@ -40,6 +41,7 @@ const props = defineProps<{
 }>();
 
 const showAddForm = ref(false);
+const destinationInterfaces = ref<Array<any>>([]);
 
 const form = useForm({
     source_id: props.device.id,
@@ -51,6 +53,43 @@ const form = useForm({
     destination_port: '',
     description: '',
 });
+
+watch(
+    () => form.destination_id,
+    async (newId: string | number | null) => {
+        if (!newId || !form.destination_type) {
+            destinationInterfaces.value = [];
+            form.destination_port = '';
+            return;
+        }
+
+        try {
+            const response = await axios.get(
+                route('active-device.interfaces.list'),
+                {
+                    params: {
+                        type: form.destination_type,
+                        id: newId,
+                    },
+                },
+            );
+            destinationInterfaces.value = response.data;
+            form.destination_port = ''; // Reset port
+        } catch (error) {
+            console.error('Failed to fetch destination interfaces', error);
+            destinationInterfaces.value = [];
+        }
+    },
+);
+
+watch(
+    () => form.destination_type,
+    () => {
+        form.destination_id = '';
+        destinationInterfaces.value = [];
+        form.destination_port = '';
+    },
+);
 
 const submit = () => {
     form.post('/topology/connections', {
@@ -259,22 +298,68 @@ defineExpose({ openAdd });
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <Input
+                                <div
                                     v-else
-                                    v-model="form.source_port"
-                                    class="h-10 w-full"
-                                    placeholder="e.g. ETH 1"
-                                />
+                                    class="rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-900/50 dark:bg-yellow-900/20 dark:text-yellow-200"
+                                >
+                                    No physical interfaces found. Please add
+                                    interfaces in the "Physical Interfaces" tab
+                                    first.
+                                </div>
                             </div>
                             <div class="space-y-2">
                                 <Label
                                     class="text-[11px] font-bold tracking-wider text-muted-foreground uppercase"
                                     >Remote Port (Dest)</Label
                                 >
+                                <div v-if="destinationInterfaces.length > 0">
+                                    <Select v-model="form.destination_port">
+                                        <SelectTrigger class="h-10 w-full">
+                                            <SelectValue
+                                                placeholder="Select Destination Port"
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem
+                                                v-for="inf in destinationInterfaces"
+                                                :key="inf.id"
+                                                :value="inf.name"
+                                            >
+                                                {{ inf.name }}
+                                                <span
+                                                    v-if="inf.status === 'up'"
+                                                    class="ml-2 text-xs text-green-500"
+                                                    >(UP)</span
+                                                >
+                                                <span
+                                                    v-else-if="
+                                                        inf.status === 'idle'
+                                                    "
+                                                    class="ml-2 text-xs text-muted-foreground"
+                                                    >(IDLE)</span
+                                                >
+                                                <span
+                                                    v-else
+                                                    class="ml-2 text-xs text-red-400"
+                                                    >({{ inf.status }})</span
+                                                >
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div
+                                    v-else-if="form.destination_id"
+                                    class="rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-900/50 dark:bg-yellow-900/20 dark:text-yellow-200"
+                                >
+                                    No physical interfaces found on target
+                                    device.
+                                </div>
                                 <Input
+                                    v-else
                                     v-model="form.destination_port"
                                     class="h-10 w-full"
-                                    placeholder="e.g. Uplink"
+                                    disabled
+                                    placeholder="Select a target device first"
                                 />
                             </div>
 

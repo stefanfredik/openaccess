@@ -76,7 +76,7 @@ class OntController extends Controller
         $allDevices = $allDevices->merge(\Modules\Cpe\Models\Cpe::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
 
         return Inertia::render('ActiveDevice::Ont/Show', [
-            'ont' => $ont->load(['area', 'pop', 'sourceConnections.destination', 'destinationConnections.source', 'servicePorts']),
+            'ont' => $ont->load(['area', 'pop', 'sourceConnections.destination', 'destinationConnections.source', 'servicePorts', 'interfaces']),
             'availableDevices' => $allDevices,
         ]);
     }
