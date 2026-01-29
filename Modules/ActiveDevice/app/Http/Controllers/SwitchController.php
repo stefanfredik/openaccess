@@ -19,7 +19,18 @@ class SwitchController extends Controller
      */
     public function index(): Response
     {
-        $switches = AdSwitch::with(['area', 'pop'])->latest()->paginate(10);
+        $switches = AdSwitch::with([
+            'area',
+            'pop',
+            'servicePorts',
+            'interfaces',
+            'sourceConnections.destination',
+            'sourceConnections.destinationInterface',
+            'sourceConnections.sourceInterface',
+            'destinationConnections.source',
+            'destinationConnections.sourceInterface',
+            'destinationConnections.destinationInterface',
+        ])->latest()->paginate(10);
 
         return Inertia::render('ActiveDevice::Switch/Index', [
             'switches' => $switches,

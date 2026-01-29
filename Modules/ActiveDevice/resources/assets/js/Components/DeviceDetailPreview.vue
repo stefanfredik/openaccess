@@ -4,10 +4,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     ArrowRightLeft,
     CheckCircle2,
+    Info,
     LockKeyhole,
     Monitor,
+    Network,
     PencilLine,
-    PlusCircle,
+    ShieldCheck,
     Zap,
 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -17,56 +19,108 @@ const props = defineProps<{
     device: any;
 }>();
 
-console.log('Rendering DeviceDetailPreview for:', props.device?.name);
-
-const activeServicePorts = computed(() => props.device.service_ports || []);
-const sourceConnections = computed(() => props.device.source_connections || []);
+// Ensure arrays are valid
+const activeServicePorts = computed(
+    () => props.device.service_ports || props.device.servicePorts || [],
+);
+const sourceConnections = computed(
+    () =>
+        props.device.source_connections || props.device.sourceConnections || [],
+);
+const destinationConnections = computed(
+    () =>
+        props.device.destination_connections ||
+        props.device.destinationConnections ||
+        [],
+);
 const activeInterfaces = computed(() => props.device.interfaces || []);
 const isInterfaceManaging = ref(false);
 
-// Mock interfaces for visualization ONLY IF real data is empty
-const displayInterfaces = computed(() => {
-    if (activeInterfaces.value.length > 0) return activeInterfaces.value;
-    return [
-        { name: 'GE1', status: 'up', type: 'Gigabit' },
-        { name: 'GE2', status: 'up', type: 'Gigabit' },
-        { name: 'GE3', status: 'idle', type: 'Gigabit' },
-        { name: 'GE4', status: 'idle', type: 'Gigabit' },
-        { name: 'SFP1', status: 'up', type: 'Fiber' },
-        { name: 'SFP2', status: 'error', type: 'Fiber' },
-    ];
+const ethernetInterfaces = computed(() => {
+    return activeInterfaces.value.filter(
+        (i: any) =>
+            (i.type === 'Ethernet' || i.type === 'Gigabit') &&
+            !i.name.toUpperCase().includes('PON'),
+    );
 });
 
-const deviceDetails = computed(() => {
-    const details: Record<string, any> = {
-        'Serial Number': props.device.serial_number,
-        'MAC Address': props.device.mac_address,
-        'IP Address': props.device.ip_address,
-        Wilayah: props.device.area?.name,
-        'Lokasi POP': props.device.pop?.name,
-        'Tahun Perolehan': props.device.purchase_year,
-        'Tanggal Instalasi': props.device.installed_at,
-        'Status Operasional':
-            props.device.status ||
-            (props.device.is_active ? 'Active' : 'Inactive'),
-        Deskripsi: props.device.description,
-    };
+const opticalInterfaces = computed(() => {
+    return activeInterfaces.value.filter(
+        (i: any) =>
+            (i.type === 'Fiber' || i.type === 'Optical') &&
+            !i.name.toUpperCase().includes('PON'),
+    );
+});
 
-    if (props.device.pon_type) {
-        details['PON Type'] = props.device.pon_type;
-    }
+const ponInterfaces = computed(() => {
+    return activeInterfaces.value.filter(
+        (i: any) => i.type === 'PON' || i.name.toUpperCase().includes('PON'),
+    );
+});
 
-    return details;
+const allConnections = computed(() => {
+    const outgoing = sourceConnections.value.map((c: any) => ({
+        ...c,
+        role: 'Source', // This device is the source
+        local_label: 'Local (Source)',
+        remote_label: 'Remote (Dest)',
+        peer: c.destination,
+        peer_port_display: c.destination_interface?.name ?? c.destination_port,
+        local_port_display: c.source_interface?.name ?? c.source_port,
+        direction_icon: 'arrow-right',
+    }));
+
+    const incoming = destinationConnections.value.map((c: any) => ({
+        ...c,
+        role: 'Destination', // This device is the destination
+        local_label: 'Local (Dest)',
+        remote_label: 'Remote (Source)',
+        peer: c.source,
+        peer_port_display: c.source_interface?.name ?? c.source_port,
+        local_port_display: c.destination_interface?.name ?? c.destination_port,
+        direction_icon: 'arrow-left',
+    }));
+
+    return [...outgoing, ...incoming];
 });
 
 const deviceType = computed(() => {
+    // Determine type based on properties or default to Router if ambiguous
     if (props.device.pon_type) return 'Modules\\ActiveDevice\\Models\\Olt';
-    return 'Modules\\ActiveDevice\\Models\\Router'; // Simple fallback inference
+    return 'Modules\\ActiveDevice\\Models\\Router';
 });
 
 const deviceSubtitle = computed(() => {
     const type = props.device.pon_type ? 'OLT' : 'Router';
     return `${type} - ${props.device.brand || ''} ${props.device.model || ''}`;
+});
+
+// Dynamic details based on device type
+const deviceDetails = computed(() => {
+    const details: Record<string, any> = {
+        'Serial Number': props.device.serial_number,
+        'MAC Address': props.device.mac_address,
+        'IP Address': props.device.ip_address,
+        'Area / Wilayah': props.device.area?.name,
+        'POP Location': props.device.pop?.name,
+        Status:
+            props.device.status ||
+            (props.device.is_active ? 'Active' : 'Inactive'),
+        Description: props.device.description,
+    };
+
+    // Specific fields
+    if (props.device.pon_type) {
+        details['PON Type'] = props.device.pon_type;
+    }
+    if (props.device.purchase_year) {
+        details['Tahun Perolehan'] = props.device.purchase_year;
+    }
+    if (props.device.installed_at) {
+        details['Tanggal Instalasi'] = props.device.installed_at;
+    }
+
+    return details;
 });
 </script>
 
@@ -79,33 +133,75 @@ const deviceSubtitle = computed(() => {
             </p>
         </div>
 
-        <Tabs default-value="services" class="flex flex-1 flex-col">
+        <Tabs default-value="detail" class="flex flex-1 flex-col">
             <TabsList
-                class="h-12 w-full justify-start rounded-none border-b bg-white px-6"
+                class="h-12 w-full justify-start space-x-2 rounded-none border-b bg-white px-6"
             >
                 <TabsTrigger
-                    value="services"
-                    class="relative h-12 rounded-none hover:text-blue-600 data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:h-0.5 data-[state=active]:after:w-full data-[state=active]:after:bg-blue-600"
-                    >Services</TabsTrigger
+                    value="detail"
+                    class="relative flex h-12 items-center gap-2 rounded-none border-b-2 border-transparent px-2 text-xs font-bold tracking-wider text-slate-400 uppercase hover:text-blue-600 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600"
                 >
+                    <Info class="h-4 w-4" />
+                    Info
+                </TabsTrigger>
+                <TabsTrigger
+                    value="services"
+                    class="relative flex h-12 items-center gap-2 rounded-none border-b-2 border-transparent px-2 text-xs font-bold tracking-wider text-slate-400 uppercase hover:text-blue-600 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600"
+                >
+                    <ShieldCheck class="h-4 w-4" />
+                    Services
+                </TabsTrigger>
                 <TabsTrigger
                     value="interfaces"
-                    class="relative h-12 rounded-none hover:text-blue-600 data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:h-0.5 data-[state=active]:after:w-full data-[state=active]:after:bg-blue-600"
-                    >Interfaces</TabsTrigger
+                    class="relative flex h-12 items-center gap-2 rounded-none border-b-2 border-transparent px-2 text-xs font-bold tracking-wider text-slate-400 uppercase hover:text-blue-600 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600"
                 >
+                    <Monitor class="h-4 w-4" />
+                    Ports
+                </TabsTrigger>
                 <TabsTrigger
                     value="topology"
-                    class="relative h-12 rounded-none hover:text-blue-600 data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:h-0.5 data-[state=active]:after:w-full data-[state=active]:after:bg-blue-600"
-                    >Topology</TabsTrigger
+                    class="relative flex h-12 items-center gap-2 rounded-none border-b-2 border-transparent px-2 text-xs font-bold tracking-wider text-slate-400 uppercase hover:text-blue-600 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600"
                 >
-                <TabsTrigger
-                    value="detail"
-                    class="relative h-12 rounded-none hover:text-blue-600 data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:h-0.5 data-[state=active]:after:w-full data-[state=active]:after:bg-blue-600"
-                    >Detail Info</TabsTrigger
-                >
+                    <Network class="h-4 w-4" />
+                    Links
+                </TabsTrigger>
             </TabsList>
 
             <div class="flex-1 overflow-y-auto">
+                <!-- Details Tab -->
+                <TabsContent value="detail" class="m-0 p-6">
+                    <h3
+                        class="mb-4 text-xs font-bold tracking-widest text-gray-400 uppercase"
+                    >
+                        Device Information
+                    </h3>
+                    <div
+                        class="overflow-hidden rounded-lg border border-slate-100 bg-white shadow-sm"
+                    >
+                        <table class="w-full text-left text-sm">
+                            <tbody class="divide-y divide-gray-50">
+                                <tr
+                                    v-for="(val, key) in deviceDetails"
+                                    :key="key"
+                                    class="transition-colors hover:bg-slate-50/50"
+                                >
+                                    <td
+                                        class="w-1/3 border-r border-slate-50/50 bg-slate-50/30 px-4 py-3 font-medium text-slate-500"
+                                    >
+                                        {{ key }}
+                                    </td>
+                                    <td
+                                        class="px-4 py-3 font-semibold text-slate-700"
+                                    >
+                                        {{ val || '-' }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </TabsContent>
+
+                <!-- Services Tab -->
                 <TabsContent value="services" class="m-0 space-y-4 p-6">
                     <h3
                         class="text-xs font-bold tracking-widest text-gray-400 uppercase"
@@ -155,11 +251,12 @@ const deviceSubtitle = computed(() => {
                             v-if="activeServicePorts.length === 0"
                             class="py-8 text-center text-sm text-muted-foreground italic"
                         >
-                            No active services found.
+                            No active services configured.
                         </div>
                     </div>
                 </TabsContent>
 
+                <!-- Interfaces Tab -->
                 <TabsContent value="interfaces" class="m-0 p-6">
                     <h3
                         class="mb-4 text-xs font-bold tracking-widest text-gray-400 uppercase"
@@ -176,74 +273,161 @@ const deviceSubtitle = computed(() => {
                                 class="h-8"
                             >
                                 <PencilLine class="mr-2 h-4 w-4" />
-                                Kelola Port
+                                Manage Ports
                             </Button>
                         </div>
-                        <div class="grid grid-cols-4 gap-2 sm:grid-cols-6">
-                            <div
-                                v-for="inf in displayInterfaces"
-                                :key="inf.name"
-                                :class="[
-                                    'flex cursor-help flex-col items-center justify-center rounded border p-2 transition',
-                                    inf.status === 'up'
-                                        ? inf.type === 'Fiber'
-                                            ? 'bg-blue-500 text-white'
-                                            : 'bg-green-500 text-white'
-                                        : inf.status === 'error'
-                                          ? 'border-red-200 bg-red-100 text-red-400'
-                                          : 'bg-gray-100 text-gray-400',
-                                ]"
-                                :title="
-                                    inf.status === 'up'
-                                        ? 'Connected'
-                                        : inf.status === 'error'
-                                          ? 'Error / Down'
-                                          : 'Idle'
-                                "
-                            >
-                                <Zap
-                                    v-if="inf.type === 'Fiber'"
-                                    class="mb-1 h-4 w-4"
-                                />
-                                <Monitor v-else class="mb-1 h-4 w-4" />
-                                <span
-                                    class="text-[10px] font-bold tracking-tighter uppercase"
-                                    >{{ inf.name }}</span
+
+                        <div
+                            v-if="activeInterfaces.length > 0"
+                            class="space-y-6"
+                        >
+                            <!-- Ethernet Ports -->
+                            <div v-if="ethernetInterfaces.length > 0">
+                                <h4
+                                    class="mb-3 text-xs font-bold tracking-widest text-slate-500 uppercase"
                                 >
+                                    Ethernet (RJ45)
+                                </h4>
+                                <div
+                                    class="grid grid-cols-4 gap-2 sm:grid-cols-5"
+                                >
+                                    <div
+                                        v-for="inf in ethernetInterfaces"
+                                        :key="inf.id"
+                                        :class="[
+                                            'relative flex aspect-square flex-col items-center justify-center rounded-lg border-2 p-2 transition',
+                                            inf.status === 'up'
+                                                ? 'border-green-500 bg-green-50 text-green-700'
+                                                : inf.status === 'error'
+                                                  ? 'border-red-200 bg-red-50 text-red-500'
+                                                  : 'border-slate-200 bg-white text-slate-400 hover:border-slate-300',
+                                        ]"
+                                        :title="
+                                            inf.name +
+                                            ' - ' +
+                                            (inf.status === 'up'
+                                                ? 'Connected'
+                                                : 'Idle')
+                                        "
+                                    >
+                                        <!-- Status Dot -->
+                                        <div
+                                            v-if="inf.status === 'up'"
+                                            class="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-green-500"
+                                        ></div>
+                                        <Monitor
+                                            class="mb-1 h-5 w-5 opacity-80"
+                                        />
+                                        <span
+                                            class="text-[10px] font-bold tracking-tighter uppercase"
+                                            >{{ inf.name }}</span
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Optical Ports -->
+                            <div v-if="opticalInterfaces.length > 0">
+                                <h4
+                                    class="mb-3 text-xs font-bold tracking-widest text-slate-500 uppercase"
+                                >
+                                    Optical (SFP/SFP+)
+                                </h4>
+                                <div
+                                    class="grid grid-cols-4 gap-2 sm:grid-cols-5"
+                                >
+                                    <div
+                                        v-for="inf in opticalInterfaces"
+                                        :key="inf.id"
+                                        :class="[
+                                            'relative flex aspect-square flex-col items-center justify-center rounded-lg border-2 p-2 transition',
+                                            inf.status === 'up'
+                                                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                                : inf.status === 'error'
+                                                  ? 'border-red-200 bg-red-50 text-red-500'
+                                                  : 'border-slate-200 bg-white text-slate-400 hover:border-slate-300',
+                                        ]"
+                                        :title="
+                                            inf.name +
+                                            ' - ' +
+                                            (inf.status === 'up'
+                                                ? 'Connected'
+                                                : 'Idle')
+                                        "
+                                    >
+                                        <!-- Status Dot -->
+                                        <div
+                                            v-if="inf.status === 'up'"
+                                            class="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-blue-500"
+                                        ></div>
+                                        <div
+                                            v-else-if="inf.status === 'error'"
+                                            class="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500"
+                                        ></div>
+
+                                        <Zap class="mb-1 h-5 w-5 opacity-80" />
+                                        <span
+                                            class="text-[10px] font-bold tracking-tighter uppercase"
+                                            >{{ inf.name }}</span
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- PON Ports -->
+                            <div v-if="ponInterfaces.length > 0">
+                                <h4
+                                    class="mb-3 text-xs font-bold tracking-widest text-slate-500 uppercase"
+                                >
+                                    PON Ports
+                                </h4>
+                                <div
+                                    class="grid grid-cols-4 gap-2 sm:grid-cols-5"
+                                >
+                                    <div
+                                        v-for="inf in ponInterfaces"
+                                        :key="inf.id"
+                                        :class="[
+                                            'relative flex aspect-square flex-col items-center justify-center rounded-lg border-2 p-2 transition',
+                                            inf.status === 'up'
+                                                ? 'border-orange-500 bg-orange-50 text-orange-700'
+                                                : inf.status === 'error'
+                                                  ? 'border-red-200 bg-red-50 text-red-500'
+                                                  : 'border-slate-200 bg-white text-slate-400 hover:border-slate-300',
+                                        ]"
+                                        :title="
+                                            inf.name +
+                                            ' - ' +
+                                            (inf.status === 'up'
+                                                ? 'Connected'
+                                                : 'Idle')
+                                        "
+                                    >
+                                        <!-- Status Dot -->
+                                        <div
+                                            v-if="inf.status === 'up'"
+                                            class="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-orange-500"
+                                        ></div>
+                                        <div
+                                            v-else-if="inf.status === 'error'"
+                                            class="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500"
+                                        ></div>
+
+                                        <Zap class="mb-1 h-5 w-5 opacity-80" />
+                                        <span
+                                            class="text-[10px] font-bold tracking-tighter uppercase"
+                                            >{{ inf.name }}</span
+                                        >
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="mt-8 space-y-2">
-                            <div
-                                class="flex items-center space-x-2 text-xs text-gray-500"
-                            >
-                                <span
-                                    class="h-3 w-3 rounded bg-green-500"
-                                ></span>
-                                <span>Up / Connected (Copper)</span>
-                            </div>
-                            <div
-                                class="flex items-center space-x-2 text-xs text-gray-500"
-                            >
-                                <span
-                                    class="h-3 w-3 rounded bg-blue-500"
-                                ></span>
-                                <span>Up / Connected (Fiber)</span>
-                            </div>
-                            <div
-                                class="flex items-center space-x-2 text-xs text-gray-500"
-                            >
-                                <span
-                                    class="h-3 w-3 rounded bg-gray-100"
-                                ></span>
-                                <span>Idle / Available</span>
-                            </div>
-                            <div
-                                class="flex items-center space-x-2 text-xs text-gray-500"
-                            >
-                                <span class="h-3 w-3 rounded bg-red-400"></span>
-                                <span>Error / Down</span>
-                            </div>
+                        <div
+                            v-else
+                            class="py-8 text-center text-sm text-muted-foreground italic"
+                        >
+                            No physical interfaces found.
                         </div>
                     </div>
 
@@ -255,7 +439,7 @@ const deviceSubtitle = computed(() => {
                                 @click="isInterfaceManaging = false"
                                 class="h-8"
                             >
-                                ← Kembali ke Visualisasi
+                                ← Back to Visualization
                             </Button>
                         </div>
                         <InterfaceManager
@@ -266,11 +450,12 @@ const deviceSubtitle = computed(() => {
                     </div>
                 </TabsContent>
 
+                <!-- Topology/Links Tab -->
                 <TabsContent value="topology" class="m-0 p-6">
                     <h3
                         class="mb-6 text-xs font-bold tracking-widest text-gray-400 uppercase"
                     >
-                        Active Links
+                        Active Connections
                     </h3>
 
                     <div class="relative space-y-6">
@@ -279,12 +464,17 @@ const deviceSubtitle = computed(() => {
                         ></div>
 
                         <div
-                            v-for="conn in sourceConnections"
+                            v-for="conn in allConnections"
                             :key="conn.id"
                             class="relative pl-8"
                         >
                             <div
-                                class="absolute top-1 left-0 h-4 w-4 rounded-full border-2 border-white bg-blue-600 shadow-sm"
+                                :class="[
+                                    'absolute top-1 left-0 h-4 w-4 rounded-full border-2 border-white shadow-sm',
+                                    conn.role === 'Source'
+                                        ? 'bg-blue-600'
+                                        : 'bg-green-600',
+                                ]"
                             ></div>
                             <div
                                 class="rounded-lg border border-blue-100 bg-blue-50 p-4"
@@ -293,9 +483,15 @@ const deviceSubtitle = computed(() => {
                                     class="mb-2 flex items-center justify-between"
                                 >
                                     <span
-                                        class="rounded bg-blue-600 px-2 py-0.5 text-[10px] font-bold tracking-tight text-white uppercase"
+                                        :class="[
+                                            'rounded px-2 py-0.5 text-[10px] font-bold tracking-tight text-white uppercase',
+                                            conn.role === 'Source'
+                                                ? 'bg-blue-600'
+                                                : 'bg-green-600',
+                                        ]"
                                     >
-                                        Local: {{ conn.source_port }}
+                                        {{ conn.local_label }}:
+                                        {{ conn.local_port_display }}
                                     </span>
                                     <span
                                         class="text-[10px] font-bold tracking-widest text-blue-600 uppercase"
@@ -312,18 +508,17 @@ const deviceSubtitle = computed(() => {
                                             class="text-sm font-bold text-slate-800"
                                         >
                                             {{
-                                                conn.destination?.name ||
-                                                'Unknown'
+                                                conn.peer?.name ||
+                                                'Unknown Device'
                                             }}
                                         </p>
                                         <p class="text-xs text-slate-500">
-                                            Target Port:
+                                            {{ conn.remote_label }}:
                                             <span
                                                 class="font-mono text-blue-600"
-                                                >{{
-                                                    conn.destination_port
-                                                }}</span
                                             >
+                                                {{ conn.peer_port_display }}
+                                            </span>
                                         </p>
                                     </div>
                                 </div>
@@ -331,51 +526,19 @@ const deviceSubtitle = computed(() => {
                         </div>
 
                         <div
-                            v-if="sourceConnections.length === 0"
+                            v-if="allConnections.length === 0"
                             class="py-8 text-center text-sm text-muted-foreground italic"
                         >
-                            No active links detected.
+                            No active connections.
                         </div>
 
-                        <Button
-                            variant="outline"
-                            class="mt-4 w-full border-dashed py-6 text-gray-400 hover:border-blue-300 hover:text-blue-600"
-                        >
-                            <PlusCircle class="mr-2 h-4 w-4" />
-                            Tambah Link Koneksi
-                        </Button>
-                    </div>
-                </TabsContent>
-
-                <TabsContent value="detail" class="m-0 p-6">
-                    <h3
-                        class="mb-4 text-xs font-bold tracking-widest text-gray-400 uppercase"
-                    >
-                        Device Information
-                    </h3>
-                    <div
-                        class="overflow-hidden rounded-lg border border-slate-100 bg-white shadow-sm"
-                    >
-                        <table class="w-full text-left text-sm">
-                            <tbody class="divide-y divide-gray-50">
-                                <tr
-                                    v-for="(val, key) in deviceDetails"
-                                    :key="key"
-                                    class="transition-colors hover:bg-slate-50/50"
-                                >
-                                    <td
-                                        class="w-1/3 border-r border-slate-50/50 bg-slate-50/30 px-4 py-3 font-medium text-slate-500"
-                                    >
-                                        {{ key }}
-                                    </td>
-                                    <td
-                                        class="px-4 py-3 font-semibold text-slate-700"
-                                    >
-                                        {{ val || '-' }}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <!-- Note: Adding connections usually happens on the details page, so we just show status here -->
+                        <div class="mt-4 text-center">
+                            <p class="text-xs text-muted-foreground">
+                                To add or manage connections, visit the full
+                                device details page.
+                            </p>
+                        </div>
                     </div>
                 </TabsContent>
             </div>

@@ -20,7 +20,7 @@ class OltController extends Controller
      */
     public function index(): Response
     {
-        $olts = Olt::with(['area', 'pop', 'servicePorts', 'interfaces', 'sourceConnections', 'destinationConnections'])->latest()->paginate(10);
+        $olts = Olt::with(['area', 'pop', 'servicePorts', 'interfaces', 'sourceConnections.destination', 'sourceConnections.destinationInterface', 'sourceConnections.sourceInterface', 'destinationConnections.source', 'destinationConnections.sourceInterface', 'destinationConnections.destinationInterface'])->latest()->paginate(10);
 
         return Inertia::render('ActiveDevice::Olt/Index', [
             'olts' => $olts,

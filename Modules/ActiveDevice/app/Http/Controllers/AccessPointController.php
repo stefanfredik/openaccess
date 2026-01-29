@@ -19,7 +19,18 @@ class AccessPointController extends Controller
      */
     public function index(): Response
     {
-        $accessPoints = AccessPoint::with(['area', 'pop'])->latest()->paginate(10);
+        $accessPoints = AccessPoint::with([
+            'area',
+            'pop',
+            'servicePorts',
+            'interfaces',
+            'sourceConnections.destination',
+            'sourceConnections.destinationInterface',
+            'sourceConnections.sourceInterface',
+            'destinationConnections.source',
+            'destinationConnections.sourceInterface',
+            'destinationConnections.destinationInterface',
+        ])->latest()->paginate(10);
 
         return Inertia::render('ActiveDevice::AccessPoint/Index', [
             'accessPoints' => $accessPoints,

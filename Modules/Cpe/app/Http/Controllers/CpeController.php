@@ -19,7 +19,15 @@ class CpeController extends Controller
     public function index(): Response
     {
         $cpes = Cpe::query()
-            ->with(['area'])
+            ->with([
+                'area',
+                'sourceConnections.destination',
+                'sourceConnections.destinationInterface',
+                'sourceConnections.sourceInterface',
+                'destinationConnections.source',
+                'destinationConnections.sourceInterface',
+                'destinationConnections.destinationInterface',
+            ])
             ->latest()
             ->paginate(10);
 

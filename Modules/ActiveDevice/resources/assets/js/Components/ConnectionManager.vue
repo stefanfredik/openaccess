@@ -64,12 +64,21 @@ const portTableData = computed(() => {
     const interfaces = props.device.interfaces || [];
     return interfaces.map((inf: any) => {
         // Check Outbound (Source = This Port)
-        const outbound = props.connections.find(
-            (c: any) => c.source_port === inf.id,
-        );
+        const outbound = props.connections.find((c: any) => {
+            const match = c.source_port == inf.id; // Using loose equality to check for type mismatch
+            if (c.source_port == inf.id && c.source_port !== inf.id) {
+                // console.warn('Type mismatch detected:', {
+                //     connPort: c.source_port,
+                //     typeC: typeof c.source_port,
+                //     infId: inf.id,
+                //     typeI: typeof inf.id,
+                // });
+            }
+            return match;
+        });
         // Check Inbound (Dest = This Port)
         const inbound = props.incomingConnections?.find(
-            (c: any) => c.destination_port === inf.id,
+            (c: any) => c.destination_port == inf.id, // Loose equality
         );
 
         return {
@@ -247,6 +256,12 @@ defineExpose({ openAdd });
                                                 </SelectItem>
                                             </SelectContent>
                                         </Select>
+                                        <div
+                                            v-if="form.errors.destination_id"
+                                            class="text-[10px] text-red-500"
+                                        >
+                                            {{ form.errors.destination_id }}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -325,6 +340,12 @@ defineExpose({ openAdd });
                                             No local interfaces.
                                         </div>
                                     </div>
+                                    <div
+                                        v-if="form.errors.source_port"
+                                        class="text-[10px] text-red-500"
+                                    >
+                                        {{ form.errors.source_port }}
+                                    </div>
 
                                     <div
                                         class="flex h-full items-center justify-center pt-6"
@@ -401,6 +422,12 @@ defineExpose({ openAdd });
                                             placeholder="Select target first"
                                         />
                                     </div>
+                                    <div
+                                        v-if="form.errors.destination_port"
+                                        class="text-[10px] text-red-500"
+                                    >
+                                        {{ form.errors.destination_port }}
+                                    </div>
                                 </div>
                             </div>
 
@@ -453,7 +480,9 @@ defineExpose({ openAdd });
                             <Button
                                 type="submit"
                                 :disabled="
-                                    form.processing || !form.destination_port
+                                    form.processing ||
+                                    !form.destination_port ||
+                                    !form.source_port
                                 "
                                 >Save Link</Button
                             >
