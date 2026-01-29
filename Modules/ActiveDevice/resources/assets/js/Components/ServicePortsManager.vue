@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
@@ -38,6 +39,10 @@ const polymorphicType =
 
 const isAddPortOpen = ref(false);
 
+// Delete confirmation state
+const deleteConfirmOpen = ref(false);
+const deletingPortId = ref<number | null>(null);
+
 const form = useForm({
     portable_id: props.device.id,
     portable_type: polymorphicType,
@@ -58,12 +63,29 @@ const addPort = () => {
     });
 };
 
-const deletePort = (id: number) => {
-    if (confirm('Are you sure you want to delete this service port?')) {
-        router.delete(route('active-device.service-ports.destroy', id), {
-            preserveScroll: true,
-        });
+const openDeleteConfirm = (id: number) => {
+    deletingPortId.value = id;
+    deleteConfirmOpen.value = true;
+};
+
+const confirmDelete = () => {
+    if (deletingPortId.value) {
+        router.delete(
+            route('active-device.service-ports.destroy', deletingPortId.value),
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    deleteConfirmOpen.value = false;
+                    deletingPortId.value = null;
+                },
+            },
+        );
     }
+};
+
+const cancelDelete = () => {
+    deleteConfirmOpen.value = false;
+    deletingPortId.value = null;
 };
 </script>
 
@@ -204,7 +226,7 @@ const deletePort = (id: number) => {
                                     variant="ghost"
                                     size="icon"
                                     class="h-7 w-7 text-destructive"
-                                    @click="deletePort(port.id)"
+                                    @click="openDeleteConfirm(port.id)"
                                 >
                                     <Trash2 class="h-4 w-4" />
                                 </Button>
@@ -222,5 +244,29 @@ const deletePort = (id: number) => {
                 </table>
             </div>
         </CardContent>
+
+        <!-- Delete Confirmation Dialog -->
+        <Dialog
+            :open="deleteConfirmOpen"
+            @update:open="deleteConfirmOpen = $event"
+        >
+            <DialogContent class="z-[100] sm:max-w-[400px]">
+                <DialogHeader>
+                    <DialogTitle>Konfirmasi Hapus</DialogTitle>
+                    <DialogDescription>
+                        Apakah Anda yakin ingin menghapus service port ini?
+                        Tindakan ini tidak dapat dibatalkan.
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter class="gap-2 sm:gap-0">
+                    <Button variant="outline" @click="cancelDelete">
+                        Batal
+                    </Button>
+                    <Button variant="destructive" @click="confirmDelete">
+                        Hapus
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </Card>
 </template>

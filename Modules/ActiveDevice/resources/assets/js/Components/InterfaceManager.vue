@@ -20,7 +20,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { useForm } from '@inertiajs/vue3';
+import { router, useForm } from '@inertiajs/vue3';
 import { Pencil, Plus, Trash2 } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
 
@@ -34,6 +34,10 @@ const isAddOpen = ref(false);
 const editingInterface = ref<any>(null);
 
 const isBulkMode = ref(false);
+
+// Delete confirmation state
+const deleteConfirmOpen = ref(false);
+const deletingInterfaceId = ref<number | null>(null);
 
 const form = useForm({
     interfacable_id: props.deviceId,
@@ -91,10 +95,33 @@ const editInterface = (inf: any) => {
     isAddOpen.value = true;
 };
 
-const deleteInterface = (id: number) => {
-    if (confirm('Are you sure you want to delete this interface?')) {
-        form.delete(route('active-device.interfaces.destroy', id));
+const openDeleteConfirm = (id: number) => {
+    deletingInterfaceId.value = id;
+    deleteConfirmOpen.value = true;
+};
+
+const confirmDelete = () => {
+    if (deletingInterfaceId.value) {
+        router.delete(
+            route(
+                'active-device.interfaces.destroy',
+                deletingInterfaceId.value,
+            ),
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    deleteConfirmOpen.value = false;
+                    deletingInterfaceId.value = null;
+                },
+            },
+        );
     }
+};
+
+const cancelDelete = () => {
+    deleteConfirmOpen.value = false;
+    deletingInterfaceId.value = null;
 };
 
 const openAdd = () => {
@@ -182,7 +209,7 @@ defineExpose({ openAdd });
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        @click="deleteInterface(inf.id)"
+                                        @click="openDeleteConfirm(inf.id)"
                                         class="h-7 w-7 text-destructive"
                                     >
                                         <Trash2 class="h-3.5 w-3.5" />
@@ -226,19 +253,11 @@ defineExpose({ openAdd });
                         <div class="col-span-3 flex items-center gap-2">
                             <Switch
                                 id="bulk"
-                                :checked="isBulkMode"
-                                @update:checked="
-                                    (val: boolean) => {
-                                        console.log('Switch toggled:', val);
-                                        isBulkMode = val;
-                                    }
-                                "
+                                :model-value="isBulkMode"
+                                @update:model-value="isBulkMode = $event"
                             />
                             <Label for="bulk" class="font-normal"
                                 >Create multiple interfaces sequentially</Label
-                            >
-                            <span class="text-xs text-muted-foreground"
-                                >({{ isBulkMode ? 'ON' : 'OFF' }})</span
                             >
                         </div>
                     </div>
@@ -369,6 +388,30 @@ defineExpose({ openAdd });
                                   ? `Create ${form.count} Interfaces`
                                   : 'Create Interface'
                         }}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
+        <!-- Delete Confirmation Dialog -->
+        <Dialog
+            :open="deleteConfirmOpen"
+            @update:open="deleteConfirmOpen = $event"
+        >
+            <DialogContent class="z-[100] sm:max-w-[400px]">
+                <DialogHeader>
+                    <DialogTitle>Konfirmasi Hapus</DialogTitle>
+                    <DialogDescription>
+                        Apakah Anda yakin ingin menghapus interface ini?
+                        Tindakan ini tidak dapat dibatalkan.
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter class="gap-2 sm:gap-0">
+                    <Button variant="outline" @click="cancelDelete">
+                        Batal
+                    </Button>
+                    <Button variant="destructive" @click="confirmDelete">
+                        Hapus
                     </Button>
                 </DialogFooter>
             </DialogContent>
