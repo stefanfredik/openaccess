@@ -47,16 +47,41 @@ class DeviceInterfaceController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
+        $commonRules = [
             'interfacable_id' => 'required|integer',
             'interfacable_type' => 'required|string',
-            'name' => 'required|string|max:255',
             'type' => 'nullable|string|max:255',
             'speed' => 'nullable|string|max:255',
             'mac_address' => 'nullable|string|max:255',
             'status' => 'required|string|in:up,down,idle,error',
             'description' => 'nullable|string',
-        ]);
+        ];
+
+        if ($request->boolean('is_bulk')) {
+            $validated = $request->validate(array_merge($commonRules, [
+                'prefix' => 'nullable|string|max:255',
+                'start_number' => 'required|integer|min:0',
+                'count' => 'required|integer|min:1|max:48',
+            ]));
+
+            $validated['company_id'] = $request->user()->company_id;
+            $prefix = $validated['prefix'] ?? '';
+            $start = $validated['start_number'];
+            $count = $validated['count'];
+
+            for ($i = 0; $i < $count; $i++) {
+                $data = $validated;
+                unset($data['prefix'], $data['start_number'], $data['count']);
+                $data['name'] = $prefix . ($start + $i);
+                DeviceInterface::create($data);
+            }
+
+            return back()->with('success', "$count Interfaces created successfully.");
+        }
+
+        $validated = $request->validate(array_merge($commonRules, [
+            'name' => 'required|string|max:255',
+        ]));
 
         $validated['company_id'] = $request->user()->company_id;
 

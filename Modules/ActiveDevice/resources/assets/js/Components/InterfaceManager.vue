@@ -19,6 +19,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { useForm } from '@inertiajs/vue3';
 import { Pencil, Plus, Trash2 } from 'lucide-vue-next';
 import { ref } from 'vue';
@@ -38,9 +39,12 @@ const form = useForm({
     name: '',
     type: 'Gigabit',
     speed: '1000Mbps',
-    mac_address: '',
     status: 'down',
     description: '',
+    is_bulk: false,
+    prefix: '',
+    start_number: 1,
+    count: 1,
 });
 
 const submit = () => {
@@ -206,7 +210,61 @@ defineExpose({ openAdd });
                 </DialogHeader>
 
                 <form @submit.prevent="submit" class="grid gap-4 py-4">
-                    <div class="grid grid-cols-4 items-center gap-4">
+                    <div
+                        v-if="!editingInterface"
+                        class="grid grid-cols-4 items-center gap-4"
+                    >
+                        <Label for="bulk" class="text-right">Bulk Mode</Label>
+                        <div class="col-span-3 flex items-center gap-2">
+                            <Switch
+                                id="bulk"
+                                :checked="form.is_bulk"
+                                @update:checked="form.is_bulk = $event"
+                            />
+                            <Label for="bulk" class="font-normal"
+                                >Create multiple interfaces sequentially</Label
+                            >
+                        </div>
+                    </div>
+
+                    <template v-if="form.is_bulk && !editingInterface">
+                        <div class="grid grid-cols-4 items-center gap-4">
+                            <Label for="prefix" class="text-right"
+                                >Prefix</Label
+                            >
+                            <Input
+                                id="prefix"
+                                v-model="form.prefix"
+                                placeholder="e.g. GE1/0/"
+                                class="col-span-3"
+                            />
+                        </div>
+                        <div class="grid grid-cols-4 items-center gap-4">
+                            <Label for="start" class="text-right"
+                                >Start From</Label
+                            >
+                            <Input
+                                id="start"
+                                type="number"
+                                v-model="form.start_number"
+                                class="col-span-3"
+                                min="0"
+                            />
+                        </div>
+                        <div class="grid grid-cols-4 items-center gap-4">
+                            <Label for="count" class="text-right">Count</Label>
+                            <Input
+                                id="count"
+                                type="number"
+                                v-model="form.count"
+                                class="col-span-3"
+                                min="1"
+                                max="48"
+                            />
+                        </div>
+                    </template>
+
+                    <div v-else class="grid grid-cols-4 items-center gap-4">
                         <Label for="name" class="text-right">Name</Label>
                         <Input
                             id="name"
