@@ -59,11 +59,11 @@ const portTableData = computed(() => {
     return interfaces.map((inf: any) => {
         // Check Outbound (Source = This Port)
         const outbound = props.connections.find(
-            (c: any) => c.source_port === inf.name,
+            (c: any) => c.source_port === inf.id,
         );
         // Check Inbound (Dest = This Port)
         const inbound = props.incomingConnections?.find(
-            (c: any) => c.destination_port === inf.name,
+            (c: any) => c.destination_port === inf.id,
         );
 
         return {
@@ -137,7 +137,7 @@ const deleteConnection = (id: number) => {
     }
 };
 
-const openAdd = (preselectedPort = '') => {
+const openAdd = (preselectedPort: any = '') => {
     if (preselectedPort) {
         form.source_port = preselectedPort;
     }
@@ -258,7 +258,7 @@ defineExpose({ openAdd });
                                             <SelectItem
                                                 v-for="inf in device.interfaces"
                                                 :key="inf.id"
-                                                :value="inf.name"
+                                                :value="inf.id"
                                             >
                                                 {{ inf.name }}
                                                 <span
@@ -307,7 +307,7 @@ defineExpose({ openAdd });
                                             <SelectItem
                                                 v-for="inf in destinationInterfaces"
                                                 :key="inf.id"
-                                                :value="inf.name"
+                                                :value="inf.id"
                                             >
                                                 {{ inf.name }}
                                                 <span
@@ -392,7 +392,11 @@ defineExpose({ openAdd });
                                 @click="showAddForm = false"
                                 >Cancel</Button
                             >
-                            <Button type="submit" :disabled="form.processing"
+                            <Button
+                                type="submit"
+                                :disabled="
+                                    form.processing || !form.destination_port
+                                "
                                 >Save Link</Button
                             >
                         </DialogFooter>
@@ -497,9 +501,16 @@ defineExpose({ openAdd });
                                         >
                                             {{
                                                 row.is_parent
-                                                    ? row.connection.source_port
-                                                    : row.connection
-                                                          .destination_port
+                                                    ? (row.connection
+                                                          .source_interface
+                                                          ?.name ??
+                                                      row.connection
+                                                          .source_port)
+                                                    : (row.connection
+                                                          .destination_interface
+                                                          ?.name ??
+                                                      row.connection
+                                                          .destination_port)
                                             }}
                                         </span>
                                     </div>
@@ -536,7 +547,7 @@ defineExpose({ openAdd });
                                 variant="ghost"
                                 size="icon"
                                 class="h-8 w-8 text-primary opacity-70 hover:bg-primary/10 hover:opacity-100"
-                                @click="openAdd(row.interface.name)"
+                                @click="openAdd(row.interface.id)"
                             >
                                 <Plus class="h-4 w-4" />
                             </Button>

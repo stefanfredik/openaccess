@@ -145,8 +145,8 @@ class DeviceConnectionController extends Controller
             'status' => $device->status ?? ($device->is_active ? 'Active' : 'Inactive'),
             'ip_address' => $device->ip_address,
             'connection_type' => $connection ? $connection->connection_type : null,
-            'source_port' => $connection ? $connection->source_port : null,
-            'destination_port' => $connection ? $connection->destination_port : null,
+            'source_port' => $connection ? ($connection->sourceInterface ? $connection->sourceInterface->name : $connection->source_port) : null,
+            'destination_port' => $connection ? ($connection->destinationInterface ? $connection->destinationInterface->name : $connection->destination_port) : null,
             'port_name' => $connection ? $connection->port_name : null,
             'is_duplicate' => $isDuplicate,
             'x' => $this->savedPositions[$uid]['x'] ?? null,
@@ -213,9 +213,9 @@ class DeviceConnectionController extends Controller
                     $connections->push([
                         'id' => $conn->id,
                         'direction' => 'out',
-                        'local_port' => $conn->source_port,
+                        'local_port' => $conn->sourceInterface ? $conn->sourceInterface->name : $conn->source_port,
                         'remote_device' => $conn->destination->name,
-                        'remote_port' => $conn->destination_port,
+                        'remote_port' => $conn->destinationInterface ? $conn->destinationInterface->name : $conn->destination_port,
                         'type' => $conn->connection_type,
                     ]);
                 }
@@ -229,9 +229,9 @@ class DeviceConnectionController extends Controller
                     $connections->push([
                         'id' => $conn->id,
                         'direction' => 'in',
-                        'local_port' => $conn->destination_port,
+                        'local_port' => $conn->destinationInterface ? $conn->destinationInterface->name : $conn->destination_port,
                         'remote_device' => $conn->source->name,
-                        'remote_port' => $conn->source_port,
+                        'remote_port' => $conn->sourceInterface ? $conn->sourceInterface->name : $conn->source_port,
                         'type' => $conn->connection_type,
                     ]);
                 }

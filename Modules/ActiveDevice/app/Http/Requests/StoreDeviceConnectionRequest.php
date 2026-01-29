@@ -17,8 +17,8 @@ class StoreDeviceConnectionRequest extends FormRequest
             'destination_id' => 'required|integer',
             'destination_type' => 'required|string',
             'connection_type' => 'required|string|in:Uplink,Downlink,Fiber',
-            'source_port' => 'nullable|string|max:255',
-            'destination_port' => 'nullable|string|max:255',
+            'source_port' => 'required|integer',
+            'destination_port' => 'required|integer',
             'port_name' => 'nullable|string|max:255',
             'description' => 'nullable|string',
         ];

@@ -40,7 +40,7 @@ class CpeController extends Controller
     public function store(StoreCpeRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $data['company_id'] = auth()->user()->company_id;
+        $data['company_id'] = $request->user()->company_id;
 
         Cpe::create($data);
 
@@ -62,7 +62,7 @@ class CpeController extends Controller
         $allDevices = $allDevices->merge(Cpe::all()->map(fn($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
 
         return Inertia::render('Cpe::Show', [
-            'cpe' => $cpe->load(['area', 'activeDevice', 'sourceConnections.destination', 'destinationConnections.source']),
+            'cpe' => $cpe->load(['area', 'activeDevice', 'sourceConnections.destination', 'sourceConnections.destinationInterface', 'destinationConnections.source', 'destinationConnections.sourceInterface']),
             'availableDevices' => $allDevices,
         ]);
     }

@@ -66,16 +66,21 @@ class DeviceConnectionTest extends TestCase
             'source_type' => get_class($router),
             'destination_id' => $switch->id,
             'destination_type' => get_class($switch),
+            'source_port' => 1,
+            'destination_port' => 2,
             'connection_type' => 'Downlink',
             'port_name' => 'ETH 0/1',
         ];
 
-        $response = $this->post('/active-devices/connections', $data);
+        $response = $this->post(route('active-device.connections.store'), $data);
 
+        $response->assertSessionHasNoErrors();
         $response->assertStatus(302);
         $this->assertDatabaseHas('ad_device_connections', [
             'source_id' => $router->id,
             'destination_id' => $switch->id,
+            'source_port' => 1,
+            'destination_port' => 2,
             'connection_type' => 'Downlink',
         ]);
     }

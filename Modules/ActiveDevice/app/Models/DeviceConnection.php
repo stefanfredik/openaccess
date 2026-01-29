@@ -25,6 +25,16 @@ class DeviceConnection extends Model
         'description',
     ];
 
+    public function sourceInterface()
+    {
+        return $this->belongsTo(DeviceInterface::class, 'source_port');
+    }
+
+    public function destinationInterface()
+    {
+        return $this->belongsTo(DeviceInterface::class, 'destination_port');
+    }
+
     public function source()
     {
         return $this->morphTo();
