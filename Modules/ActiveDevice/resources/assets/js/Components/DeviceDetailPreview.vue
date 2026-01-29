@@ -85,13 +85,42 @@ const allConnections = computed(() => {
 });
 
 const deviceType = computed(() => {
-    // Determine type based on properties or default to Router if ambiguous
+    // Determine type based on properties or defaults
     if (props.device.pon_type) return 'Modules\\ActiveDevice\\Models\\Olt';
+    if (props.device.onu_type) return 'Modules\\ActiveDevice\\Models\\Ont';
+    if (props.device.switch_type)
+        return 'Modules\\ActiveDevice\\Models\\AdSwitch';
+    if (props.device.type && props.device.brand) {
+        // Generic check for AP/CPE if we can't be sure, but usually namespaces help
+        if (
+            props.device.type.includes('AP') ||
+            props.device.type.includes('Access')
+        )
+            return 'Modules\\ActiveDevice\\Models\\AccessPoint';
+    }
+    // Check for CPE specific fields or breadcrumbs context if possible,
+    // but here we rely on the object structure
+    if (
+        props.device.model &&
+        !props.device.pon_type &&
+        !props.device.switch_type
+    ) {
+        // Fallback or specific markers
+        if (props.device.type === 'CPE') return 'Modules\\Cpe\\Models\\Cpe';
+    }
+
     return 'Modules\\ActiveDevice\\Models\\Router';
 });
 
 const deviceSubtitle = computed(() => {
-    const type = props.device.pon_type ? 'OLT' : 'Router';
+    let type = 'Device';
+    if (props.device.pon_type) type = 'OLT';
+    else if (props.device.onu_type) type = 'ONT';
+    else if (props.device.switch_type) type = 'Switch';
+    else if (props.device.type === 'CPE') type = 'CPE';
+    else if (props.device.type?.includes('Access')) type = 'Access Point';
+    else if (props.device.ip_address) type = 'Router';
+
     return `${type} - ${props.device.brand || ''} ${props.device.model || ''}`;
 });
 
@@ -112,6 +141,15 @@ const deviceDetails = computed(() => {
     // Specific fields
     if (props.device.pon_type) {
         details['PON Type'] = props.device.pon_type;
+    }
+    if (props.device.onu_type) {
+        details['ONT Type'] = props.device.onu_type;
+    }
+    if (props.device.switch_type) {
+        details['Switch Type'] = props.device.switch_type;
+    }
+    if (props.device.port_count) {
+        details['Total Ports'] = props.device.port_count;
     }
     if (props.device.purchase_year) {
         details['Tahun Perolehan'] = props.device.purchase_year;

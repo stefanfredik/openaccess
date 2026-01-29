@@ -1,15 +1,25 @@
 <script setup lang="ts">
+import DeviceDetailPreview from '@/../../Modules/ActiveDevice/resources/assets/js/Components/DeviceDetailPreview.vue';
+import DeviceStatusBadge from '@/../../Modules/ActiveDevice/resources/assets/js/Components/DeviceStatusBadge.vue';
 import InventoryHeader from '@/../../Modules/ActiveDevice/resources/assets/js/Components/InventoryHeader.vue';
 import DeleteAction from '@/components/DeleteAction.vue';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from '@/components/ui/sheet';
 import {
     Table,
     TableBody,
@@ -21,13 +31,12 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { debounce } from 'lodash';
-import { Eye, Pencil } from 'lucide-vue-next';
-import { ref, watch } from 'vue';
+import { Eye, FileText, MoreVertical, Settings, Trash } from 'lucide-vue-next';
+import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{
     cpes: {
-        data: Array<any>;
-        links: Array<any>;
+        data: any[];
     };
     areas: any[];
     filters: {
@@ -36,6 +45,8 @@ const props = defineProps<{
     };
 }>();
 
+const selectedCpeId = ref<number | null>(null);
+const isDrawerOpen = ref(false);
 const searchQuery = ref(props.filters.search || '');
 const areaId = ref(props.filters.area_id || 'all');
 
@@ -57,13 +68,31 @@ const updateFilters = debounce(() => {
 watch([searchQuery, areaId], () => {
     updateFilters();
 });
+
+const selectedCpe = computed(() => {
+    return (
+        props.cpes.data.find((c: any) => c.id === selectedCpeId.value) || null
+    );
+});
+
+const openDrawer = (cpe: any) => {
+    console.log('Opening drawer for:', cpe.name);
+    selectedCpeId.value = cpe.id;
+    isDrawerOpen.value = true;
+};
 </script>
 
 <template>
-    <Head title="CPEs" />
+    <Head title="CPE Inventory" />
 
-    <AppLayout :breadcrumbs="[{ title: 'CPEs', href: route('cpe.index') }]">
+    <AppLayout
+        :breadcrumbs="[
+            { title: 'Inventory', href: '#' },
+            { title: 'CPE', href: route('cpe.index') },
+        ]"
+    >
         <div class="flex flex-col gap-6 p-4 md:p-8">
+            <!-- Header section -->
             <InventoryHeader
                 title="CPE Inventory"
                 description="Kelola inventori perangkat Customer Premises Equipment (CPE)."
@@ -75,93 +104,227 @@ watch([searchQuery, areaId], () => {
                 :areas="areas"
             />
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>CPEs</CardTitle>
-                    <CardDescription>
-                        List of all registered CPEs.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
+            <!-- Table section -->
+            <Card
+                class="overflow-hidden rounded-xl border-none bg-white shadow-sm"
+            >
+                <div
+                    class="flex items-center justify-between border-b border-gray-50 bg-white p-6"
+                >
+                    <h2 class="text-lg font-bold text-slate-800">
+                        Daftar Inventori CPE
+                    </h2>
+                    <div class="flex space-x-2">
+                        <Button variant="outline" size="sm" class="h-8 text-xs"
+                            >Filter</Button
+                        >
+                        <Button variant="outline" size="sm" class="h-8 text-xs"
+                            >Export</Button
+                        >
+                    </div>
+                </div>
+                <CardContent class="p-0">
                     <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead class="w-[120px]">Code</TableHead>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Area</TableHead>
-                                <TableHead>Type</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead class="text-right"
-                                    >Actions</TableHead
+                        <TableHeader class="bg-gray-50/50">
+                            <TableRow class="border-b hover:bg-transparent">
+                                <TableHead
+                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    >Nama Perangkat</TableHead
+                                >
+                                <TableHead
+                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    >Brand / Model</TableHead
+                                >
+                                <TableHead
+                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    >IP Address</TableHead
+                                >
+                                <TableHead
+                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    >Type</TableHead
+                                >
+                                <TableHead
+                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    >Status</TableHead
+                                >
+                                <TableHead
+                                    class="px-6 py-4 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    >Aksi</TableHead
                                 >
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow v-for="cpe in cpes.data" :key="cpe.id">
-                                <TableCell class="font-medium">{{
-                                    cpe.code
-                                }}</TableCell>
-                                <TableCell>{{ cpe.name }}</TableCell>
-                                <TableCell>{{
-                                    cpe.area?.name || '-'
-                                }}</TableCell>
-                                <TableCell>{{ cpe.type || '-' }}</TableCell>
-                                <TableCell>
-                                    <Badge
-                                        :variant="
-                                            cpe.status === 'Active'
-                                                ? 'default'
-                                                : 'destructive'
-                                        "
-                                    >
-                                        {{ cpe.status }}
-                                    </Badge>
+                            <TableRow
+                                v-for="item in cpes.data"
+                                :key="item.id"
+                                @click="openDrawer(item)"
+                                class="group cursor-pointer border-b border-gray-50 transition-colors hover:bg-blue-50/40"
+                            >
+                                <TableCell
+                                    class="px-6 py-4 font-semibold text-slate-800"
+                                >
+                                    <div class="flex flex-col">
+                                        <span>{{ item.name }}</span>
+                                        <span
+                                            class="font-mono text-[10px] text-muted-foreground"
+                                            >{{ item.code }}</span
+                                        >
+                                    </div>
                                 </TableCell>
-                                <TableCell class="text-right">
-                                    <div class="flex justify-end gap-2">
+                                <TableCell
+                                    class="px-6 py-4 font-medium text-gray-600"
+                                >
+                                    {{ item.brand }} {{ item.model }}
+                                </TableCell>
+                                <TableCell
+                                    class="px-6 py-4 font-mono text-xs text-blue-600"
+                                >
+                                    {{ item.ip_address || '-' }}
+                                </TableCell>
+                                <TableCell class="px-6 py-4 text-sm">
+                                    {{ item.type || '-' }}
+                                </TableCell>
+                                <TableCell class="px-6 py-4">
+                                    <DeviceStatusBadge :status="item.status" />
+                                </TableCell>
+                                <TableCell
+                                    class="px-6 py-4 text-right"
+                                    @click.stop
+                                >
+                                    <div
+                                        class="flex items-center justify-end gap-1"
+                                    >
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            as-child
-                                            title="View Detail"
+                                            class="h-8 w-8 text-blue-600 opacity-60 transition-opacity hover:bg-blue-50 hover:opacity-100"
+                                            @click="openDrawer(item)"
+                                            title="Pratinjau Cepat"
                                         >
-                                            <Link
-                                                :href="
-                                                    route('cpe.show', cpe.id)
-                                                "
-                                            >
-                                                <Eye class="h-4 w-4" />
-                                            </Link>
+                                            <Eye class="h-4 w-4" />
                                         </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            as-child
-                                            title="Edit"
-                                        >
-                                            <Link
-                                                :href="
-                                                    route('cpe.edit', cpe.id)
-                                                "
+
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger as-child>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    class="h-8 w-8 p-0 opacity-60 transition-opacity hover:opacity-100"
+                                                >
+                                                    <MoreVertical
+                                                        class="h-4 w-4"
+                                                    />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent
+                                                align="end"
+                                                class="w-48"
                                             >
-                                                <Pencil class="h-4 w-4" />
-                                            </Link>
-                                        </Button>
-                                        <DeleteAction
-                                            :href="route('cpe.destroy', cpe.id)"
-                                        />
+                                                <DropdownMenuItem
+                                                    as-child
+                                                    class="cursor-pointer"
+                                                >
+                                                    <Link
+                                                        :href="
+                                                            route(
+                                                                'cpe.show',
+                                                                item.id,
+                                                            )
+                                                        "
+                                                    >
+                                                        <FileText
+                                                            class="mr-2 h-4 w-4"
+                                                        />
+                                                        Detail Lengkap
+                                                    </Link>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    as-child
+                                                    class="cursor-pointer"
+                                                >
+                                                    <Link
+                                                        :href="
+                                                            route(
+                                                                'cpe.edit',
+                                                                item.id,
+                                                            )
+                                                        "
+                                                    >
+                                                        <Settings
+                                                            class="mr-2 h-4 w-4"
+                                                        />
+                                                        Edit Perangkat
+                                                    </Link>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <div @click.stop>
+                                                    <DeleteAction
+                                                        :href="
+                                                            route(
+                                                                'cpe.destroy',
+                                                                item.id,
+                                                            )
+                                                        "
+                                                        title="Hapus CPE"
+                                                        class="h-auto w-full justify-start px-2 py-1.5 font-normal text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
+                                                    >
+                                                        <template #trigger>
+                                                            <div
+                                                                class="flex items-center"
+                                                            >
+                                                                <Trash
+                                                                    class="mr-2 h-4 w-4"
+                                                                />
+                                                                Hapus Perangkat
+                                                            </div>
+                                                        </template>
+                                                    </DeleteAction>
+                                                </div>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     </div>
                                 </TableCell>
                             </TableRow>
                             <TableRow v-if="cpes.data.length === 0">
-                                <TableCell colspan="6" class="h-24 text-center">
-                                    No CPEs found.
+                                <TableCell
+                                    colspan="6"
+                                    class="h-32 text-center text-muted-foreground italic"
+                                >
+                                    No CPEs found in inventory.
                                 </TableCell>
                             </TableRow>
                         </TableBody>
                     </Table>
                 </CardContent>
             </Card>
+
+            <!-- Detail Drawer (Sheet) -->
+            <Sheet :open="isDrawerOpen" @update:open="isDrawerOpen = $event">
+                <SheetTrigger class="hidden" />
+                <SheetContent
+                    class="flex h-full flex-col border-none p-0 shadow-2xl sm:max-w-[500px]"
+                >
+                    <SheetHeader class="sr-only">
+                        <SheetTitle
+                            >Detail CPE: {{ selectedCpe?.name }}</SheetTitle
+                        >
+                        <SheetDescription
+                            >Koneksi, interface, dan layanan aktif pada
+                            perangkat ini.</SheetDescription
+                        >
+                    </SheetHeader>
+                    <DeviceDetailPreview
+                        v-if="selectedCpe"
+                        :device="selectedCpe"
+                    />
+                </SheetContent>
+            </Sheet>
         </div>
     </AppLayout>
 </template>
+
+<style scoped>
+.font-inter {
+    font-family: 'Inter', sans-serif;
+}
+</style>
