@@ -21,8 +21,8 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 // import { index as serverIndex, edit as serverEdit, update as serverUpdate } from '@/routes/server';
+import FileUploader from '@/components/FileUploader.vue';
 import LocationPicker from '@/components/LocationPicker.vue';
-import PhotoUpload from '@/components/PhotoUpload.vue';
 
 const props = defineProps<{
     server: any;
@@ -45,10 +45,10 @@ const form = useForm({
     description: props.server.description,
     status: props.server.status,
     photos: {
-        Room: [] as File[],
-        Rack: [] as File[],
-        Installation: [] as File[],
-        Cabling: [] as File[],
+        Room: null as File | null,
+        Rack: null as File | null,
+        Installation: null as File | null,
+        Cabling: null as File | null,
     },
 });
 
@@ -393,27 +393,20 @@ const getPhotosByCategory = (category: string) => {
                                     </div>
                                 </div>
 
-                                <PhotoUpload
+                                <FileUploader
                                     v-model="
                                         form.photos[
                                             category as keyof typeof form.photos
                                         ]
                                     "
-                                />
-                                <div
-                                    v-if="
+                                    accept="image/png, image/jpeg, image/jpg"
+                                    :max-size="5"
+                                    :error="
                                         (form.errors as any)[
                                             `photos.${category}`
                                         ]
                                     "
-                                    class="mt-1 text-xs text-destructive"
-                                >
-                                    {{
-                                        (form.errors as any)[
-                                            `photos.${category}`
-                                        ]
-                                    }}
-                                </div>
+                                />
                             </div>
                         </div>
 

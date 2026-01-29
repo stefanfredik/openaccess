@@ -21,8 +21,8 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 // import { index as serverIndex, store as serverStore } from '@/routes/server';
+import FileUploader from '@/components/FileUploader.vue';
 import LocationPicker from '@/components/LocationPicker.vue';
-import PhotoUpload from '@/components/PhotoUpload.vue';
 
 defineProps<{
     areas: Array<any>;
@@ -43,10 +43,10 @@ const form = useForm({
     description: '',
     status: 'Active',
     photos: {
-        Room: [] as File[],
-        Rack: [] as File[],
-        Installation: [] as File[],
-        Cabling: [] as File[],
+        Room: null as File | null,
+        Rack: null as File | null,
+        Installation: null as File | null,
+        Cabling: null as File | null,
     },
 });
 
@@ -346,61 +346,51 @@ const submit = () => {
                                 <Label class="text-sm font-medium"
                                     >Ruangan / Lingkungan</Label
                                 >
-                                <PhotoUpload v-model="form.photos.Room" />
-                                <div
-                                    v-if="(form.errors as any)['photos.Room']"
-                                    class="mt-1 text-xs text-destructive"
-                                >
-                                    {{ (form.errors as any)['photos.Room'] }}
-                                </div>
+                                <FileUploader
+                                    v-model="form.photos.Room"
+                                    accept="image/png, image/jpeg, image/jpg"
+                                    :max-size="5"
+                                    :error="(form.errors as any)['photos.Room']"
+                                />
                             </div>
                             <div class="space-y-2">
                                 <Label class="text-sm font-medium"
                                     >Rack / Kabinet</Label
                                 >
-                                <PhotoUpload v-model="form.photos.Rack" />
-                                <div
-                                    v-if="(form.errors as any)['photos.Rack']"
-                                    class="mt-1 text-xs text-destructive"
-                                >
-                                    {{ (form.errors as any)['photos.Rack'] }}
-                                </div>
+                                <FileUploader
+                                    v-model="form.photos.Rack"
+                                    accept="image/png, image/jpeg, image/jpg"
+                                    :max-size="5"
+                                    :error="(form.errors as any)['photos.Rack']"
+                                />
                             </div>
                             <div class="space-y-2">
                                 <Label class="text-sm font-medium"
                                     >Instalasi Perangkat</Label
                                 >
-                                <PhotoUpload
+                                <FileUploader
                                     v-model="form.photos.Installation"
-                                />
-                                <div
-                                    v-if="
+                                    accept="image/png, image/jpeg, image/jpg"
+                                    :max-size="5"
+                                    :error="
                                         (form.errors as any)[
                                             'photos.Installation'
                                         ]
                                     "
-                                    class="mt-1 text-xs text-destructive"
-                                >
-                                    {{
-                                        (form.errors as any)[
-                                            'photos.Installation'
-                                        ]
-                                    }}
-                                </div>
+                                />
                             </div>
                             <div class="space-y-2">
                                 <Label class="text-sm font-medium"
                                     >Kabel / Wiring</Label
                                 >
-                                <PhotoUpload v-model="form.photos.Cabling" />
-                                <div
-                                    v-if="
+                                <FileUploader
+                                    v-model="form.photos.Cabling"
+                                    accept="image/png, image/jpeg, image/jpg"
+                                    :max-size="5"
+                                    :error="
                                         (form.errors as any)['photos.Cabling']
                                     "
-                                    class="mt-1 text-xs text-destructive"
-                                >
-                                    {{ (form.errors as any)['photos.Cabling'] }}
-                                </div>
+                                />
                             </div>
                         </div>
 

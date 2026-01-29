@@ -253,11 +253,21 @@ const footerNavItems: NavItem[] = [];
 
             <template v-if="!isSuperAdmin && isInPendataanScope">
                 <SidebarGroup class="px-2 py-0">
-                    <div class="mt-2 space-y-6">
+                    <!-- Inventory Label -->
+                    <div
+                        class="mb-3 flex h-8 items-center gap-2 px-2 text-sm font-medium text-foreground"
+                    >
+                        <Database class="h-4 w-4 shrink-0" />
+                        <span>Inventory</span>
+                    </div>
+
+                    <div class="space-y-3">
                         <!-- Infrastruktur Section -->
-                        <div class="space-y-1">
+                        <div
+                            class="space-y-1 rounded-lg bg-muted/40 px-2 py-2 dark:bg-muted/20"
+                        >
                             <div
-                                class="flex items-center gap-2 px-4 py-1 text-[9px] font-bold text-muted-foreground/40 uppercase"
+                                class="flex items-center gap-2 px-2 py-1 text-[9px] font-bold text-muted-foreground/60 uppercase"
                             >
                                 <MapPin class="h-3 w-3" /> Infrastruktur
                             </div>
@@ -265,9 +275,11 @@ const footerNavItems: NavItem[] = [];
                         </div>
 
                         <!-- Perangkat Aktif Section -->
-                        <div class="space-y-1">
+                        <div
+                            class="space-y-1 rounded-lg bg-muted/40 px-2 py-2 dark:bg-muted/20"
+                        >
                             <div
-                                class="flex items-center gap-2 px-4 py-1 text-[9px] font-bold text-muted-foreground/40 uppercase"
+                                class="flex items-center gap-2 px-2 py-1 text-[9px] font-bold text-muted-foreground/60 uppercase"
                             >
                                 <Cpu class="h-3 w-3" /> Perangkat Aktif
                             </div>
@@ -275,9 +287,11 @@ const footerNavItems: NavItem[] = [];
                         </div>
 
                         <!-- Perangkat Pasif Section -->
-                        <div class="space-y-1">
+                        <div
+                            class="space-y-1 rounded-lg bg-muted/40 px-2 py-2 dark:bg-muted/20"
+                        >
                             <div
-                                class="flex items-center gap-2 px-4 py-1 text-[9px] font-bold text-muted-foreground/40 uppercase"
+                                class="flex items-center gap-2 px-2 py-1 text-[9px] font-bold text-muted-foreground/60 uppercase"
                             >
                                 <HardDrive class="h-3 w-3" /> Perangkat Pasif
                             </div>
