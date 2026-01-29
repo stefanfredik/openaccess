@@ -29,6 +29,19 @@ const mockInterfaces = [
     { name: 'SFP1', status: 'up', type: 'fiber' },
     { name: 'SFP2', status: 'error', type: 'fiber' },
 ];
+
+const deviceDetails = computed(() => ({
+    'Serial Number': props.olt.serial_number,
+    'MAC Address': props.olt.mac_address,
+    'IP Address': props.olt.ip_address,
+    'PON Type': props.olt.pon_type,
+    Wilayah: props.olt.area?.name,
+    'Lokasi POP': props.olt.pop?.name,
+    'Tahun Perolehan': props.olt.purchase_year,
+    'Tanggal Instalasi': props.olt.installed_at,
+    'Status Operasional': props.olt.status,
+    Deskripsi: props.olt.description,
+}));
 </script>
 
 <template>
@@ -58,6 +71,11 @@ const mockInterfaces = [
                     value="topology"
                     class="relative h-12 rounded-none hover:text-blue-600 data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:h-0.5 data-[state=active]:after:w-full data-[state=active]:after:bg-blue-600"
                     >Topology</TabsTrigger
+                >
+                <TabsTrigger
+                    value="detail"
+                    class="relative h-12 rounded-none hover:text-blue-600 data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:h-0.5 data-[state=active]:after:w-full data-[state=active]:after:bg-blue-600"
+                    >Detail Info</TabsTrigger
                 >
             </TabsList>
 
@@ -262,6 +280,38 @@ const mockInterfaces = [
                             <PlusCircle class="mr-2 h-4 w-4" />
                             Tambah Link Koneksi
                         </Button>
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="detail" class="m-0 p-6">
+                    <h3
+                        class="mb-4 text-xs font-bold tracking-widest text-gray-400 uppercase"
+                    >
+                        Device Information
+                    </h3>
+                    <div
+                        class="overflow-hidden rounded-lg border border-slate-100 bg-white shadow-sm"
+                    >
+                        <table class="w-full text-left text-sm">
+                            <tbody class="divide-y divide-gray-50">
+                                <tr
+                                    v-for="(val, key) in deviceDetails"
+                                    :key="key"
+                                    class="transition-colors hover:bg-slate-50/50"
+                                >
+                                    <td
+                                        class="w-1/3 border-r border-slate-50/50 bg-slate-50/30 px-4 py-3 font-medium text-slate-500"
+                                    >
+                                        {{ key }}
+                                    </td>
+                                    <td
+                                        class="px-4 py-3 font-semibold text-slate-700"
+                                    >
+                                        {{ val || '-' }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </TabsContent>
             </div>

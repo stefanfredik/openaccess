@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { router } from '@inertiajs/vue3';
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogClose,
@@ -10,7 +10,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { router } from '@inertiajs/vue3';
 import { Trash2 } from 'lucide-vue-next';
 import { ref } from 'vue';
 
@@ -41,15 +41,22 @@ const handleDelete = () => {
 <template>
     <Dialog v-model:open="isOpen">
         <DialogTrigger as-child>
-            <Button variant="ghost" size="icon" title="Delete">
-                <Trash2 class="h-4 w-4 text-destructive" />
-            </Button>
+            <slot name="trigger">
+                <Button variant="ghost" size="icon" title="Delete">
+                    <Trash2 class="h-4 w-4 text-destructive" />
+                </Button>
+            </slot>
         </DialogTrigger>
         <DialogContent>
             <DialogHeader>
-                <DialogTitle>{{ title || 'Are you absolutely sure?' }}</DialogTitle>
+                <DialogTitle>{{
+                    title || 'Are you absolutely sure?'
+                }}</DialogTitle>
                 <DialogDescription>
-                    {{ description || 'This action cannot be undone. This will permanently delete the resource from our servers.' }}
+                    {{
+                        description ||
+                        'This action cannot be undone. This will permanently delete the resource from our servers.'
+                    }}
                 </DialogDescription>
             </DialogHeader>
             <DialogFooter class="gap-2">
@@ -58,7 +65,11 @@ const handleDelete = () => {
                         Cancel
                     </Button>
                 </DialogClose>
-                <Button variant="destructive" @click="handleDelete" :disabled="isLoading">
+                <Button
+                    variant="destructive"
+                    @click="handleDelete"
+                    :disabled="isLoading"
+                >
                     {{ isLoading ? 'Deleting...' : 'Delete' }}
                 </Button>
             </DialogFooter>

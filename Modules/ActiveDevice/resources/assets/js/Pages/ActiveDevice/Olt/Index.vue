@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import DeleteAction from '@/components/DeleteAction.vue';
-import EditAction from '@/components/EditAction.vue';
-import ShowAction from '@/components/ShowAction.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
     Sheet,
     SheetContent,
@@ -23,7 +28,15 @@ import {
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
-import { Eye, Plus, Search } from 'lucide-vue-next';
+import {
+    Eye,
+    FileText,
+    MoreVertical,
+    Plus,
+    Search,
+    Settings,
+    Trash,
+} from 'lucide-vue-next';
 import { ref } from 'vue';
 import OltDetailPreview from '../../../Components/OltDetailPreview.vue';
 
@@ -229,44 +242,96 @@ const getPortAbbreviation = (name: string) => {
                                     @click.stop
                                 >
                                     <div
-                                        class="flex justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100"
+                                        class="flex items-center justify-end gap-1"
                                     >
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            @click.stop="openDrawer(olt)"
-                                            title="Quick View"
+                                            class="h-8 w-8 text-blue-600 opacity-60 transition-opacity hover:bg-blue-50 hover:opacity-100"
+                                            @click="openDrawer(olt)"
+                                            title="Pratinjau Cepat"
                                         >
-                                            <Eye
-                                                class="h-4 w-4 text-blue-600"
-                                            />
+                                            <Eye class="h-4 w-4" />
                                         </Button>
-                                        <ShowAction
-                                            :href="
-                                                route(
-                                                    'active-device.olt.show',
-                                                    olt.id,
-                                                )
-                                            "
-                                            title="Full Detail"
-                                        />
-                                        <EditAction
-                                            :href="
-                                                route(
-                                                    'active-device.olt.edit',
-                                                    olt.id,
-                                                )
-                                            "
-                                            title="Edit"
-                                        />
-                                        <DeleteAction
-                                            :href="
-                                                route(
-                                                    'active-device.olt.destroy',
-                                                    olt.id,
-                                                )
-                                            "
-                                        />
+
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger as-child>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    class="h-8 w-8 p-0 opacity-60 transition-opacity hover:opacity-100"
+                                                >
+                                                    <MoreVertical
+                                                        class="h-4 w-4"
+                                                    />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent
+                                                align="end"
+                                                class="w-48"
+                                            >
+                                                <DropdownMenuItem
+                                                    as-child
+                                                    class="cursor-pointer"
+                                                >
+                                                    <Link
+                                                        :href="
+                                                            route(
+                                                                'active-device.olt.show',
+                                                                olt.id,
+                                                            )
+                                                        "
+                                                    >
+                                                        <FileText
+                                                            class="mr-2 h-4 w-4"
+                                                        />
+                                                        Detail Lengkap
+                                                    </Link>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    as-child
+                                                    class="cursor-pointer"
+                                                >
+                                                    <Link
+                                                        :href="
+                                                            route(
+                                                                'active-device.olt.edit',
+                                                                olt.id,
+                                                            )
+                                                        "
+                                                    >
+                                                        <Settings
+                                                            class="mr-2 h-4 w-4"
+                                                        />
+                                                        Edit Perangkat
+                                                    </Link>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <div @click.stop>
+                                                    <DeleteAction
+                                                        :href="
+                                                            route(
+                                                                'active-device.olt.destroy',
+                                                                olt.id,
+                                                            )
+                                                        "
+                                                        title="Hapus OLT"
+                                                        class="h-auto w-full justify-start px-2 py-1.5 font-normal text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
+                                                    >
+                                                        <template #trigger>
+                                                            <div
+                                                                class="flex items-center"
+                                                            >
+                                                                <Trash
+                                                                    class="mr-2 h-4 w-4"
+                                                                />
+                                                                Hapus Perangkat
+                                                            </div>
+                                                        </template>
+                                                    </DeleteAction>
+                                                </div>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     </div>
                                 </TableCell>
                             </TableRow>
