@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import InterfaceManager from '@/../../Modules/ActiveDevice/resources/assets/js/Components/InterfaceManager.vue';
 import FileUploader from '@/components/FileUploader.vue';
 import InputMap from '@/components/InputMap.vue';
 import { Button } from '@/components/ui/button';
@@ -661,6 +662,25 @@ const serviceOptions = ['Telnet', 'SSH', 'WEB'];
                     </CardFooter>
                 </Card>
             </form>
+
+            <Card class="border shadow-none">
+                <CardHeader class="pb-4">
+                    <CardTitle class="text-base font-semibold"
+                        >Physical Interfaces</CardTitle
+                    >
+                    <CardDescription class="text-xs"
+                        >Kelola port fisik dan status operasional
+                        perangkat.</CardDescription
+                    >
+                </CardHeader>
+                <CardContent>
+                    <InterfaceManager
+                        :olt-id="olt.id"
+                        :olt-type="'Modules\\ActiveDevice\\Models\\Olt'"
+                        :interfaces="olt.interfaces || []"
+                    />
+                </CardContent>
+            </Card>
         </div>
     </AppLayout>
 </template>

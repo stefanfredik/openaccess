@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ConnectionManager from '@/../../Modules/ActiveDevice/resources/assets/js/Components/ConnectionManager.vue';
+import InterfaceManager from '@/../../Modules/ActiveDevice/resources/assets/js/Components/InterfaceManager.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -409,6 +410,21 @@ const deletePort = (id: number) => {
                                     </tbody>
                                 </table>
                             </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader class="pb-3">
+                            <CardTitle
+                                class="text-sm font-medium tracking-wider text-muted-foreground uppercase"
+                                >Physical Interfaces</CardTitle
+                            >
+                        </CardHeader>
+                        <CardContent>
+                            <InterfaceManager
+                                :olt-id="olt.id"
+                                :olt-type="'Modules\\ActiveDevice\\Models\\Olt'"
+                                :interfaces="olt.interfaces || []"
+                            />
                         </CardContent>
                     </Card>
                 </div>

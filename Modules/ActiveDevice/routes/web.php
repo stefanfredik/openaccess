@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\ActiveDevice\Http\Controllers\AccessPointController;
 use Modules\ActiveDevice\Http\Controllers\DeviceConnectionController;
+use Modules\ActiveDevice\Http\Controllers\DeviceInterfaceController;
 use Modules\ActiveDevice\Http\Controllers\OltController;
 use Modules\ActiveDevice\Http\Controllers\OntController;
 use Modules\ActiveDevice\Http\Controllers\RouterController;
@@ -25,5 +26,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::post('service-ports', [\Modules\ActiveDevice\Http\Controllers\ServicePortController::class, 'store'])->name('service-ports.store');
         Route::delete('service-ports/{servicePort}', [\Modules\ActiveDevice\Http\Controllers\ServicePortController::class, 'destroy'])->name('service-ports.destroy');
+
+        Route::post('device-interfaces', [DeviceInterfaceController::class, 'store'])->name('interfaces.store');
+        Route::patch('device-interfaces/{interface}', [DeviceInterfaceController::class, 'update'])->name('interfaces.update');
+        Route::delete('device-interfaces/{interface}', [DeviceInterfaceController::class, 'destroy'])->name('interfaces.destroy');
     });
 });

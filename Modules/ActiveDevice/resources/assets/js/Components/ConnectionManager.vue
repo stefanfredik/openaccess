@@ -227,7 +227,48 @@ const deleteConnection = (id: number) => {
                                     class="text-[11px] font-bold tracking-wider text-muted-foreground uppercase"
                                     >Local Port (Source)</Label
                                 >
+                                <div
+                                    v-if="
+                                        device.interfaces &&
+                                        device.interfaces.length > 0
+                                    "
+                                >
+                                    <Select v-model="form.source_port">
+                                        <SelectTrigger class="h-10 w-full">
+                                            <SelectValue
+                                                placeholder="Select Source Port"
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem
+                                                v-for="inf in device.interfaces"
+                                                :key="inf.id"
+                                                :value="inf.name"
+                                            >
+                                                {{ inf.name }}
+                                                <span
+                                                    v-if="inf.status === 'up'"
+                                                    class="ml-2 text-xs text-green-500"
+                                                    >(UP)</span
+                                                >
+                                                <span
+                                                    v-else-if="
+                                                        inf.status === 'idle'
+                                                    "
+                                                    class="ml-2 text-xs text-muted-foreground"
+                                                    >(IDLE)</span
+                                                >
+                                                <span
+                                                    v-else
+                                                    class="ml-2 text-xs text-red-400"
+                                                    >({{ inf.status }})</span
+                                                >
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                                 <Input
+                                    v-else
                                     v-model="form.source_port"
                                     class="h-10 w-full"
                                     placeholder="e.g. ETH 1"

@@ -37,21 +37,27 @@ import {
     Settings,
     Trash,
 } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import OltDetailPreview from '../../../Components/OltDetailPreview.vue';
 
 const props = defineProps<{
     olts: {
-        data: Array<any>;
+        data: any[];
     };
 }>();
 
-const selectedOlt = ref<any>(null);
+const selectedOltId = ref<number | null>(null);
 const isDrawerOpen = ref(false);
+
+const selectedOlt = computed(() => {
+    return (
+        props.olts.data.find((o: any) => o.id === selectedOltId.value) || null
+    );
+});
 
 const openDrawer = (olt: any) => {
     console.log('Opening drawer for:', olt.name);
-    selectedOlt.value = olt;
+    selectedOltId.value = olt.id;
     isDrawerOpen.value = true;
 };
 

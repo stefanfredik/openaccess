@@ -20,7 +20,7 @@ class OltController extends Controller
      */
     public function index(): Response
     {
-        $olts = Olt::with(['area', 'pop', 'servicePorts', 'sourceConnections', 'destinationConnections'])->latest()->paginate(10);
+        $olts = Olt::with(['area', 'pop', 'servicePorts', 'interfaces', 'sourceConnections', 'destinationConnections'])->latest()->paginate(10);
 
         return Inertia::render('ActiveDevice::Olt/Index', [
             'olts' => $olts,
@@ -81,7 +81,7 @@ class OltController extends Controller
         $allDevices = $allDevices->merge(\Modules\Cpe\Models\Cpe::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
 
         return Inertia::render('ActiveDevice::Olt/Show', [
-            'olt' => $olt->load(['area', 'pop', 'sourceConnections.destination', 'destinationConnections.source', 'servicePorts']),
+            'olt' => $olt->load(['area', 'pop', 'sourceConnections.destination', 'destinationConnections.source', 'servicePorts', 'interfaces']),
             'availableDevices' => $allDevices,
         ]);
     }
@@ -92,7 +92,7 @@ class OltController extends Controller
     public function edit(Olt $olt): Response
     {
         return Inertia::render('ActiveDevice::Olt/Edit', [
-            'olt' => $olt->load('servicePorts'),
+            'olt' => $olt->load(['servicePorts', 'interfaces']),
             'areas' => InfrastructureArea::all(),
             'pops' => Pop::all(),
         ]);

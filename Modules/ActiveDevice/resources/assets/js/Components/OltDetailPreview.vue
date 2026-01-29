@@ -6,10 +6,12 @@ import {
     CheckCircle2,
     LockKeyhole,
     Monitor,
+    PencilLine,
     PlusCircle,
     Zap,
 } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
+import InterfaceManager from './InterfaceManager.vue';
 
 const props = defineProps<{
     olt: any;
@@ -19,16 +21,21 @@ console.log('Rendering OltDetailPreview for:', props.olt?.name);
 
 const activeServicePorts = computed(() => props.olt.service_ports || []);
 const sourceConnections = computed(() => props.olt.source_connections || []);
+const activeInterfaces = computed(() => props.olt.interfaces || []);
+const isInterfaceManaging = ref(false);
 
-// Mock interfaces for visualization as requested in mockup
-const mockInterfaces = [
-    { name: 'GE1', status: 'up', type: 'copper' },
-    { name: 'GE2', status: 'up', type: 'copper' },
-    { name: 'GE3', status: 'idle', type: 'copper' },
-    { name: 'GE4', status: 'idle', type: 'copper' },
-    { name: 'SFP1', status: 'up', type: 'fiber' },
-    { name: 'SFP2', status: 'error', type: 'fiber' },
-];
+// Mock interfaces for visualization ONLY IF real data is empty
+const displayInterfaces = computed(() => {
+    if (activeInterfaces.value.length > 0) return activeInterfaces.value;
+    return [
+        { name: 'GE1', status: 'up', type: 'Gigabit' },
+        { name: 'GE2', status: 'up', type: 'Gigabit' },
+        { name: 'GE3', status: 'idle', type: 'Gigabit' },
+        { name: 'GE4', status: 'idle', type: 'Gigabit' },
+        { name: 'SFP1', status: 'up', type: 'Fiber' },
+        { name: 'SFP2', status: 'error', type: 'Fiber' },
+    ];
+});
 
 const deviceDetails = computed(() => ({
     'Serial Number': props.olt.serial_number,
@@ -140,65 +147,103 @@ const deviceDetails = computed(() => ({
                     >
                         Physical Ports
                     </h3>
-                    <div class="grid grid-cols-4 gap-2 sm:grid-cols-6">
-                        <div
-                            v-for="inf in mockInterfaces"
-                            :key="inf.name"
-                            :class="[
-                                'flex cursor-help flex-col items-center justify-center rounded border p-2 transition',
-                                inf.status === 'up'
-                                    ? inf.type === 'fiber'
-                                        ? 'bg-blue-500 text-white'
-                                        : 'bg-green-500 text-white'
-                                    : inf.status === 'error'
-                                      ? 'border-red-200 bg-red-100 text-red-400'
-                                      : 'bg-gray-100 text-gray-400',
-                            ]"
-                            :title="
-                                inf.status === 'up'
-                                    ? 'Connected'
-                                    : inf.status === 'error'
-                                      ? 'Error / Down'
-                                      : 'Idle'
-                            "
-                        >
-                            <Zap
-                                v-if="inf.type === 'fiber'"
-                                class="mb-1 h-4 w-4"
-                            />
-                            <Monitor v-else class="mb-1 h-4 w-4" />
-                            <span
-                                class="text-[10px] font-bold tracking-tighter uppercase"
-                                >{{ inf.name }}</span
+
+                    <div v-if="!isInterfaceManaging">
+                        <div class="mb-4 flex justify-end">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                @click="isInterfaceManaging = true"
+                                class="h-8"
                             >
+                                <PencilLine class="mr-2 h-4 w-4" />
+                                Kelola Port
+                            </Button>
+                        </div>
+                        <div class="grid grid-cols-4 gap-2 sm:grid-cols-6">
+                            <div
+                                v-for="inf in displayInterfaces"
+                                :key="inf.name"
+                                :class="[
+                                    'flex cursor-help flex-col items-center justify-center rounded border p-2 transition',
+                                    inf.status === 'up'
+                                        ? inf.type === 'Fiber'
+                                            ? 'bg-blue-500 text-white'
+                                            : 'bg-green-500 text-white'
+                                        : inf.status === 'error'
+                                          ? 'border-red-200 bg-red-100 text-red-400'
+                                          : 'bg-gray-100 text-gray-400',
+                                ]"
+                                :title="
+                                    inf.status === 'up'
+                                        ? 'Connected'
+                                        : inf.status === 'error'
+                                          ? 'Error / Down'
+                                          : 'Idle'
+                                "
+                            >
+                                <Zap
+                                    v-if="inf.type === 'Fiber'"
+                                    class="mb-1 h-4 w-4"
+                                />
+                                <Monitor v-else class="mb-1 h-4 w-4" />
+                                <span
+                                    class="text-[10px] font-bold tracking-tighter uppercase"
+                                    >{{ inf.name }}</span
+                                >
+                            </div>
+                        </div>
+
+                        <div class="mt-8 space-y-2">
+                            <div
+                                class="flex items-center space-x-2 text-xs text-gray-500"
+                            >
+                                <span
+                                    class="h-3 w-3 rounded bg-green-500"
+                                ></span>
+                                <span>Up / Connected (Copper)</span>
+                            </div>
+                            <div
+                                class="flex items-center space-x-2 text-xs text-gray-500"
+                            >
+                                <span
+                                    class="h-3 w-3 rounded bg-blue-500"
+                                ></span>
+                                <span>Up / Connected (Fiber)</span>
+                            </div>
+                            <div
+                                class="flex items-center space-x-2 text-xs text-gray-500"
+                            >
+                                <span
+                                    class="h-3 w-3 rounded bg-gray-100"
+                                ></span>
+                                <span>Idle / Available</span>
+                            </div>
+                            <div
+                                class="flex items-center space-x-2 text-xs text-gray-500"
+                            >
+                                <span class="h-3 w-3 rounded bg-red-400"></span>
+                                <span>Error / Down</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="mt-8 space-y-2">
-                        <div
-                            class="flex items-center space-x-2 text-xs text-gray-500"
-                        >
-                            <span class="h-3 w-3 rounded bg-green-500"></span>
-                            <span>Up / Connected (Copper)</span>
+                    <div v-else>
+                        <div class="mb-4">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                @click="isInterfaceManaging = false"
+                                class="h-8"
+                            >
+                                ← Kembali ke Visualisasi
+                            </Button>
                         </div>
-                        <div
-                            class="flex items-center space-x-2 text-xs text-gray-500"
-                        >
-                            <span class="h-3 w-3 rounded bg-blue-500"></span>
-                            <span>Up / Connected (Fiber)</span>
-                        </div>
-                        <div
-                            class="flex items-center space-x-2 text-xs text-gray-500"
-                        >
-                            <span class="h-3 w-3 rounded bg-gray-100"></span>
-                            <span>Idle / Available</span>
-                        </div>
-                        <div
-                            class="flex items-center space-x-2 text-xs text-gray-500"
-                        >
-                            <span class="h-3 w-3 rounded bg-red-400"></span>
-                            <span>Error / Down</span>
-                        </div>
+                        <InterfaceManager
+                            :olt-id="olt.id"
+                            :olt-type="'Modules\\ActiveDevice\\Models\\Olt'"
+                            :interfaces="activeInterfaces"
+                        />
                     </div>
                 </TabsContent>
 
@@ -316,18 +361,5 @@ const deviceDetails = computed(() => ({
                 </TabsContent>
             </div>
         </Tabs>
-
-        <div class="mt-auto border-t bg-slate-50 p-6">
-            <Button
-                class="mb-3 h-11 w-full bg-slate-800 text-white hover:bg-slate-900"
-            >
-                Unduh Laporan Perangkat
-            </Button>
-            <button
-                class="w-full py-2 text-sm font-medium text-red-600 hover:underline"
-            >
-                Hapus Perangkat dari Inventori
-            </button>
-        </div>
     </div>
 </template>

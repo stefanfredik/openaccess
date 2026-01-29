@@ -69,6 +69,11 @@ class Olt extends Model
         return $this->morphMany(DeviceConnection::class, 'destination');
     }
 
+    public function interfaces()
+    {
+        return $this->morphMany(DeviceInterface::class, 'interfacable');
+    }
+
     public function servicePorts()
     {
         return $this->morphMany(ServicePort::class, 'portable');
