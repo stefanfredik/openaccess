@@ -32,6 +32,11 @@ class AccessPoint extends Model
         'longitude',
         'description',
     ];
+    protected $casts = [
+        'installed_at' => 'date:Y-m-d',
+        'is_active' => 'boolean',
+    ];
+
 
     public function area()
     {

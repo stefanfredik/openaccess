@@ -36,6 +36,10 @@ class Cpe extends Model
         'description',
     ];
 
+    protected $casts = [
+        'installed_at' => 'date:Y-m-d',
+    ];
+
     public function area()
     {
         return $this->belongsTo(\Modules\Area\Models\InfrastructureArea::class, 'infrastructure_area_id');

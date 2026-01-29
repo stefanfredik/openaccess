@@ -41,7 +41,7 @@ class Olt extends Model
     protected $casts = [
         'service_status' => 'array',
         'is_active' => 'boolean',
-        'installed_at' => 'date',
+        'installed_at' => 'date:Y-m-d',
     ];
 
     public function photos()

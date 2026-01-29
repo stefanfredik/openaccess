@@ -28,7 +28,13 @@ import {
 } from '@/components/ui/table';
 import { router, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
-import { ArrowRight, Link as LinkIcon, Server, Trash2 } from 'lucide-vue-next';
+import {
+    ArrowRight,
+    Link as LinkIcon,
+    Plus,
+    Server,
+    Trash2,
+} from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{
@@ -165,223 +171,275 @@ defineExpose({ openAdd });
                         </DialogDescription>
                     </DialogHeader>
                     <form @submit.prevent="submit" class="space-y-6 pt-4">
-                        <div
-                            class="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2"
-                        >
-                            <div class="space-y-2">
-                                <Label
-                                    class="text-[11px] font-bold tracking-wider text-muted-foreground uppercase"
-                                    >Target Device Type</Label
+                        <div class="space-y-6">
+                            <!-- Step 1: Target Selection -->
+                            <div class="space-y-4 rounded-lg bg-muted/30 p-4">
+                                <h3
+                                    class="text-xs font-semibold tracking-wide text-primary uppercase"
                                 >
-                                <Select v-model="form.destination_type">
-                                    <SelectTrigger class="h-10 w-full">
-                                        <SelectValue
-                                            placeholder="Select Type"
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem
-                                            value="Modules\ActiveDevice\Models\Router"
-                                            >Router</SelectItem
-                                        >
-                                        <SelectItem
-                                            value="Modules\ActiveDevice\Models\AdSwitch"
-                                            >Switch</SelectItem
-                                        >
-                                        <SelectItem
-                                            value="Modules\ActiveDevice\Models\Olt"
-                                            >OLT</SelectItem
-                                        >
-                                        <SelectItem
-                                            value="Modules\ActiveDevice\Models\Ont"
-                                            >ONT</SelectItem
-                                        >
-                                        <SelectItem
-                                            value="Modules\ActiveDevice\Models\AccessPoint"
-                                            >AP</SelectItem
-                                        >
-                                        <SelectItem
-                                            value="Modules\Cpe\Models\Cpe"
-                                            >CPE</SelectItem
-                                        >
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div class="space-y-2">
-                                <Label
-                                    class="text-[11px] font-bold tracking-wider text-muted-foreground uppercase"
-                                    >Target Device</Label
+                                    Perangkat Tujuan
+                                </h3>
+                                <div
+                                    class="grid grid-cols-1 gap-x-4 gap-y-4 md:grid-cols-2"
                                 >
-                                <Select
-                                    v-model="form.destination_id"
-                                    :disabled="!form.destination_type"
-                                >
-                                    <SelectTrigger class="h-10 w-full">
-                                        <SelectValue
-                                            placeholder="Select Device"
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem
-                                            v-for="d in availableDevices.filter(
-                                                (d: any) =>
-                                                    d.type ===
-                                                    form.destination_type,
-                                            )"
-                                            :key="d.id"
-                                            :value="d.id.toString()"
+                                    <div class="space-y-2">
+                                        <Label class="text-xs font-medium"
+                                            >Device Type</Label
                                         >
-                                            {{ d.name }} ({{ d.code }})
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                        <Select v-model="form.destination_type">
+                                            <SelectTrigger class="h-9 w-full">
+                                                <SelectValue
+                                                    placeholder="Select Type"
+                                                />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem
+                                                    value="Modules\ActiveDevice\Models\Router"
+                                                    >Router</SelectItem
+                                                >
+                                                <SelectItem
+                                                    value="Modules\ActiveDevice\Models\AdSwitch"
+                                                    >Switch</SelectItem
+                                                >
+                                                <SelectItem
+                                                    value="Modules\ActiveDevice\Models\Olt"
+                                                    >OLT</SelectItem
+                                                >
+                                                <SelectItem
+                                                    value="Modules\ActiveDevice\Models\Ont"
+                                                    >ONT</SelectItem
+                                                >
+                                                <SelectItem
+                                                    value="Modules\ActiveDevice\Models\AccessPoint"
+                                                    >AP</SelectItem
+                                                >
+                                                <SelectItem
+                                                    value="Modules\Cpe\Models\Cpe"
+                                                    >CPE</SelectItem
+                                                >
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <Label class="text-xs font-medium"
+                                            >Target Device</Label
+                                        >
+                                        <Select
+                                            v-model="form.destination_id"
+                                            :disabled="!form.destination_type"
+                                        >
+                                            <SelectTrigger class="h-9 w-full">
+                                                <SelectValue
+                                                    placeholder="Select Device"
+                                                />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem
+                                                    v-for="d in availableDevices.filter(
+                                                        (d: any) =>
+                                                            d.type ===
+                                                            form.destination_type,
+                                                    )"
+                                                    :key="d.id"
+                                                    :value="d.id.toString()"
+                                                >
+                                                    {{ d.name }} ({{ d.code }})
+                                                </SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="space-y-2">
-                                <Label
-                                    class="text-[11px] font-bold tracking-wider text-muted-foreground uppercase"
-                                    >Local Port (Source)</Label
+                            <!-- Step 2: Port Mapping -->
+                            <div class="space-y-4 rounded-lg bg-muted/30 p-4">
+                                <h3
+                                    class="text-xs font-semibold tracking-wide text-primary uppercase"
                                 >
+                                    Mapping Por
+                                </h3>
                                 <div
-                                    v-if="
-                                        device.interfaces &&
-                                        device.interfaces.length > 0
-                                    "
+                                    class="grid grid-cols-1 items-start gap-x-4 gap-y-4 md:grid-cols-[1fr,auto,1fr]"
                                 >
-                                    <Select v-model="form.source_port">
-                                        <SelectTrigger class="h-10 w-full">
+                                    <div class="space-y-2">
+                                        <Label class="text-xs font-medium"
+                                            >Local Port (Source)</Label
+                                        >
+                                        <div
+                                            v-if="
+                                                device.interfaces &&
+                                                device.interfaces.length > 0
+                                            "
+                                        >
+                                            <Select v-model="form.source_port">
+                                                <SelectTrigger
+                                                    class="h-9 w-full"
+                                                >
+                                                    <SelectValue
+                                                        placeholder="Select Source"
+                                                    />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem
+                                                        v-for="inf in device.interfaces"
+                                                        :key="inf.id"
+                                                        :value="inf.id"
+                                                    >
+                                                        {{ inf.name }}
+                                                        <span
+                                                            v-if="
+                                                                inf.status ===
+                                                                'up'
+                                                            "
+                                                            class="ml-2 text-xs text-green-500"
+                                                            >(UP)</span
+                                                        >
+                                                        <span
+                                                            v-else-if="
+                                                                inf.status ===
+                                                                'idle'
+                                                            "
+                                                            class="ml-2 text-xs text-muted-foreground"
+                                                            >(IDLE)</span
+                                                        >
+                                                        <span
+                                                            v-else
+                                                            class="ml-2 text-xs text-red-500"
+                                                            >({{
+                                                                inf.status
+                                                            }})</span
+                                                        >
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <p
+                                                class="mt-1 text-[10px] text-muted-foreground"
+                                            >
+                                                From: {{ device.name }}
+                                            </p>
+                                        </div>
+                                        <div
+                                            v-else
+                                            class="rounded border border-yellow-200 bg-yellow-50 p-2 text-xs text-yellow-800"
+                                        >
+                                            No local interfaces.
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        class="flex h-full items-center justify-center pt-6"
+                                    >
+                                        <ArrowRight
+                                            class="h-4 w-4 text-muted-foreground"
+                                        />
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <Label class="text-xs font-medium"
+                                            >Remote Port (Dest)</Label
+                                        >
+                                        <div
+                                            v-if="
+                                                destinationInterfaces.length > 0
+                                            "
+                                        >
+                                            <Select
+                                                v-model="form.destination_port"
+                                            >
+                                                <SelectTrigger
+                                                    class="h-9 w-full"
+                                                >
+                                                    <SelectValue
+                                                        placeholder="Select Dest"
+                                                    />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem
+                                                        v-for="inf in destinationInterfaces"
+                                                        :key="inf.id"
+                                                        :value="inf.id"
+                                                    >
+                                                        {{ inf.name }}
+                                                        <span
+                                                            v-if="
+                                                                inf.status ===
+                                                                'up'
+                                                            "
+                                                            class="ml-2 text-xs text-green-500"
+                                                            >(UP)</span
+                                                        >
+                                                        <span
+                                                            v-else-if="
+                                                                inf.status ===
+                                                                'idle'
+                                                            "
+                                                            class="ml-2 text-xs text-muted-foreground"
+                                                            >(IDLE)</span
+                                                        >
+                                                        <span
+                                                            v-else
+                                                            class="ml-2 text-xs text-red-500"
+                                                            >({{
+                                                                inf.status
+                                                            }})</span
+                                                        >
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div
+                                            v-else-if="form.destination_id"
+                                            class="rounded border border-yellow-200 bg-yellow-50 p-2 text-xs text-yellow-800"
+                                        >
+                                            No interfaces found.
+                                        </div>
+                                        <Input
+                                            v-else
+                                            v-model="form.destination_port"
+                                            class="h-9 w-full"
+                                            disabled
+                                            placeholder="Select target first"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 3: Attributes -->
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div class="space-y-2">
+                                    <Label class="text-xs font-medium"
+                                        >Link Type</Label
+                                    >
+                                    <Select v-model="form.connection_type">
+                                        <SelectTrigger class="h-9 w-full">
                                             <SelectValue
-                                                placeholder="Select Source Port"
+                                                placeholder="Select Type"
                                             />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem
-                                                v-for="inf in device.interfaces"
-                                                :key="inf.id"
-                                                :value="inf.id"
+                                            <SelectItem value="Uplink"
+                                                >Uplink</SelectItem
                                             >
-                                                {{ inf.name }}
-                                                <span
-                                                    v-if="inf.status === 'up'"
-                                                    class="ml-2 text-xs text-green-500"
-                                                    >(UP)</span
-                                                >
-                                                <span
-                                                    v-else-if="
-                                                        inf.status === 'idle'
-                                                    "
-                                                    class="ml-2 text-xs text-muted-foreground"
-                                                    >(IDLE)</span
-                                                >
-                                                <span
-                                                    v-else
-                                                    class="ml-2 text-xs text-red-400"
-                                                    >({{ inf.status }})</span
-                                                >
-                                            </SelectItem>
+                                            <SelectItem value="Downlink"
+                                                >Downlink</SelectItem
+                                            >
+                                            <SelectItem value="Fiber"
+                                                >Fiber</SelectItem
+                                            >
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <div
-                                    v-else
-                                    class="rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-900/50 dark:bg-yellow-900/20 dark:text-yellow-200"
-                                >
-                                    No physical interfaces found. Please add
-                                    interfaces in the "Physical Interfaces" tab
-                                    first.
-                                </div>
-                            </div>
-                            <div class="space-y-2">
-                                <Label
-                                    class="text-[11px] font-bold tracking-wider text-muted-foreground uppercase"
-                                    >Remote Port (Dest)</Label
-                                >
-                                <div v-if="destinationInterfaces.length > 0">
-                                    <Select v-model="form.destination_port">
-                                        <SelectTrigger class="h-10 w-full">
-                                            <SelectValue
-                                                placeholder="Select Destination Port"
-                                            />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem
-                                                v-for="inf in destinationInterfaces"
-                                                :key="inf.id"
-                                                :value="inf.id"
-                                            >
-                                                {{ inf.name }}
-                                                <span
-                                                    v-if="inf.status === 'up'"
-                                                    class="ml-2 text-xs text-green-500"
-                                                    >(UP)</span
-                                                >
-                                                <span
-                                                    v-else-if="
-                                                        inf.status === 'idle'
-                                                    "
-                                                    class="ml-2 text-xs text-muted-foreground"
-                                                    >(IDLE)</span
-                                                >
-                                                <span
-                                                    v-else
-                                                    class="ml-2 text-xs text-red-400"
-                                                    >({{ inf.status }})</span
-                                                >
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div
-                                    v-else-if="form.destination_id"
-                                    class="rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-900/50 dark:bg-yellow-900/20 dark:text-yellow-200"
-                                >
-                                    No physical interfaces found on target
-                                    device.
-                                </div>
-                                <Input
-                                    v-else
-                                    v-model="form.destination_port"
-                                    class="h-10 w-full"
-                                    disabled
-                                    placeholder="Select a target device first"
-                                />
-                            </div>
 
-                            <div class="space-y-2">
-                                <Label
-                                    class="text-[11px] font-bold tracking-wider text-muted-foreground uppercase"
-                                    >Link Type</Label
-                                >
-                                <Select v-model="form.connection_type">
-                                    <SelectTrigger class="h-10 w-full">
-                                        <SelectValue
-                                            placeholder="Select Type"
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Uplink"
-                                            >Uplink</SelectItem
-                                        >
-                                        <SelectItem value="Downlink"
-                                            >Downlink</SelectItem
-                                        >
-                                        <SelectItem value="Fiber"
-                                            >Fiber</SelectItem
-                                        >
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div class="space-y-2">
-                                <Label
-                                    class="text-[11px] font-bold tracking-wider text-muted-foreground uppercase"
-                                    >Description</Label
-                                >
-                                <Input
-                                    v-model="form.description"
-                                    class="h-10 w-full"
-                                    placeholder="Optional description"
-                                />
+                                <div class="space-y-2">
+                                    <Label class="text-xs font-medium"
+                                        >Description</Label
+                                    >
+                                    <Input
+                                        v-model="form.description"
+                                        class="h-9 w-full"
+                                        placeholder="Optional description"
+                                    />
+                                </div>
                             </div>
                         </div>
 
