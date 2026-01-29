@@ -19,7 +19,7 @@ class StoreRouterRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('ad_routers')->where(fn($query) => $query->where('company_id', auth()->user()->company_id)),
+                Rule::unique('ad_routers')->where(fn ($query) => $query->where('company_id', auth()->user()->company_id)),
             ],
             'name' => ['required', 'string', 'max:255'],
             'brand' => ['nullable', 'string', 'max:255'],
@@ -28,9 +28,15 @@ class StoreRouterRequest extends FormRequest
             'mac_address' => ['nullable', 'string', 'max:255'],
             'ip_address' => ['nullable', 'ip'],
             'port_count' => ['required', 'integer', 'min:0'],
+            'latitude' => ['nullable', 'string'],
+            'longitude' => ['nullable', 'string'],
             'is_active' => ['boolean'],
             'installed_at' => ['nullable', 'date'],
             'description' => ['nullable', 'string'],
+            'service_ports' => ['nullable', 'array'],
+            'service_ports.*.name' => ['required', 'string', 'max:255'],
+            'service_ports.*.port' => ['required', 'integer'],
+            'service_ports.*.status' => ['required', 'string', 'in:Active,Inactive'],
         ];
     }
 

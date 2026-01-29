@@ -22,6 +22,7 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Plus, Trash2 } from 'lucide-vue-next';
 
 const props = defineProps<{
     accessPoint: any;
@@ -46,10 +47,19 @@ const form = useForm({
     latitude: props.accessPoint.latitude || '',
     longitude: props.accessPoint.longitude || '',
     description: props.accessPoint.description || '',
+    service_ports: props.accessPoint.service_ports || [],
 });
 
 const submit = () => {
     form.put(route('active-device.access-point.update', props.accessPoint.id));
+};
+
+const addServicePort = () => {
+    form.service_ports.push({ name: '', port: '', status: 'Active' });
+};
+
+const removeServicePort = (index: number) => {
+    form.service_ports.splice(index, 1);
 };
 </script>
 
@@ -323,6 +333,82 @@ const submit = () => {
                                 id="description"
                                 v-model="form.description"
                             />
+                        </div>
+
+                        <!-- Service Ports -->
+                        <div class="mt-6 space-y-4">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-sm font-medium">
+                                    Service Ports
+                                </h3>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    @click="addServicePort"
+                                >
+                                    <Plus class="mr-2 h-4 w-4" /> Add Port
+                                </Button>
+                            </div>
+
+                            <div class="space-y-3">
+                                <div
+                                    v-for="(sp, index) in form.service_ports"
+                                    :key="index"
+                                    class="grid grid-cols-12 items-end gap-3 rounded-lg border p-3"
+                                >
+                                    <div class="col-span-4 space-y-1.5">
+                                        <Label class="text-xs">Name</Label>
+                                        <Input
+                                            v-model="sp.name"
+                                            placeholder="e.g. SSH"
+                                            class="h-9"
+                                        />
+                                    </div>
+                                    <div class="col-span-3 space-y-1.5">
+                                        <Label class="text-xs">Port</Label>
+                                        <Input
+                                            type="number"
+                                            v-model="sp.port"
+                                            placeholder="22"
+                                            class="h-9"
+                                        />
+                                    </div>
+                                    <div class="col-span-3 space-y-1.5">
+                                        <Label class="text-xs">Status</Label>
+                                        <Select v-model="sp.status">
+                                            <SelectTrigger class="h-9">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Active"
+                                                    >Active</SelectItem
+                                                >
+                                                <SelectItem value="Inactive"
+                                                    >Inactive</SelectItem
+                                                >
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div class="col-span-2 flex justify-end">
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            @click="removeServicePort(index)"
+                                            class="text-destructive"
+                                        >
+                                            <Trash2 class="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                                <div
+                                    v-if="!form.service_ports.length"
+                                    class="py-4 text-center text-sm text-muted-foreground italic"
+                                >
+                                    No service ports added.
+                                </div>
+                            </div>
                         </div>
 
                         <div class="flex items-center space-x-2">

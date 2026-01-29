@@ -19,7 +19,7 @@ class UpdateOntRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('ad_onts')->where(fn($query) => $query->where('company_id', auth()->user()->company_id))
+                Rule::unique('ad_onts')->where(fn ($query) => $query->where('company_id', auth()->user()->company_id))
                     ->ignore($this->ont),
             ],
             'name' => ['required', 'string', 'max:255'],
@@ -34,6 +34,10 @@ class UpdateOntRequest extends FormRequest
             'latitude' => ['nullable', 'string'],
             'longitude' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
+            'service_ports' => ['nullable', 'array'],
+            'service_ports.*.name' => ['required', 'string', 'max:255'],
+            'service_ports.*.port' => ['required', 'integer'],
+            'service_ports.*.status' => ['required', 'string', 'in:Active,Inactive'],
         ];
     }
 

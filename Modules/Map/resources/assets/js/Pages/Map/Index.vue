@@ -1005,7 +1005,8 @@ watch(selectedAreaId, (newVal) => {
                                     >
                                 </div>
                                 <UiSwitch
-                                    v-model:checked="deviceFilters[item.key]"
+                                    :checked="deviceFilters[item.key]"
+                                    aria-readonly="true"
                                 />
                             </div>
                         </div>

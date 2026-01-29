@@ -54,10 +54,19 @@ const form = useForm({
     description: props.olt.description || '',
     device_image: null as File | null,
     is_active: !!props.olt.is_active,
+    service_ports: props.olt.service_ports || [],
 });
 
 const submit = () => {
     form.post(route('active-device.olt.update', props.olt.id));
+};
+
+const addServicePort = () => {
+    form.service_ports.push({ name: '', port: '', status: 'Active' });
+};
+
+const removeServicePort = (index: number) => {
+    form.service_ports.splice(index, 1);
 };
 
 const serviceOptions = ['Telnet', 'SSH', 'WEB'];
@@ -396,6 +405,89 @@ const serviceOptions = ['Telnet', 'SSH', 'WEB'];
                                     class="h-11 rounded-lg border-slate-200"
                                 />
                             </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <!-- Service Ports -->
+                <Card class="border shadow-none">
+                    <CardHeader class="pb-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <CardTitle class="text-base font-semibold"
+                                    >Service Ports</CardTitle
+                                >
+                                <CardDescription class="text-xs"
+                                    >Daftar port layanan aktif pada
+                                    perangkat.</CardDescription
+                                >
+                            </div>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                @click="addServicePort"
+                            >
+                                <Plus class="mr-2 h-4 w-4" /> Tambah Port
+                            </Button>
+                        </div>
+                    </CardHeader>
+                    <CardContent class="grid gap-4">
+                        <div
+                            v-for="(sp, index) in form.service_ports"
+                            :key="index"
+                            class="grid grid-cols-12 items-end gap-3 rounded-lg border border-slate-100 bg-slate-50/30 p-3"
+                        >
+                            <div class="col-span-4 space-y-1.5">
+                                <Label class="text-xs">Nama Layanan</Label>
+                                <Input
+                                    v-model="sp.name"
+                                    placeholder="e.g. SSH"
+                                    class="h-10 bg-white"
+                                />
+                            </div>
+                            <div class="col-span-3 space-y-1.5">
+                                <Label class="text-xs">Port</Label>
+                                <Input
+                                    type="number"
+                                    v-model="sp.port"
+                                    placeholder="22"
+                                    class="h-10 bg-white"
+                                />
+                            </div>
+                            <div class="col-span-3 space-y-1.5">
+                                <Label class="text-xs">Status</Label>
+                                <Select v-model="sp.status">
+                                    <SelectTrigger class="h-10 bg-white">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Active"
+                                            >Active</SelectItem
+                                        >
+                                        <SelectItem value="Inactive"
+                                            >Inactive</SelectItem
+                                        >
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div class="col-span-2 flex justify-end">
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    @click="removeServicePort(index)"
+                                    class="text-red-500 hover:bg-red-50 hover:text-red-600"
+                                >
+                                    <Trash2 class="h-5 w-5" />
+                                </Button>
+                            </div>
+                        </div>
+                        <div
+                            v-if="!form.service_ports.length"
+                            class="py-4 text-center text-sm text-muted-foreground italic"
+                        >
+                            Belum ada service port yang ditambahkan.
                         </div>
                     </CardContent>
                 </Card>

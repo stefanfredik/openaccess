@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useForm } from '@inertiajs/vue3';
+import { Plus, Trash2 } from 'lucide-vue-next';
 import { watch } from 'vue';
 import { toast } from 'vue-sonner';
 
@@ -65,6 +66,11 @@ const form = useForm({
     material: 'Besi',
     ownership: 'Sendiri',
     antenna_capacity: '',
+    service_ports: [] as Array<{
+        name: string;
+        port: number | string;
+        status: string;
+    }>,
 });
 watch(
     () => props.open,
@@ -83,9 +89,29 @@ watch(
             }
 
             form.pop_id = '';
+
+            // Default service ports for active devices
+            if (isActiveDevice()) {
+                form.service_ports = [
+                    { name: 'SSH', port: 22, status: 'Active' },
+                    { name: 'Winbox', port: 1098, status: 'Active' },
+                    { name: 'Telnet', port: 23, status: 'Active' },
+                    { name: 'Http', port: 80, status: 'Active' },
+                ];
+            } else {
+                form.service_ports = [];
+            }
         }
     },
 );
+
+const addServicePort = () => {
+    form.service_ports.push({ name: '', port: '', status: 'Active' });
+};
+
+const removeServicePort = (index: number) => {
+    form.service_ports.splice(index, 1);
+};
 
 const getStoreUrl = () => {
     const urls: Record<string, string> = {
@@ -448,6 +474,87 @@ const isActiveDevice = () => {
                 <div class="space-y-2">
                     <Label>Description</Label>
                     <Textarea v-model="form.description" rows="2" />
+                </div>
+
+                <!-- Service Ports for Active Devices -->
+                <div v-if="isActiveDevice()" class="space-y-4 border-t pt-4">
+                    <div class="flex items-center justify-between">
+                        <Label class="text-sm font-semibold"
+                            >Service Ports</Label
+                        >
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            class="h-7 px-2 text-xs"
+                            @click="addServicePort"
+                        >
+                            <Plus class="mr-1 h-3 w-3" /> Add Port
+                        </Button>
+                    </div>
+
+                    <div
+                        v-for="(sp, index) in form.service_ports"
+                        :key="index"
+                        class="grid grid-cols-12 items-end gap-2"
+                    >
+                        <div class="col-span-4 space-y-1">
+                            <Label v-if="index === 0" class="text-[10px]"
+                                >Name</Label
+                            >
+                            <Input
+                                v-model="sp.name"
+                                placeholder="e.g. SSH"
+                                class="h-8 text-xs"
+                            />
+                        </div>
+                        <div class="col-span-3 space-y-1">
+                            <Label v-if="index === 0" class="text-[10px]"
+                                >Port</Label
+                            >
+                            <Input
+                                type="number"
+                                v-model="sp.port"
+                                placeholder="22"
+                                class="h-8 text-xs"
+                            />
+                        </div>
+                        <div class="col-span-3 space-y-1">
+                            <Label v-if="index === 0" class="text-[10px]"
+                                >Status</Label
+                            >
+                            <Select v-model="sp.status">
+                                <SelectTrigger class="h-8 text-xs">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Active"
+                                        >Active</SelectItem
+                                    >
+                                    <SelectItem value="Inactive"
+                                        >Inactive</SelectItem
+                                    >
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div class="col-span-2">
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                @click="removeServicePort(index)"
+                                class="h-8 w-8 text-red-500 hover:bg-red-50 hover:text-red-600"
+                            >
+                                <Trash2 class="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+                    <p
+                        v-if="form.errors.service_ports"
+                        class="text-xs text-red-500"
+                    >
+                        {{ form.errors.service_ports }}
+                    </p>
                 </div>
 
                 <DialogFooter>

@@ -19,7 +19,7 @@ class StoreAccessPointRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('ad_access_points')->where(fn($query) => $query->where('company_id', auth()->user()->company_id)),
+                Rule::unique('ad_access_points')->where(fn ($query) => $query->where('company_id', auth()->user()->company_id)),
             ],
             'name' => ['required', 'string', 'max:255'],
             'brand' => ['nullable', 'string', 'max:255'],
@@ -31,7 +31,13 @@ class StoreAccessPointRequest extends FormRequest
             'ssid_count' => ['required', 'integer', 'min:0'],
             'is_active' => ['boolean'],
             'installed_at' => ['nullable', 'date'],
+            'latitude' => ['nullable', 'string'],
+            'longitude' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
+            'service_ports' => ['nullable', 'array'],
+            'service_ports.*.name' => ['required', 'string', 'max:255'],
+            'service_ports.*.port' => ['required', 'integer'],
+            'service_ports.*.status' => ['required', 'string', 'in:Active,Inactive'],
         ];
     }
 

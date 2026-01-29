@@ -1,12 +1,12 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\ActiveDevice\Http\Controllers\OltController;
-use Modules\ActiveDevice\Http\Controllers\OntController;
-use Modules\ActiveDevice\Http\Controllers\SwitchController;
-use Modules\ActiveDevice\Http\Controllers\RouterController;
 use Modules\ActiveDevice\Http\Controllers\AccessPointController;
 use Modules\ActiveDevice\Http\Controllers\DeviceConnectionController;
+use Modules\ActiveDevice\Http\Controllers\OltController;
+use Modules\ActiveDevice\Http\Controllers\OntController;
+use Modules\ActiveDevice\Http\Controllers\RouterController;
+use Modules\ActiveDevice\Http\Controllers\SwitchController;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('topology')->name('active-device.')->group(function () {
@@ -22,5 +22,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('switch', SwitchController::class);
         Route::resource('router', RouterController::class);
         Route::resource('access-point', AccessPointController::class);
+
+        Route::post('service-ports', [\Modules\ActiveDevice\Http\Controllers\ServicePortController::class, 'store'])->name('service-ports.store');
+        Route::delete('service-ports/{servicePort}', [\Modules\ActiveDevice\Http\Controllers\ServicePortController::class, 'destroy'])->name('service-ports.destroy');
     });
 });

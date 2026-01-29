@@ -2,13 +2,14 @@
 
 namespace Modules\ActiveDevice\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
 // use Modules\ActiveDevice\Database\Factories\AccessPointFactory;
 
 class AccessPoint extends Model
 {
-    use HasFactory, \App\Traits\BelongsToCompany;
+    use \App\Traits\BelongsToCompany, HasFactory;
 
     protected $table = 'ad_access_points';
 
@@ -50,5 +51,10 @@ class AccessPoint extends Model
     public function destinationConnections()
     {
         return $this->morphMany(DeviceConnection::class, 'destination');
+    }
+
+    public function servicePorts()
+    {
+        return $this->morphMany(ServicePort::class, 'portable');
     }
 }

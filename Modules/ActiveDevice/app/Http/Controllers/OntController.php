@@ -44,8 +44,16 @@ class OntController extends Controller
     public function store(StoreOntRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $data['company_id'] = auth()->user()->company_id;
-        Ont::create($data);
+        $data['company_id'] = $request->user()->company_id;
+        $ont = Ont::create($data);
+
+        if ($request->has('service_ports')) {
+            foreach ($request->service_ports as $portData) {
+                $ont->servicePorts()->create(array_merge($portData, [
+                    'company_id' => $request->user()->company_id,
+                ]));
+            }
+        }
 
         if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
             return back()->with('success', 'ONT created successfully.');
@@ -60,15 +68,15 @@ class OntController extends Controller
     public function show(Ont $ont): Response
     {
         $allDevices = collect();
-        $allDevices = $allDevices->merge(Router::all()->map(fn($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\AdSwitch::all()->map(fn($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\Olt::all()->map(fn($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(Ont::all()->map(fn($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\AccessPoint::all()->map(fn($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\Cpe\Models\Cpe::all()->map(fn($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
+        $allDevices = $allDevices->merge(Router::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
+        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\AdSwitch::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
+        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\Olt::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
+        $allDevices = $allDevices->merge(Ont::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
+        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\AccessPoint::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
+        $allDevices = $allDevices->merge(\Modules\Cpe\Models\Cpe::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
 
         return Inertia::render('ActiveDevice::Ont/Show', [
-            'ont' => $ont->load(['area', 'pop', 'sourceConnections.destination', 'destinationConnections.source']),
+            'ont' => $ont->load(['area', 'pop', 'sourceConnections.destination', 'destinationConnections.source', 'servicePorts']),
             'availableDevices' => $allDevices,
         ]);
     }
@@ -79,7 +87,7 @@ class OntController extends Controller
     public function edit(Ont $ont): Response
     {
         return Inertia::render('ActiveDevice::Ont/Edit', [
-            'ont' => $ont,
+            'ont' => $ont->load('servicePorts'),
             'areas' => InfrastructureArea::all(),
             'pops' => Pop::all(),
         ]);
@@ -91,6 +99,15 @@ class OntController extends Controller
     public function update(UpdateOntRequest $request, Ont $ont): RedirectResponse
     {
         $ont->update($request->validated());
+
+        if ($request->has('service_ports')) {
+            $ont->servicePorts()->delete();
+            foreach ($request->service_ports as $portData) {
+                $ont->servicePorts()->create(array_merge($portData, [
+                    'company_id' => $request->user()->company_id,
+                ]));
+            }
+        }
 
         return redirect()->route('active-device.ont.index')->with('success', 'ONT updated successfully.');
     }
