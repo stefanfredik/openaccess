@@ -72,6 +72,12 @@ class SwitchController extends Controller
     {
         $data = $request->validated();
         $data['company_id'] = $request->user()->company_id;
+
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('switch-photos', 'public');
+            $data['photo'] = $path;
+        }
+
         $switch = AdSwitch::create($data);
 
         if ($request->has('service_ports')) {

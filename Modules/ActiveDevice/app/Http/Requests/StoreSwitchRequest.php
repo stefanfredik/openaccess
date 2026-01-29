@@ -28,12 +28,16 @@ class StoreSwitchRequest extends FormRequest
             'mac_address' => ['nullable', 'string', 'max:255'],
             'ip_address' => ['nullable', 'ip'],
             'port_count' => ['required', 'integer', 'min:0'],
-            'switch_type' => ['nullable', 'string', 'max:255'], // Access, Aggregation, Core
+            'switch_type' => ['nullable', 'string', 'max:255'], // Access, Aggregation, Core, Unmanageable, Manageable
             'latitude' => ['nullable', 'string'],
             'longitude' => ['nullable', 'string'],
             'is_active' => ['boolean'],
             'installed_at' => ['nullable', 'date'],
             'description' => ['nullable', 'string'],
+            'username' => ['nullable', 'string', 'max:255'],
+            'password' => ['nullable', 'string', 'max:255'],
+            'purchase_year' => ['nullable', 'integer', 'digits:4', 'min:1900', 'max:' . (date('Y') + 1)],
+            'photo' => ['nullable', 'image', 'max:2048'], // Max 2MB
             'service_ports' => ['nullable', 'array'],
             'service_ports.*.name' => ['required', 'string', 'max:255'],
             'service_ports.*.port' => ['required', 'integer'],

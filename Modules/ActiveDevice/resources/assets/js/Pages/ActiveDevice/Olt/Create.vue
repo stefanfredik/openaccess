@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import FileUploader from '@/components/FileUploader.vue';
-import InputMap from '@/components/InputMap.vue';
+import MapLocationPicker from '@/components/MapLocationPicker.vue';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -23,7 +23,6 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import 'leaflet/dist/leaflet.css';
 import { onMounted } from 'vue';
 
 const props = defineProps<{
@@ -435,39 +434,12 @@ const serviceOptions = ['Telnet', 'SSH', 'WEB'];
                             </div>
                         </div>
 
-                        <InputMap
+                        <MapLocationPicker
                             v-model:latitude="form.latitude"
                             v-model:longitude="form.longitude"
                             :area-id="form.infrastructure_area_id"
                             :areas="areas"
                         />
-
-                        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-                            <div class="space-y-1.5">
-                                <Label
-                                    for="latitude"
-                                    class="text-sm font-medium"
-                                    >Latitude</Label
-                                >
-                                <Input
-                                    id="latitude"
-                                    v-model="form.latitude"
-                                    class="h-11 rounded-lg border-slate-200"
-                                />
-                            </div>
-                            <div class="space-y-1.5">
-                                <Label
-                                    for="longitude"
-                                    class="text-sm font-medium"
-                                    >Longitude</Label
-                                >
-                                <Input
-                                    id="longitude"
-                                    v-model="form.longitude"
-                                    class="h-11 rounded-lg border-slate-200"
-                                />
-                            </div>
-                        </div>
                     </CardContent>
                 </Card>
 

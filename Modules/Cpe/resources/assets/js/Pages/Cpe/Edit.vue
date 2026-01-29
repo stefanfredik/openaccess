@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import MapLocationPicker from '@/components/MapLocationPicker.vue';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -205,7 +206,7 @@ const submit = () => {
                         </div>
 
                         <div class="space-y-2">
-                            <InputMap
+                            <MapLocationPicker
                                 v-model:latitude="form.latitude"
                                 v-model:longitude="form.longitude"
                                 :area-id="form.infrastructure_area_id"

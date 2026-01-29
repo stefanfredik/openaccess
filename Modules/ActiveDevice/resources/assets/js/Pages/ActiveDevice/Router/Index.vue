@@ -32,7 +32,14 @@ import {
 } from '@/components/ui/sheet';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { debounce } from 'lodash';
-import { Eye, FileText, MoreVertical, Settings, Trash } from 'lucide-vue-next';
+import {
+    Eye,
+    FileText,
+    MoreVertical,
+    Router as RouterIcon,
+    Settings,
+    Trash,
+} from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{
@@ -90,14 +97,14 @@ const openDrawer = (router: any) => {
     <AppLayout
         :breadcrumbs="[
             { title: 'Inventory', href: '#' },
-            { title: 'Routers', href: route('active-device.router.index') },
+            { title: 'Router', href: route('active-device.router.index') },
         ]"
     >
         <div class="flex flex-col gap-6 p-4 md:p-8">
             <InventoryHeader
                 title="Router Inventory"
-                description="Kelola inventori perangkat Router dan konfigurasi jaringan."
-                search-placeholder="Cari IP, Serial Number, atau Nama..."
+                description="Kelola perangkat Router."
+                search-placeholder="Cari"
                 add-button-text="Tambah Router"
                 :add-route="route('active-device.router.create')"
                 v-model="searchQuery"
@@ -112,16 +119,16 @@ const openDrawer = (router: any) => {
                     class="flex items-center justify-between border-b border-gray-50 bg-white p-6"
                 >
                     <h2 class="text-lg font-bold text-slate-800">
-                        Daftar Inventori Router
+                        Daftar Router
                     </h2>
-                    <div class="flex space-x-2">
+                    <!-- <div class="flex space-x-2">
                         <Button variant="outline" size="sm" class="h-8 text-xs"
                             >Filter</Button
                         >
                         <Button variant="outline" size="sm" class="h-8 text-xs"
                             >Export</Button
                         >
-                    </div>
+                    </div> -->
                 </div>
                 <CardContent class="p-0">
                     <Table>
@@ -163,16 +170,24 @@ const openDrawer = (router: any) => {
                                 <TableCell
                                     class="px-6 py-4 font-semibold text-slate-800"
                                 >
-                                    <div class="flex flex-col">
-                                        <span>{{ item.name }}</span>
-                                        <span
-                                            class="font-mono text-[10px] text-muted-foreground"
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="flex h-9 w-9 items-center justify-center rounded-lg border border-indigo-100/50 bg-indigo-50 text-indigo-600 shadow-sm"
                                         >
-                                            {{ item.brand }} {{ item.model }}
-                                            <span v-if="item.code"
-                                                >({{ item.code }})</span
+                                            <RouterIcon class="h-4.5 w-4.5" />
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span>{{ item.name }}</span>
+                                            <span
+                                                class="font-mono text-[10px] text-muted-foreground"
                                             >
-                                        </span>
+                                                {{ item.brand }}
+                                                {{ item.model }}
+                                                <span v-if="item.code"
+                                                    >({{ item.code }})</span
+                                                >
+                                            </span>
+                                        </div>
                                     </div>
                                 </TableCell>
                                 <TableCell

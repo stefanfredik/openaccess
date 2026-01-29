@@ -90,6 +90,7 @@ const connectionManagerRef = ref<InstanceType<typeof ConnectionManager> | null>(
 
                 <!-- Service Ports -->
                 <ServicePortsManager
+                    v-if="networkSwitch.switch_type !== 'Unmanageable'"
                     :device="networkSwitch"
                     device-type="Modules\ActiveDevice\Models\AdSwitch"
                 />
@@ -130,6 +131,7 @@ const connectionManagerRef = ref<InstanceType<typeof ConnectionManager> | null>(
                         Overview
                     </TabsTrigger>
                     <TabsTrigger
+                        v-if="networkSwitch.switch_type !== 'Unmanageable'"
                         value="services"
                         class="w-full justify-start px-4 py-2 text-left transition-all data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
                     >
@@ -156,7 +158,11 @@ const connectionManagerRef = ref<InstanceType<typeof ConnectionManager> | null>(
                     </TabsContent>
 
                     <!-- Tab 2: Service Ports -->
-                    <TabsContent value="services" class="mt-0 space-y-6">
+                    <TabsContent
+                        v-if="networkSwitch.switch_type !== 'Unmanageable'"
+                        value="services"
+                        class="mt-0 space-y-6"
+                    >
                         <ServicePortsManager
                             :device="networkSwitch"
                             device-type="Modules\ActiveDevice\Models\AdSwitch"

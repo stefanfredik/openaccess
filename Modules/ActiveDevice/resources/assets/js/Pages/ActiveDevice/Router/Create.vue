@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import InputMap from '@/components/InputMap.vue';
+import FileUploader from '@/components/FileUploader.vue';
+import MapLocationPicker from '@/components/MapLocationPicker.vue';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -45,6 +46,10 @@ const form = useForm({
     latitude: '',
     longitude: '',
     description: '',
+    username: '',
+    password: '',
+    purchase_year: new Date().getFullYear(),
+    photo: null as File | null,
 });
 
 const submit = () => {
@@ -72,7 +77,7 @@ onMounted(() => {
             { title: 'Add Router', href: '#' },
         ]"
     >
-        <div class="mx-auto flex max-w-4xl flex-col gap-6 p-4 md:p-6 lg:p-8">
+        <div class="flex max-w-4xl flex-col gap-6 p-4 md:p-6 lg:p-8">
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight">
@@ -250,49 +255,56 @@ onMounted(() => {
                             </div>
                         </div>
 
-                        <InputMap
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div class="space-y-2">
+                                <Label for="username">Username</Label>
+                                <Input
+                                    id="username"
+                                    v-model="form.username"
+                                    placeholder="admin"
+                                />
+                            </div>
+                            <div class="space-y-2">
+                                <Label for="password">Password</Label>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    v-model="form.password"
+                                    placeholder="••••••••"
+                                />
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div class="space-y-2">
+                                <Label for="purchase_year">Purchase Year</Label>
+                                <Input
+                                    id="purchase_year"
+                                    type="number"
+                                    v-model="form.purchase_year"
+                                    :min="1900"
+                                    :max="new Date().getFullYear()"
+                                />
+                            </div>
+                            <div class="space-y-1.5">
+                                <Label class="text-sm font-medium"
+                                    >Device Photo</Label
+                                >
+                                <FileUploader
+                                    v-model="form.photo"
+                                    accept="image/png, image/jpeg, image/jpg"
+                                    :max-size="2"
+                                    :error="form.errors.photo"
+                                />
+                            </div>
+                        </div>
+
+                        <MapLocationPicker
                             v-model:latitude="form.latitude"
                             v-model:longitude="form.longitude"
                             :area-id="form.infrastructure_area_id"
                             :areas="areas"
                         />
-
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <div class="space-y-2">
-                                <Label for="latitude">Latitude</Label>
-                                <Input
-                                    id="latitude"
-                                    v-model="form.latitude"
-                                    :class="{
-                                        'border-destructive':
-                                            form.errors.latitude,
-                                    }"
-                                />
-                                <p
-                                    v-if="form.errors.latitude"
-                                    class="text-sm text-destructive"
-                                >
-                                    {{ form.errors.latitude }}
-                                </p>
-                            </div>
-                            <div class="space-y-2">
-                                <Label for="longitude">Longitude</Label>
-                                <Input
-                                    id="longitude"
-                                    v-model="form.longitude"
-                                    :class="{
-                                        'border-destructive':
-                                            form.errors.longitude,
-                                    }"
-                                />
-                                <p
-                                    v-if="form.errors.longitude"
-                                    class="text-sm text-destructive"
-                                >
-                                    {{ form.errors.longitude }}
-                                </p>
-                            </div>
-                        </div>
 
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div class="space-y-2">

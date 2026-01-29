@@ -71,6 +71,11 @@ class RouterController extends Controller
     {
         $data = $request->validated();
         $data['company_id'] = $request->user()->company_id;
+
+        if ($request->hasFile('photo')) {
+            $data['photo'] = $request->file('photo')->store('router-photos', 'public');
+        }
+
         $router = Router::create($data);
 
         if ($request->has('service_ports')) {
@@ -124,7 +129,16 @@ class RouterController extends Controller
      */
     public function update(UpdateRouterRequest $request, Router $router): RedirectResponse
     {
-        $router->update($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('photo')) {
+            if ($router->photo) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($router->photo);
+            }
+            $data['photo'] = $request->file('photo')->store('router-photos', 'public');
+        }
+
+        $router->update($data);
 
         if ($request->has('service_ports')) {
             $router->servicePorts()->delete();

@@ -31,11 +31,20 @@ class AdSwitch extends Model
         'latitude',
         'longitude',
         'description',
+        'username',
+        'password',
+        'purchase_year',
+        'photo',
+    ];
+
+    protected $hidden = [
+        'password',
     ];
 
     protected $casts = [
         'installed_at' => 'date:Y-m-d',
         'is_active' => 'boolean',
+        'purchase_year' => 'integer',
     ];
 
     public function area()

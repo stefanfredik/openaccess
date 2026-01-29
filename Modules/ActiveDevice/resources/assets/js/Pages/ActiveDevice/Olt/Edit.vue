@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import InterfaceManager from '@/../../Modules/ActiveDevice/resources/assets/js/Components/InterfaceManager.vue';
 import FileUploader from '@/components/FileUploader.vue';
-import InputMap from '@/components/InputMap.vue';
+import MapLocationPicker from '@/components/MapLocationPicker.vue';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -536,7 +536,7 @@ const serviceOptions = ['Telnet', 'SSH', 'WEB'];
                         </div>
 
                         <div class="space-y-2">
-                            <InputMap
+                            <MapLocationPicker
                                 v-model:latitude="form.latitude"
                                 v-model:longitude="form.longitude"
                                 :area-id="form.infrastructure_area_id"
@@ -544,32 +544,6 @@ const serviceOptions = ['Telnet', 'SSH', 'WEB'];
                             />
                         </div>
 
-                        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-                            <div class="space-y-1.5">
-                                <Label
-                                    for="latitude"
-                                    class="text-sm font-medium"
-                                    >Latitude</Label
-                                >
-                                <Input
-                                    id="latitude"
-                                    v-model="form.latitude"
-                                    class="h-11 rounded-lg border-slate-200"
-                                />
-                            </div>
-                            <div class="space-y-1.5">
-                                <Label
-                                    for="longitude"
-                                    class="text-sm font-medium"
-                                    >Longitude</Label
-                                >
-                                <Input
-                                    id="longitude"
-                                    v-model="form.longitude"
-                                    class="h-11 rounded-lg border-slate-200"
-                                />
-                            </div>
-                        </div>
                         <div class="space-y-1.5">
                             <Label class="text-sm font-medium"
                                 >Foto Perangkat</Label

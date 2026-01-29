@@ -136,6 +136,7 @@ const deviceDetails = computed(() => {
             props.device.status ||
             (props.device.is_active ? 'Active' : 'Inactive'),
         Description: props.device.description,
+        Username: props.device.username,
     };
 
     // Specific fields
@@ -183,6 +184,7 @@ const deviceDetails = computed(() => {
                     Info
                 </TabsTrigger>
                 <TabsTrigger
+                    v-if="device.switch_type !== 'Unmanageable'"
                     value="services"
                     class="relative flex h-12 items-center gap-2 rounded-none border-b-2 border-transparent px-2 text-xs font-bold tracking-wider text-slate-400 uppercase hover:text-blue-600 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600"
                 >
@@ -213,6 +215,16 @@ const deviceDetails = computed(() => {
                     >
                         Device Information
                     </h3>
+
+                    <!-- Device Photo -->
+                    <div v-if="device.photo" class="mb-6">
+                        <img
+                            :src="'/storage/' + device.photo"
+                            alt="Device Photo"
+                            class="aspect-video w-full rounded-xl border border-slate-200 object-cover shadow-sm"
+                        />
+                    </div>
+
                     <div
                         class="overflow-hidden rounded-lg border border-slate-100 bg-white shadow-sm"
                     >
@@ -240,7 +252,11 @@ const deviceDetails = computed(() => {
                 </TabsContent>
 
                 <!-- Services Tab -->
-                <TabsContent value="services" class="m-0 space-y-4 p-6">
+                <TabsContent
+                    v-if="device.switch_type !== 'Unmanageable'"
+                    value="services"
+                    class="m-0 space-y-4 p-6"
+                >
                     <h3
                         class="text-xs font-bold tracking-widest text-gray-400 uppercase"
                     >

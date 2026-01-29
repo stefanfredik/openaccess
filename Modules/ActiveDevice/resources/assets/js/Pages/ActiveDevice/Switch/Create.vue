@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import InputMap from '@/components/InputMap.vue';
+import FileUploader from '@/components/FileUploader.vue';
+import MapLocationPicker from '@/components/MapLocationPicker.vue';
 import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
-    CardDescription,
     CardFooter,
     CardHeader,
     CardTitle,
@@ -46,6 +46,10 @@ const form = useForm({
     latitude: '',
     longitude: '',
     description: '',
+    username: '',
+    password: '',
+    purchase_year: '',
+    photo: null,
 });
 
 const submit = () => {
@@ -69,19 +73,16 @@ onMounted(() => {
 
     <AppLayout
         :breadcrumbs="[
-            { title: 'Switches', href: route('active-device.switch.index') },
-            { title: 'Add Switch', href: '#' },
+            { title: 'Switche', href: route('active-device.switch.index') },
+            { title: 'Tambah Switch', href: '#' },
         ]"
     >
-        <div class="mx-auto flex max-w-4xl flex-col gap-6 p-4 md:p-6 lg:p-8">
+        <div class="flex max-w-4xl flex-col gap-6 p-4 md:p-6 lg:p-8">
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight">
-                        Add Switch
+                        Tambah Switch
                     </h1>
-                    <p class="text-muted-foreground">
-                        Register a new Network Switch.
-                    </p>
                 </div>
             </div>
 
@@ -89,9 +90,6 @@ onMounted(() => {
                 <Card>
                     <CardHeader>
                         <CardTitle>Switch Information</CardTitle>
-                        <CardDescription>
-                            Basic device identification and network details.
-                        </CardDescription>
                     </CardHeader>
                     <CardContent class="grid gap-6">
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -205,14 +203,18 @@ onMounted(() => {
                                         />
                                     </SelectTrigger>
                                     <SelectContent>
+                                        <SelectItem value="Unmanageable"
+                                            >Unmanageable</SelectItem
+                                        >
                                         <SelectItem value="Access"
-                                            >Access</SelectItem
+                                            >Manageable (Access)</SelectItem
                                         >
                                         <SelectItem value="Aggregation"
-                                            >Aggregation</SelectItem
+                                            >Manageable
+                                            (Aggregation)</SelectItem
                                         >
                                         <SelectItem value="Core"
-                                            >Core</SelectItem
+                                            >Manageable (Core)</SelectItem
                                         >
                                     </SelectContent>
                                 </Select>
@@ -255,52 +257,41 @@ onMounted(() => {
                             </div>
                         </div>
 
-                        <InputMap
+                        <MapLocationPicker
                             v-model:latitude="form.latitude"
                             v-model:longitude="form.longitude"
                             :area-id="form.infrastructure_area_id"
                             :areas="areas"
                         />
 
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div
+                            v-if="form.switch_type !== 'Unmanageable'"
+                            class="grid grid-cols-1 gap-4 md:grid-cols-2"
+                        >
                             <div class="space-y-2">
-                                <Label for="latitude">Latitude</Label>
+                                <Label for="username">Username</Label>
                                 <Input
-                                    id="latitude"
-                                    v-model="form.latitude"
-                                    :class="{
-                                        'border-destructive':
-                                            form.errors.latitude,
-                                    }"
+                                    id="username"
+                                    v-model="form.username"
+                                    placeholder="admin"
                                 />
-                                <p
-                                    v-if="form.errors.latitude"
-                                    class="text-sm text-destructive"
-                                >
-                                    {{ form.errors.latitude }}
-                                </p>
                             </div>
                             <div class="space-y-2">
-                                <Label for="longitude">Longitude</Label>
+                                <Label for="password">Password</Label>
                                 <Input
-                                    id="longitude"
-                                    v-model="form.longitude"
-                                    :class="{
-                                        'border-destructive':
-                                            form.errors.longitude,
-                                    }"
+                                    id="password"
+                                    type="password"
+                                    v-model="form.password"
+                                    placeholder="••••••••"
                                 />
-                                <p
-                                    v-if="form.errors.longitude"
-                                    class="text-sm text-destructive"
-                                >
-                                    {{ form.errors.longitude }}
-                                </p>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <div class="space-y-2">
+                            <div
+                                v-if="form.switch_type !== 'Unmanageable'"
+                                class="space-y-2"
+                            >
                                 <Label for="ip_address">IP Address</Label>
                                 <Input
                                     id="ip_address"
@@ -309,6 +300,7 @@ onMounted(() => {
                                         'border-destructive':
                                             form.errors.ip_address,
                                     }"
+                                    placeholder="192.168.1.1"
                                 />
                                 <p
                                     v-if="form.errors.ip_address"
@@ -323,6 +315,32 @@ onMounted(() => {
                                     id="installed_at"
                                     type="date"
                                     v-model="form.installed_at"
+                                />
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div class="space-y-2">
+                                <Label for="purchase_year">Purchase Year</Label>
+                                <Input
+                                    id="purchase_year"
+                                    type="number"
+                                    v-model="form.purchase_year"
+                                    placeholder="YYYY"
+                                    :min="1900"
+                                    :max="new Date().getFullYear()"
+                                />
+                            </div>
+                            <div class="space-y-1.5">
+                                <Label class="text-sm font-medium"
+                                    >Device Photo</Label
+                                >
+                                <FileUploader
+                                    v-model="form.photo"
+                                    accept="image/png, image/jpeg, image/jpg"
+                                    :max-size="2"
+                                    description="Max 2MB. Supports PNG, JPG."
+                                    :error="form.errors.photo"
                                 />
                             </div>
                         </div>

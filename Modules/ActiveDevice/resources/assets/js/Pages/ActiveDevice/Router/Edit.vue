@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import InputMap from '@/components/InputMap.vue';
+import MapLocationPicker from '@/components/MapLocationPicker.vue';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -47,10 +47,17 @@ const form = useForm({
     longitude: props.router.longitude || '',
     description: props.router.description || '',
     service_ports: props.router.service_ports || [],
+    username: props.router.username || '',
+    password: '', // Keep empty for security
+    purchase_year: props.router.purchase_year || new Date().getFullYear(),
+    photo: null as File | null,
+    _method: 'PUT',
 });
 
 const submit = () => {
-    form.put(route('active-device.router.update', props.router.id));
+    form.post(route('active-device.router.update', props.router.id), {
+        forceFormData: true,
+    });
 };
 
 const addServicePort = () => {
@@ -219,7 +226,7 @@ const removeServicePort = (index: number) => {
                             </div>
                         </div>
 
-                        <InputMap
+                        <MapLocationPicker
                             v-model:latitude="form.latitude"
                             v-model:longitude="form.longitude"
                             :area-id="form.infrastructure_area_id"
@@ -228,32 +235,9 @@ const removeServicePort = (index: number) => {
 
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div class="space-y-2">
-                                <Label for="latitude">Latitude</Label>
-                                <Input
-                                    id="latitude"
-                                    v-model="form.latitude"
-                                    :class="{
-                                        'border-destructive':
-                                            form.errors.latitude,
-                                    }"
-                                />
-                                <p
-                                    v-if="form.errors.latitude"
-                                    class="text-sm text-destructive"
-                                >
-                                    {{ form.errors.latitude }}
-                                </p>
-                            </div>
-                            <div class="space-y-2">
-                                <Label for="longitude">Longitude</Label>
-                                <Input
-                                    id="longitude"
-                                    v-model="form.longitude"
-                                    :class="{
-                                        'border-destructive':
-                                            form.errors.longitude,
-                                    }"
-                                />
+                                id="longitude" v-model="form.longitude"
+                                :class="{ 'border-destructive':
+                                form.errors.longitude, }" />
                                 <p
                                     v-if="form.errors.longitude"
                                     class="text-sm text-destructive"
@@ -287,6 +271,65 @@ const removeServicePort = (index: number) => {
                                 <Input
                                     id="mac_address"
                                     v-model="form.mac_address"
+                                />
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div class="space-y-2">
+                                <Label for="username">Username</Label>
+                                <Input
+                                    id="username"
+                                    v-model="form.username"
+                                    placeholder="admin"
+                                />
+                            </div>
+                            <div class="space-y-2">
+                                <Label for="password">Password</Label>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    v-model="form.password"
+                                    placeholder="•••••••• (leave empty to keep current)"
+                                />
+                                <p class="text-[10px] text-muted-foreground">
+                                    Fill this only if you want to update the
+                                    device password.
+                                </p>
+                            </div>
+                        </div>
+                        <MapLocationPicker
+                            v-model:latitude="form.latitude"
+                            v-model:longitude="form.longitude"
+                            :area-id="form.infrastructure_area_id"
+                            :areas="areas"
+                        />
+
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div class="space-y-2">
+                                <Label for="purchase_year">Purchase Year</Label>
+                                <Input
+                                    id="purchase_year"
+                                    type="number"
+                                    v-model="form.purchase_year"
+                                    :min="1900"
+                                    :max="new Date().getFullYear()"
+                                />
+                            </div>
+                            <div class="space-y-1.5">
+                                <Label class="text-sm font-medium"
+                                    >Device Photo</Label
+                                >
+                                <FileUploader
+                                    v-model="form.photo"
+                                    accept="image/png, image/jpeg, image/jpg"
+                                    :max-size="2"
+                                    :error="form.errors.photo"
+                                    :initial-image="
+                                        router.photo
+                                            ? '/storage/' + router.photo
+                                            : null
+                                    "
                                 />
                             </div>
                         </div>

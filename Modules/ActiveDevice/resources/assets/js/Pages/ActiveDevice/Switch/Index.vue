@@ -31,7 +31,14 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { debounce } from 'lodash';
-import { Eye, FileText, MoreVertical, Settings, Trash } from 'lucide-vue-next';
+import {
+    Eye,
+    FileText,
+    MoreVertical,
+    Network,
+    Settings,
+    Trash,
+} from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{
@@ -138,6 +145,10 @@ const openDrawer = (networkSwitch: any) => {
                                 >
                                 <TableHead
                                     class="px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    >Tipe Switch</TableHead
+                                >
+                                <TableHead
+                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase"
                                     >IP Address</TableHead
                                 >
                                 <TableHead
@@ -164,18 +175,30 @@ const openDrawer = (networkSwitch: any) => {
                                 <TableCell
                                     class="px-6 py-4 font-semibold text-slate-800"
                                 >
-                                    <div class="flex flex-col">
-                                        <span>{{ item.name }}</span>
-                                        <span
-                                            class="font-mono text-[10px] text-muted-foreground"
-                                            >{{ item.code }}</span
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-100/50 bg-slate-50 text-slate-600 shadow-sm"
                                         >
+                                            <Network class="h-4.5 w-4.5" />
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span>{{ item.name }}</span>
+                                            <span
+                                                class="font-mono text-[10px] text-muted-foreground"
+                                                >{{ item.code }}</span
+                                            >
+                                        </div>
                                     </div>
                                 </TableCell>
                                 <TableCell
                                     class="px-6 py-4 font-medium text-gray-600"
                                 >
                                     {{ item.brand }} {{ item.model }}
+                                </TableCell>
+                                <TableCell
+                                    class="px-6 py-4 text-sm font-medium text-slate-600"
+                                >
+                                    {{ item.switch_type || '-' }}
                                 </TableCell>
                                 <TableCell
                                     class="px-6 py-4 font-mono text-xs text-blue-600"
@@ -294,7 +317,7 @@ const openDrawer = (networkSwitch: any) => {
                             </TableRow>
                             <TableRow v-if="switches.data.length === 0">
                                 <TableCell
-                                    colspan="6"
+                                    colspan="7"
                                     class="h-32 text-center text-muted-foreground italic"
                                 >
                                     No Switches found in inventory.

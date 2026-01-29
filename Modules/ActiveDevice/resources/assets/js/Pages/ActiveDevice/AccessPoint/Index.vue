@@ -31,7 +31,14 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { debounce } from 'lodash';
-import { Eye, FileText, MoreVertical, Settings, Trash } from 'lucide-vue-next';
+import {
+    Eye,
+    FileText,
+    MoreVertical,
+    Settings,
+    Trash,
+    Wifi,
+} from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{
@@ -167,12 +174,19 @@ const openDrawer = (ap: any) => {
                                 <TableCell
                                     class="px-6 py-4 font-semibold text-slate-800"
                                 >
-                                    <div class="flex flex-col">
-                                        <span>{{ item.name }}</span>
-                                        <span
-                                            class="font-mono text-[10px] text-muted-foreground"
-                                            >{{ item.code }}</span
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="flex h-9 w-9 items-center justify-center rounded-lg border border-orange-100/50 bg-orange-50 text-orange-600 shadow-sm"
                                         >
+                                            <Wifi class="h-4.5 w-4.5" />
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span>{{ item.name }}</span>
+                                            <span
+                                                class="font-mono text-[10px] text-muted-foreground"
+                                                >{{ item.code }}</span
+                                            >
+                                        </div>
                                     </div>
                                 </TableCell>
                                 <TableCell

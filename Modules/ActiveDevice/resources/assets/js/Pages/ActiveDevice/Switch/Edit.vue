@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import InputMap from '@/components/InputMap.vue';
+import FileUploader from '@/components/FileUploader.vue';
+import MapLocationPicker from '@/components/MapLocationPicker.vue';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -51,6 +52,10 @@ const form = useForm({
     longitude: props.networkSwitch.longitude || '',
     description: props.networkSwitch.description || '',
     service_ports: props.networkSwitch.service_ports || [],
+    username: props.networkSwitch.username || '',
+    password: '',
+    purchase_year: props.networkSwitch.purchase_year,
+    photo: null,
 });
 
 const submit = () => {
@@ -203,14 +208,18 @@ const removeServicePort = (index: number) => {
                                         />
                                     </SelectTrigger>
                                     <SelectContent>
+                                        <SelectItem value="Unmanageable"
+                                            >Unmanageable</SelectItem
+                                        >
                                         <SelectItem value="Access"
-                                            >Access</SelectItem
+                                            >Manageable (Access)</SelectItem
                                         >
                                         <SelectItem value="Aggregation"
-                                            >Aggregation</SelectItem
+                                            >Manageable
+                                            (Aggregation)</SelectItem
                                         >
                                         <SelectItem value="Core"
-                                            >Core</SelectItem
+                                            >Manageable (Core)</SelectItem
                                         >
                                     </SelectContent>
                                 </Select>
@@ -253,52 +262,41 @@ const removeServicePort = (index: number) => {
                             </div>
                         </div>
 
-                        <InputMap
+                        <MapLocationPicker
                             v-model:latitude="form.latitude"
                             v-model:longitude="form.longitude"
                             :area-id="form.infrastructure_area_id"
                             :areas="areas"
                         />
 
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div
+                            v-if="form.switch_type !== 'Unmanageable'"
+                            class="grid grid-cols-1 gap-4 md:grid-cols-2"
+                        >
                             <div class="space-y-2">
-                                <Label for="latitude">Latitude</Label>
+                                <Label for="username">Username</Label>
                                 <Input
-                                    id="latitude"
-                                    v-model="form.latitude"
-                                    :class="{
-                                        'border-destructive':
-                                            form.errors.latitude,
-                                    }"
+                                    id="username"
+                                    v-model="form.username"
+                                    placeholder="admin"
                                 />
-                                <p
-                                    v-if="form.errors.latitude"
-                                    class="text-sm text-destructive"
-                                >
-                                    {{ form.errors.latitude }}
-                                </p>
                             </div>
                             <div class="space-y-2">
-                                <Label for="longitude">Longitude</Label>
+                                <Label for="password">Password</Label>
                                 <Input
-                                    id="longitude"
-                                    v-model="form.longitude"
-                                    :class="{
-                                        'border-destructive':
-                                            form.errors.longitude,
-                                    }"
+                                    id="password"
+                                    type="password"
+                                    v-model="form.password"
+                                    placeholder="•••••••• (leave empty to keep)"
                                 />
-                                <p
-                                    v-if="form.errors.longitude"
-                                    class="text-sm text-destructive"
-                                >
-                                    {{ form.errors.longitude }}
-                                </p>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <div class="space-y-2">
+                            <div
+                                v-if="form.switch_type !== 'Unmanageable'"
+                                class="space-y-2"
+                            >
                                 <Label for="ip_address">IP Address</Label>
                                 <Input
                                     id="ip_address"
@@ -307,6 +305,7 @@ const removeServicePort = (index: number) => {
                                         'border-destructive':
                                             form.errors.ip_address,
                                     }"
+                                    placeholder="192.168.1.1"
                                 />
                                 <p
                                     v-if="form.errors.ip_address"
@@ -325,6 +324,37 @@ const removeServicePort = (index: number) => {
                             </div>
                         </div>
 
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div class="space-y-2">
+                                <Label for="purchase_year">Purchase Year</Label>
+                                <Input
+                                    id="purchase_year"
+                                    type="number"
+                                    v-model="form.purchase_year"
+                                    placeholder="YYYY"
+                                    :min="1900"
+                                    :max="new Date().getFullYear()"
+                                />
+                            </div>
+                            <div class="space-y-1.5">
+                                <Label class="text-sm font-medium"
+                                    >Device Photo</Label
+                                >
+                                <FileUploader
+                                    v-model="form.photo"
+                                    accept="image/png, image/jpeg, image/jpg"
+                                    :max-size="2"
+                                    description="Max 2MB. Supports PNG, JPG."
+                                    :error="form.errors.photo"
+                                    :initial-image="
+                                        networkSwitch.photo
+                                            ? '/storage/' + networkSwitch.photo
+                                            : null
+                                    "
+                                />
+                            </div>
+                        </div>
+
                         <div class="space-y-2">
                             <Label for="description">Description</Label>
                             <Textarea
@@ -334,7 +364,10 @@ const removeServicePort = (index: number) => {
                         </div>
 
                         <!-- Service Ports -->
-                        <div class="mt-6 space-y-4">
+                        <div
+                            v-if="form.switch_type !== 'Unmanageable'"
+                            class="mt-6 space-y-4"
+                        >
                             <div class="flex items-center justify-between">
                                 <h3 class="text-sm font-medium">
                                     Service Ports
