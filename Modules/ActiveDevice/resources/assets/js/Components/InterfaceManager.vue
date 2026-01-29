@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -18,7 +19,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useForm } from '@inertiajs/vue3';
-import { Pencil, PlusCircle, Trash2 } from 'lucide-vue-next';
+import { Pencil, Trash2 } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 const props = defineProps<{
@@ -85,22 +86,12 @@ const openAdd = () => {
     form.reset();
     isAddOpen.value = true;
 };
+
+defineExpose({ openAdd });
 </script>
 
 <template>
     <div class="space-y-4">
-        <div class="flex items-center justify-between">
-            <h3
-                class="text-xs font-bold tracking-widest text-gray-400 uppercase"
-            >
-                Manage Interfaces
-            </h3>
-            <Button variant="outline" size="sm" @click="openAdd" class="h-8">
-                <PlusCircle class="mr-2 h-4 w-4" />
-                Add Interface
-            </Button>
-        </div>
-
         <div class="overflow-hidden rounded-lg border bg-white shadow-sm">
             <table class="w-full text-left text-sm">
                 <thead class="border-b bg-slate-50">
@@ -136,20 +127,18 @@ const openAdd = () => {
                             </div>
                         </td>
                         <td class="px-4 py-3">
-                            <span
-                                :class="[
-                                    'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors',
+                            <Badge
+                                :variant="
                                     inf.status === 'up'
-                                        ? 'bg-green-100 text-green-700'
+                                        ? 'default'
                                         : inf.status === 'error'
-                                          ? 'bg-red-100 text-red-700'
-                                          : inf.status === 'idle'
-                                            ? 'bg-blue-100 text-blue-700'
-                                            : 'bg-gray-100 text-gray-700',
-                                ]"
+                                          ? 'destructive'
+                                          : 'secondary'
+                                "
+                                class="capitalize"
                             >
-                                {{ inf.status.toUpperCase() }}
-                            </span>
+                                {{ inf.status }}
+                            </Badge>
                         </td>
                         <td class="px-4 py-3 text-right">
                             <div class="flex justify-end gap-1">

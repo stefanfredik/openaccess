@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import FileUploader from '@/components/FileUploader.vue';
+import InputMap from '@/components/InputMap.vue';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -23,6 +24,7 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import 'leaflet/dist/leaflet.css';
+import { onMounted } from 'vue';
 
 const props = defineProps<{
     areas: Array<any>;

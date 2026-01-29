@@ -9,7 +9,6 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,13 +28,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { router, useForm } from '@inertiajs/vue3';
-import {
-    ArrowRight,
-    Link as LinkIcon,
-    Plus,
-    Server,
-    Trash2,
-} from 'lucide-vue-next';
+import { ArrowRight, Link as LinkIcon, Server, Trash2 } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 const props = defineProps<{
@@ -79,6 +72,11 @@ const deleteConnection = (id: number) => {
         router.delete(`/topology/connections/${id}`);
     }
 };
+const openAdd = () => {
+    showAddForm.value = true;
+};
+
+defineExpose({ openAdd });
 </script>
 
 <template>
@@ -136,12 +134,6 @@ const deleteConnection = (id: number) => {
                 Outbound Connections
             </h2>
             <Dialog v-model:open="showAddForm">
-                <DialogTrigger as-child>
-                    <Button size="sm" variant="ghost" class="h-8 px-2 text-xs">
-                        <Plus class="mr-1 h-3 w-3" />
-                        <span>New Link</span>
-                    </Button>
-                </DialogTrigger>
                 <DialogContent class="sm:max-w-[500px]">
                     <DialogHeader>
                         <DialogTitle>Add New Link</DialogTitle>

@@ -6,9 +6,9 @@ type Props = {
     breadcrumbs?: BreadcrumbItem[];
 };
 
-import { Toaster, toast } from 'vue-sonner';
 import { usePage } from '@inertiajs/vue3';
 import { watch } from 'vue';
+import { Toaster, toast } from 'vue-sonner';
 
 const page = usePage();
 
@@ -26,13 +26,13 @@ watch(
             toast.error(flash.error);
         }
     },
-    { deep: true, immediate: true }
+    { deep: true, immediate: true },
 );
 </script>
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbs">
         <slot />
-        <Toaster />
+        <Toaster position="top-right" :duration="5000" richColors />
     </AppLayout>
 </template>
