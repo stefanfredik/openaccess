@@ -134,6 +134,7 @@
   const activeDeviceType = ref<string | null>(null)
   const rackContainerRef = ref<HTMLElement | null>(null)
   const portRefs = ref<Map<string, HTMLElement>>(new Map())
+  const deviceRefs = ref<Map<string, HTMLElement>>(new Map())
 
   const deviceColors = [
     { name: 'Blue', value: 'bg-blue-500' },
@@ -169,19 +170,34 @@
     const rackRect = rackContainerRef.value.getBoundingClientRect()
     const lines: any[] = []
 
+    // Get all devices in current rack for lookup
+    const devicesInRack = new Map<string, any>()
+    selectedRack.value?.contents?.forEach((c: any) => {
+        devicesInRack.set(`${c.device_type}:${c.device_id}`, c)
+    })
+
     activeConnections.value.forEach((conn: any) => {
-        // We need to determine which end of the connection corresponds to the clicked device and which is the 'other' end
-        let targetType, targetId, targetPort
-        let originType, originId, originPort
+        // Use interface IDs as keys - these match what we store in port refs
+        const sourceInterfaceId = conn.source_port
+        const destInterfaceId = conn.destination_port
 
-        // Normalize data to find coordinates
-        const sKey = `${conn.source_type}:${conn.source_id}:${conn.source_port}`
-        const dKey = `${conn.destination_type}:${conn.destination_id}:${conn.destination_port}`
+        // Look up elements using interface ID keys
+        let sourceEl = portRefs.value.get(`interface:${sourceInterfaceId}`)
+        let destEl = portRefs.value.get(`interface:${destInterfaceId}`)
 
-        const sourceEl = portRefs.value.get(sKey)
-        const destEl = portRefs.value.get(dKey)
+        // Fallback to device element if interface not found
+        if (!sourceEl) {
+            sourceEl = deviceRefs.value.get(`${conn.source_type}:${conn.source_id}`)
+        }
+        if (!destEl) {
+            destEl = deviceRefs.value.get(`${conn.destination_type}:${conn.destination_id}`)
+        }
 
-        if (sourceEl && destEl) {
+        // Only draw line if both endpoints are found and both devices are in the current rack
+        const sourceInRack = devicesInRack.has(`${conn.source_type}:${conn.source_id}`)
+        const destInRack = devicesInRack.has(`${conn.destination_type}:${conn.destination_id}`)
+
+        if (sourceEl && destEl && sourceInRack && destInRack) {
             const sRect = sourceEl.getBoundingClientRect()
             const dRect = destEl.getBoundingClientRect()
 
@@ -485,6 +501,7 @@
                                                         <Tooltip>
                                                             <TooltipTrigger as-child>
                                                                     <div
+                                                                        :ref="(el) => { if (el) deviceRefs.set(getDeviceAtU(selectedRack, u).device_type + ':' + getDeviceAtU(selectedRack, u).device_id, el as HTMLElement) }"
                                                                         @click="handleDeviceClick(getDeviceAtU(selectedRack, u).device_id, getDeviceAtU(selectedRack, u).device_type)"
                                                                         :class="[
                                                                             'absolute inset-x-0 bottom-0 z-10 flex items-center justify-between border-l-4 px-3 text-white shadow-2xl transition-all hover:brightness-110 cursor-pointer overflow-hidden',
@@ -506,13 +523,23 @@
                                                                                 <div class="grid grid-flow-col gap-x-1.5 gap-y-1" 
                                                                                     :style="{ 
                                                                                         gridTemplateRows: `repeat(${getDeviceAtU(selectedRack, u).unit_size > 1 ? 4 : 2}, minmax(0, 1fr))`,
-                                                                                        gridTemplateColumns: `repeat(${Math.ceil((getDeviceAtU(selectedRack, u).device?.port_count || 0) / (getDeviceAtU(selectedRack, u).unit_size > 1 ? 4 : 2))}, minmax(0, 1fr))`
+                                                                                        gridTemplateColumns: `repeat(${Math.ceil((getDeviceAtU(selectedRack, u).device?.interfaces?.length || getDeviceAtU(selectedRack, u).device?.port_count || 0) / (getDeviceAtU(selectedRack, u).unit_size > 1 ? 4 : 2))}, minmax(0, 1fr))`
                                                                                     }">
-                                                                                    <div v-for="p in (getDeviceAtU(selectedRack, u).device?.port_count || 0)" 
-                                                                                        :key="p" 
-                                                                                        :ref="(el) => { if (el) portRefs.set(getDeviceAtU(selectedRack, u).device_type + ':' + getDeviceAtU(selectedRack, u).device_id + ':' + p, el as HTMLElement) }"
-                                                                                        class="h-[5px] w-[5px] rounded-full bg-white/70 shadow-[0_0_4px_rgba(255,255,255,0.4)] ring-[0.5px] ring-white/20 transition-all hover:bg-white hover:scale-125">
-                                                                                    </div>
+                                                                                    <!-- Use actual interfaces if available, otherwise fallback to port_count -->
+                                                                                    <template v-if="getDeviceAtU(selectedRack, u).device?.interfaces?.length">
+                                                                                        <div v-for="iface in getDeviceAtU(selectedRack, u).device.interfaces" 
+                                                                                            :key="iface.id" 
+                                                                                            :ref="(el) => { if (el) portRefs.set(`interface:${iface.id}`, el as HTMLElement) }"
+                                                                                            :title="iface.name"
+                                                                                            class="h-[5px] w-[5px] rounded-full bg-white/70 shadow-[0_0_4px_rgba(255,255,255,0.4)] ring-[0.5px] ring-white/20 transition-all hover:bg-white hover:scale-125">
+                                                                                        </div>
+                                                                                    </template>
+                                                                                    <template v-else>
+                                                                                        <div v-for="p in (getDeviceAtU(selectedRack, u).device?.port_count || 0)" 
+                                                                                            :key="p" 
+                                                                                            class="h-[5px] w-[5px] rounded-full bg-white/70 shadow-[0_0_4px_rgba(255,255,255,0.4)] ring-[0.5px] ring-white/20 transition-all hover:bg-white hover:scale-125">
+                                                                                        </div>
+                                                                                    </template>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
