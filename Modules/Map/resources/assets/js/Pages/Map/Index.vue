@@ -382,7 +382,7 @@
     markersLayer?.addLayer(geojsonLayer)
   }
 
-  const loadMapData = async () => {
+  const loadMapData = async (fitToArea = false) => {
     try {
       const params: any = {}
 
@@ -420,13 +420,9 @@
           }).addTo(map!)
           boundaryLayer.bringToBack()
 
-          map?.fitBounds((boundaryLayer as L.Polygon).getBounds())
-        }
-      } else if (mapData.value.features && mapData.value.features.length > 0) {
-        // We can't really fit bounds easily without creating a layer first,
-        // but markersLayer already has the layer now.
-        if (markersLayer && markersLayer.getBounds().isValid()) {
-          map?.fitBounds(markersLayer.getBounds())
+          if (fitToArea && map) {
+            map.fitBounds((boundaryLayer as L.Polygon).getBounds())
+          }
         }
       }
     } catch (error) {
@@ -767,50 +763,11 @@
   }
 
   onMounted(() => {
+    console.log('[DEBUG] Map Component Mounted')
     initMap()
   })
 
-  watch(pendingDeviceType, (newVal) => {
-    if (newVal === 'cable') {
-      isDrawingCable.value = true
-      pendingPath.value = []
-      if (drawPolyline) {
-        map?.removeLayer(drawPolyline)
-        drawPolyline = null
-      }
-      editMarkers.value.forEach((marker) => map?.removeLayer(marker))
-      editMarkers.value = []
-
-      toast.info('Mode Gambar Kabel: Klik di peta untuk membuat jalur. Klik "Selesai" untuk menyimpan.', {
-        duration: 5000,
-        position: 'top-center',
-      })
-    } else {
-      isDrawingCable.value = false
-    }
-    renderMap()
-  })
-
-  watch(showCreateModal, (val) => {
-    if (!val) {
-      // Reset device type when modal closes
-      // If we were drawing a cable or if a cable was pending, clean it up
-      if (pendingDeviceType.value === 'cable' || isDrawingCable.value || (drawPolyline && !showCreateModal.value)) {
-        cancelCableDrawing()
-      }
-
-      pendingDeviceType.value = null
-
-      if (tempMarker && map) {
-        map.removeLayer(tempMarker)
-        tempMarker = null
-      }
-    }
-  })
-
-  watch(selectedAreaId, (newVal) => {
-    localStorage.setItem('map_selected_area', newVal)
-  })
+  // ... (watchers) ...
 </script>
 
 <template>
@@ -850,7 +807,7 @@
           <!-- Area Filter -->
           <div class="space-y-2">
             <label class="text-xs font-semibold tracking-wider text-gray-500 uppercase">Wilayah</label>
-            <Select v-model="selectedAreaId" @update:modelValue="loadMapData">
+            <Select v-model="selectedAreaId" @update:modelValue="() => loadMapData(true)">
               <SelectTrigger>
                 <SelectValue placeholder="Pilih Wilayah" />
               </SelectTrigger>
