@@ -370,10 +370,7 @@
               <ZoomOut class="h-5 w-5" />
             </button>
             <button
-              @click="
-                zoom = 1
-                pan = { x: 0, y: 0 }
-              "
+              @click="zoom = 1; pan = { x: 0, y: 0 }"
               class="rounded border-l border-white/10 p-2 text-white/60 transition-colors hover:bg-white/10 hover:text-white"
               title="Reset View">
               <Maximize class="h-5 w-5" />
@@ -395,10 +392,7 @@
 
           <div class="flex gap-1 rounded-lg border border-white/10 bg-black/60 p-1 shadow-2xl backdrop-blur-md">
             <button
-              @click="
-                isConnecting = !isConnecting
-                connectionSource = null
-              "
+              @click="isConnecting = !isConnecting; connectionSource = null"
               :class="[
                 'flex items-center gap-2 rounded p-2 text-xs font-medium transition-colors',
                 isConnecting ? 'animate-pulse bg-orange-500 text-white shadow-lg' : 'text-white/40 hover:bg-white/5 hover:text-white',
@@ -490,7 +484,6 @@
       <div
         class="h-full w-full overflow-auto p-[500px]"
         :class="[isLocked ? 'cursor-default' : 'cursor-grab active:cursor-grabbing']"
-        @mousedown.self=""
         @mousemove="handleMouseMove"
         @mouseup="handleMouseUp"
         @mouseleave="handleMouseUp">

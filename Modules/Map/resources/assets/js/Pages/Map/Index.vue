@@ -1015,11 +1015,7 @@
       :areas="areas"
       :pops="pops"
       :selected-area-id="selectedAreaId"
-      @success="
-        loadMapData()
-        pendingDeviceType = null
-        cancelCableDrawing()
-      " />
+      @success="loadMapData(); pendingDeviceType = null; cancelCableDrawing()" />
   </AppLayout>
 </template>
 
