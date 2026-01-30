@@ -3,7 +3,9 @@
 namespace Modules\PassiveDevice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
+use Inertia\Response;
 use Modules\Area\Models\InfrastructureArea;
 use Modules\PassiveDevice\Http\Requests\StoreSplitterRequest;
 use Modules\PassiveDevice\Http\Requests\UpdateSplitterRequest;
@@ -14,7 +16,7 @@ class SplitterController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): Response
     {
         $splitters = Splitter::with('area')->latest()->paginate(10);
 
@@ -26,7 +28,7 @@ class SplitterController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): Response
     {
         return Inertia::render('PassiveDevice::Splitter/Create', [
             'areas' => InfrastructureArea::all(),
@@ -36,7 +38,7 @@ class SplitterController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreSplitterRequest $request)
+    public function store(StoreSplitterRequest $request): RedirectResponse
     {
         Splitter::create($request->validated());
 
@@ -47,22 +49,18 @@ class SplitterController extends Controller
     /**
      * Show the specified resource.
      */
-    public function show($id)
+    public function show(Splitter $splitter): Response
     {
-        $splitter = Splitter::with('area')->findOrFail($id);
-
         return Inertia::render('PassiveDevice::Splitter/Show', [
-            'splitter' => $splitter,
+            'splitter' => $splitter->load('area'),
         ]);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function edit(Splitter $splitter): Response
     {
-        $splitter = Splitter::findOrFail($id);
-
         return Inertia::render('PassiveDevice::Splitter/Edit', [
             'splitter' => $splitter,
             'areas' => InfrastructureArea::all(),
@@ -72,9 +70,8 @@ class SplitterController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateSplitterRequest $request, $id)
+    public function update(UpdateSplitterRequest $request, Splitter $splitter): RedirectResponse
     {
-        $splitter = Splitter::findOrFail($id);
         $splitter->update($request->validated());
 
         return redirect()->route('passive-device.splitter.index')
@@ -84,9 +81,8 @@ class SplitterController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Splitter $splitter): RedirectResponse
     {
-        $splitter = Splitter::findOrFail($id);
         $splitter->delete();
 
         return redirect()->route('passive-device.splitter.index')

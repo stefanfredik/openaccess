@@ -3,7 +3,9 @@
 namespace Modules\Site\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
+use Inertia\Response;
 use Modules\Area\Models\InfrastructureArea;
 use Modules\Site\Http\Requests\StoreSiteRequest;
 use Modules\Site\Http\Requests\UpdateSiteRequest;
@@ -11,7 +13,7 @@ use Modules\Site\Models\Site;
 
 class SiteController extends Controller
 {
-    public function index()
+    public function index(): Response
     {
         $sites = Site::query()
             ->with(['area'])
@@ -23,14 +25,14 @@ class SiteController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): Response
     {
         return Inertia::render('Site::Create', [
             'areas' => InfrastructureArea::all(),
         ]);
     }
 
-    public function store(StoreSiteRequest $request)
+    public function store(StoreSiteRequest $request): RedirectResponse
     {
         $data = $request->validated();
         $data['company_id'] = auth()->user()->company_id;
@@ -49,28 +51,23 @@ class SiteController extends Controller
         return redirect()->route('site.index')->with('success', 'Site created successfully.');
     }
 
-    public function show($id)
+    public function show(Site $site): Response
     {
-        $site = Site::with(['area', 'photos'])->findOrFail($id);
-
         return Inertia::render('Site::Show', [
-            'site' => $site,
+            'site' => $site->load(['area', 'photos']),
         ]);
     }
 
-    public function edit($id)
+    public function edit(Site $site): Response
     {
-        $site = Site::with(['photos'])->findOrFail($id);
-
         return Inertia::render('Site::Edit', [
-            'site' => $site,
+            'site' => $site->load(['photos']),
             'areas' => InfrastructureArea::all(),
         ]);
     }
 
-    public function update(UpdateSiteRequest $request, $id)
+    public function update(UpdateSiteRequest $request, Site $site): RedirectResponse
     {
-        $site = Site::findOrFail($id);
         $site->update($request->validated());
 
         if ($request->hasFile('photos')) {
@@ -85,9 +82,8 @@ class SiteController extends Controller
         return redirect()->route('site.index')->with('success', 'Site updated successfully.');
     }
 
-    public function destroy($id)
+    public function destroy(Site $site): RedirectResponse
     {
-        $site = Site::findOrFail($id);
         $site->delete();
 
         return redirect()->route('site.index')->with('success', 'Site deleted successfully.');

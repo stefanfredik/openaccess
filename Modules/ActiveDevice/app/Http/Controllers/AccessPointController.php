@@ -9,11 +9,18 @@ use Inertia\Response;
 use Modules\ActiveDevice\Http\Requests\StoreAccessPointRequest;
 use Modules\ActiveDevice\Http\Requests\UpdateAccessPointRequest;
 use Modules\ActiveDevice\Models\AccessPoint;
+use Modules\ActiveDevice\Services\AccessPointService;
+use Modules\ActiveDevice\Services\DeviceService;
 use Modules\Area\Models\InfrastructureArea;
 use Modules\Pop\Models\Pop;
 
 class AccessPointController extends Controller
 {
+    public function __construct(
+        private readonly DeviceService $deviceService,
+        private readonly AccessPointService $accessPointService
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -72,15 +79,12 @@ class AccessPointController extends Controller
     {
         $data = $request->validated();
         $data['company_id'] = $request->user()->company_id;
-        $accessPoint = AccessPoint::create($data);
 
-        if ($request->has('service_ports')) {
-            foreach ($request->service_ports as $portData) {
-                $accessPoint->servicePorts()->create(array_merge($portData, [
-                    'company_id' => $request->user()->company_id,
-                ]));
-            }
-        }
+        $this->accessPointService->create(
+            $data,
+            null,
+            $request->service_ports
+        );
 
         if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
             return back()->with('success', 'Access Point created successfully.');
@@ -94,17 +98,9 @@ class AccessPointController extends Controller
      */
     public function show(AccessPoint $accessPoint): Response
     {
-        $allDevices = collect();
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\Router::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\AdSwitch::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\Olt::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\Ont::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(AccessPoint::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\Cpe\Models\Cpe::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-
         return Inertia::render('ActiveDevice::AccessPoint/Show', [
             'accessPoint' => $accessPoint->load(['area', 'pop', 'sourceConnections.destination', 'sourceConnections.destinationInterface', 'destinationConnections.source', 'destinationConnections.sourceInterface', 'servicePorts', 'interfaces']),
-            'availableDevices' => $allDevices,
+            'availableDevices' => $this->deviceService->getAllDevices(),
         ]);
     }
 
@@ -125,16 +121,13 @@ class AccessPointController extends Controller
      */
     public function update(UpdateAccessPointRequest $request, AccessPoint $accessPoint): RedirectResponse
     {
-        $accessPoint->update($request->validated());
-
-        if ($request->has('service_ports')) {
-            $accessPoint->servicePorts()->delete();
-            foreach ($request->service_ports as $portData) {
-                $accessPoint->servicePorts()->create(array_merge($portData, [
-                    'company_id' => $request->user()->company_id,
-                ]));
-            }
-        }
+        $this->accessPointService->update(
+            $accessPoint,
+            $request->validated(),
+            null,
+            $request->has('service_ports') ? $request->service_ports : null,
+            $request->user()->company_id
+        );
 
         return redirect()->route('active-device.access-point.index')->with('success', 'Access Point updated successfully.');
     }
@@ -144,7 +137,7 @@ class AccessPointController extends Controller
      */
     public function destroy(AccessPoint $accessPoint): RedirectResponse
     {
-        $accessPoint->delete();
+        $this->accessPointService->delete($accessPoint);
 
         return redirect()->route('active-device.access-point.index')->with('success', 'Access Point deleted successfully.');
     }

@@ -4,8 +4,11 @@ namespace Modules\ActiveDevice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\TopologyNodePosition;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 use Modules\ActiveDevice\Http\Requests\StoreDeviceConnectionRequest;
 use Modules\ActiveDevice\Models\AdSwitch;
 use Modules\ActiveDevice\Models\DeviceConnection;
@@ -14,7 +17,7 @@ use Modules\ActiveDevice\Models\Router;
 
 class DeviceConnectionController extends Controller
 {
-    public function store(StoreDeviceConnectionRequest $request)
+    public function store(StoreDeviceConnectionRequest $request): RedirectResponse
     {
         $data = $request->validated();
         $data['company_id'] = auth()->user()->company_id;
@@ -54,9 +57,8 @@ class DeviceConnectionController extends Controller
         return redirect()->back()->with('success', 'Connection created successfully.');
     }
 
-    public function destroy($id)
+    public function destroy(DeviceConnection $connection): RedirectResponse
     {
-        $connection = DeviceConnection::findOrFail($id);
         $connection->delete();
 
         return redirect()->back()->with('success', 'Connection removed successfully.');
@@ -66,7 +68,7 @@ class DeviceConnectionController extends Controller
 
     private $savedPositions = [];
 
-    public function topology()
+    public function topology(): Response
     {
         $this->seenDeviceUids = [];
         $this->savedPositions = TopologyNodePosition::where('company_id', auth()->user()->company_id)
@@ -161,7 +163,7 @@ class DeviceConnectionController extends Controller
         ];
     }
 
-    public function updatePositions(Request $request)
+    public function updatePositions(Request $request): RedirectResponse
     {
         $positions = $request->input('positions', []);
         $companyId = auth()->user()->company_id;
@@ -176,7 +178,7 @@ class DeviceConnectionController extends Controller
         return redirect()->back()->with('success', 'Layout saved successfully.');
     }
 
-    public function details(Request $request)
+    public function details(Request $request): JsonResponse
     {
         $uid = $request->input('uid');
         if (! $uid) {

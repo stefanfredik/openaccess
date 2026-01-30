@@ -3,7 +3,9 @@
 namespace Modules\PassiveDevice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
+use Inertia\Response;
 use Modules\Area\Models\InfrastructureArea;
 use Modules\PassiveDevice\Http\Requests\StoreSlackRequest;
 use Modules\PassiveDevice\Http\Requests\UpdateSlackRequest;
@@ -14,7 +16,7 @@ class SlackController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): Response
     {
         $slacks = Slack::with('area')->latest()->paginate(10);
 
@@ -26,7 +28,7 @@ class SlackController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): Response
     {
         return Inertia::render('PassiveDevice::Slack/Create', [
             'areas' => InfrastructureArea::all(),
@@ -36,7 +38,7 @@ class SlackController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreSlackRequest $request)
+    public function store(StoreSlackRequest $request): RedirectResponse
     {
         Slack::create($request->validated());
 
@@ -47,22 +49,18 @@ class SlackController extends Controller
     /**
      * Show the specified resource.
      */
-    public function show($id)
+    public function show(Slack $slack): Response
     {
-        $slack = Slack::with('area')->findOrFail($id);
-
         return Inertia::render('PassiveDevice::Slack/Show', [
-            'slack' => $slack,
+            'slack' => $slack->load('area'),
         ]);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function edit(Slack $slack): Response
     {
-        $slack = Slack::findOrFail($id);
-
         return Inertia::render('PassiveDevice::Slack/Edit', [
             'slack' => $slack,
             'areas' => InfrastructureArea::all(),
@@ -72,9 +70,8 @@ class SlackController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateSlackRequest $request, $id)
+    public function update(UpdateSlackRequest $request, Slack $slack): RedirectResponse
     {
-        $slack = Slack::findOrFail($id);
         $slack->update($request->validated());
 
         return redirect()->route('passive-device.slack.index')
@@ -84,9 +81,8 @@ class SlackController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Slack $slack): RedirectResponse
     {
-        $slack = Slack::findOrFail($id);
         $slack->delete();
 
         return redirect()->route('passive-device.slack.index')

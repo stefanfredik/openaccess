@@ -3,17 +3,27 @@
 namespace Modules\ActiveDevice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Traits\HasFlashMessages;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\ActiveDevice\Http\Requests\StoreRouterRequest;
 use Modules\ActiveDevice\Http\Requests\UpdateRouterRequest;
 use Modules\ActiveDevice\Models\Router;
+use Modules\ActiveDevice\Services\DeviceService;
+use Modules\ActiveDevice\Services\RouterService;
 use Modules\Area\Models\InfrastructureArea;
 use Modules\Pop\Models\Pop;
 
 class RouterController extends Controller
 {
+    use HasFlashMessages;
+
+    public function __construct(
+        private readonly DeviceService $deviceService,
+        private readonly RouterService $routerService
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -72,25 +82,17 @@ class RouterController extends Controller
         $data = $request->validated();
         $data['company_id'] = $request->user()->company_id;
 
-        if ($request->hasFile('photo')) {
-            $data['photo'] = $request->file('photo')->store('router-photos', 'public');
-        }
-
-        $router = Router::create($data);
-
-        if ($request->has('service_ports')) {
-            foreach ($request->service_ports as $portData) {
-                $router->servicePorts()->create(array_merge($portData, [
-                    'company_id' => $request->user()->company_id,
-                ]));
-            }
-        }
+        $this->routerService->create(
+            $data,
+            $request->file('photo'),
+            $request->service_ports
+        );
 
         if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
-            return back()->with('success', 'Router created successfully.');
+            return back()->with('success', $this->flashCreated('router'));
         }
 
-        return redirect()->route('active-device.router.index')->with('success', 'Router created successfully.');
+        return redirect()->route('active-device.router.index')->with('success', $this->flashCreated('router'));
     }
 
     /**
@@ -98,17 +100,9 @@ class RouterController extends Controller
      */
     public function show(Router $router): Response
     {
-        $allDevices = collect();
-        $allDevices = $allDevices->merge(Router::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\AdSwitch::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\Olt::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\Ont::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\AccessPoint::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\Cpe\Models\Cpe::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-
         return Inertia::render('ActiveDevice::Router/Show', [
             'router' => $router->load(['area', 'pop', 'sourceConnections.destination', 'sourceConnections.destinationInterface', 'destinationConnections.source', 'destinationConnections.sourceInterface', 'servicePorts', 'interfaces']),
-            'availableDevices' => $allDevices,
+            'availableDevices' => $this->deviceService->getAllDevices(),
         ]);
     }
 
@@ -129,27 +123,15 @@ class RouterController extends Controller
      */
     public function update(UpdateRouterRequest $request, Router $router): RedirectResponse
     {
-        $data = $request->validated();
+        $this->routerService->update(
+            $router,
+            $request->validated(),
+            $request->file('photo'),
+            $request->has('service_ports') ? $request->service_ports : null,
+            $request->user()->company_id
+        );
 
-        if ($request->hasFile('photo')) {
-            if ($router->photo) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($router->photo);
-            }
-            $data['photo'] = $request->file('photo')->store('router-photos', 'public');
-        }
-
-        $router->update($data);
-
-        if ($request->has('service_ports')) {
-            $router->servicePorts()->delete();
-            foreach ($request->service_ports as $portData) {
-                $router->servicePorts()->create(array_merge($portData, [
-                    'company_id' => $request->user()->company_id,
-                ]));
-            }
-        }
-
-        return redirect()->route('active-device.router.index')->with('success', 'Router updated successfully.');
+        return redirect()->route('active-device.router.index')->with('success', $this->flashUpdated('router'));
     }
 
     /**
@@ -157,8 +139,8 @@ class RouterController extends Controller
      */
     public function destroy(Router $router): RedirectResponse
     {
-        $router->delete();
+        $this->routerService->delete($router);
 
-        return redirect()->route('active-device.router.index')->with('success', 'Router deleted successfully.');
+        return redirect()->route('active-device.router.index')->with('success', $this->flashDeleted('router'));
     }
 }

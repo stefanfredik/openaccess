@@ -3,16 +3,26 @@
 namespace Modules\Pop\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Traits\HasFlashMessages;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 use Modules\Area\Models\InfrastructureArea;
 use Modules\Pop\Http\Requests\StorePopRequest;
 use Modules\Pop\Http\Requests\UpdatePopRequest;
 use Modules\Pop\Models\Pop;
+use Modules\Pop\Services\PopService;
 
 class PopController extends Controller
 {
-    public function index(Request $request)
+    use HasFlashMessages;
+
+    public function __construct(
+        private readonly PopService $popService
+    ) {}
+
+    public function index(Request $request): Response
     {
         $pops = Pop::query()
             ->with(['area'])
@@ -36,73 +46,56 @@ class PopController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): Response
     {
         return Inertia::render('Pop::Create', [
             'areas' => InfrastructureArea::all(),
         ]);
     }
 
-    public function store(StorePopRequest $request)
+    public function store(StorePopRequest $request): RedirectResponse
     {
         $data = $request->validated();
         $data['company_id'] = $request->user()->company_id;
 
-        $pop = Pop::create($data);
+        $this->popService->create(
+            $data,
+            $request->file('photos')
+        );
 
-        if ($request->hasFile('photos')) {
-            foreach ($request->file('photos') as $photo) {
-                $path = $photo->store('pop-photos', 'public');
-                $pop->photos()->create([
-                    'path' => $path,
-                ]);
-            }
-        }
-
-        return redirect()->route('pop.index')->with('success', 'POP created successfully.');
+        return redirect()->route('pop.index')->with('success', $this->flashCreated('pop'));
     }
 
-    public function show($id)
+    public function show(Pop $pop): Response
     {
-        $pop = Pop::with(['area', 'photos'])->findOrFail($id);
-
         return Inertia::render('Pop::Show', [
-            'pop' => $pop,
+            'pop' => $pop->load(['area', 'photos']),
         ]);
     }
 
-    public function edit($id)
+    public function edit(Pop $pop): Response
     {
-        $pop = Pop::with(['photos'])->findOrFail($id);
-
         return Inertia::render('Pop::Edit', [
-            'pop' => $pop,
+            'pop' => $pop->load(['photos']),
             'areas' => InfrastructureArea::all(),
         ]);
     }
 
-    public function update(UpdatePopRequest $request, $id)
+    public function update(UpdatePopRequest $request, Pop $pop): RedirectResponse
     {
-        $pop = Pop::findOrFail($id);
-        $pop->update($request->validated());
+        $this->popService->update(
+            $pop,
+            $request->validated(),
+            $request->file('photos')
+        );
 
-        if ($request->hasFile('photos')) {
-            foreach ($request->file('photos') as $photo) {
-                $path = $photo->store('pop-photos', 'public');
-                $pop->photos()->create([
-                    'path' => $path,
-                ]);
-            }
-        }
-
-        return redirect()->route('pop.index')->with('success', 'POP updated successfully.');
+        return redirect()->route('pop.index')->with('success', $this->flashUpdated('pop'));
     }
 
-    public function destroy($id)
+    public function destroy(Pop $pop): RedirectResponse
     {
-        $pop = Pop::findOrFail($id);
-        $pop->delete();
+        $this->popService->delete($pop);
 
-        return redirect()->route('pop.index')->with('success', 'POP deleted successfully.');
+        return redirect()->route('pop.index')->with('success', $this->flashDeleted('pop'));
     }
 }

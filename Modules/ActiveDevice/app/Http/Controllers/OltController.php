@@ -9,12 +9,18 @@ use Inertia\Response;
 use Modules\ActiveDevice\Http\Requests\StoreOltRequest;
 use Modules\ActiveDevice\Http\Requests\UpdateOltRequest;
 use Modules\ActiveDevice\Models\Olt;
-use Modules\ActiveDevice\Models\Router;
+use Modules\ActiveDevice\Services\DeviceService;
+use Modules\ActiveDevice\Services\OltService;
 use Modules\Area\Models\InfrastructureArea;
 use Modules\Pop\Models\Pop;
 
 class OltController extends Controller
 {
+    public function __construct(
+        private readonly DeviceService $deviceService,
+        private readonly OltService $oltService
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -74,19 +80,11 @@ class OltController extends Controller
         $data = $request->validated();
         $data['company_id'] = $request->user()->company_id;
 
-        if ($request->hasFile('device_image')) {
-            $data['device_image'] = $request->file('device_image')->store('olt-images', 'public');
-        }
-
-        $olt = Olt::create($data);
-
-        if ($request->has('service_ports')) {
-            foreach ($request->service_ports as $portData) {
-                $olt->servicePorts()->create(array_merge($portData, [
-                    'company_id' => $request->user()->company_id,
-                ]));
-            }
-        }
+        $this->oltService->create(
+            $data,
+            $request->file('device_image'),
+            $request->service_ports
+        );
 
         if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
             return back()->with('success', 'OLT created successfully.');
@@ -100,17 +98,9 @@ class OltController extends Controller
      */
     public function show(Olt $olt): Response
     {
-        $allDevices = collect();
-        $allDevices = $allDevices->merge(Router::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\AdSwitch::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(Olt::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\Ont::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\AccessPoint::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\Cpe\Models\Cpe::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-
         return Inertia::render('ActiveDevice::Olt/Show', [
             'olt' => $olt->load(['area', 'pop', 'sourceConnections.destination', 'sourceConnections.destinationInterface', 'destinationConnections.source', 'destinationConnections.sourceInterface', 'servicePorts', 'interfaces']),
-            'availableDevices' => $allDevices,
+            'availableDevices' => $this->deviceService->getAllDevices(),
         ]);
     }
 
@@ -131,22 +121,13 @@ class OltController extends Controller
      */
     public function update(UpdateOltRequest $request, Olt $olt): RedirectResponse
     {
-        $data = $request->validated();
-
-        if ($request->hasFile('device_image')) {
-            $data['device_image'] = $request->file('device_image')->store('olt-images', 'public');
-        }
-
-        $olt->update($data);
-
-        if ($request->has('service_ports')) {
-            $olt->servicePorts()->delete();
-            foreach ($request->service_ports as $portData) {
-                $olt->servicePorts()->create(array_merge($portData, [
-                    'company_id' => $request->user()->company_id,
-                ]));
-            }
-        }
+        $this->oltService->update(
+            $olt,
+            $request->validated(),
+            $request->file('device_image'),
+            $request->has('service_ports') ? $request->service_ports : null,
+            $request->user()->company_id
+        );
 
         return redirect()->route('active-device.olt.index')->with('success', 'OLT updated successfully.');
     }
@@ -156,7 +137,7 @@ class OltController extends Controller
      */
     public function destroy(Olt $olt): RedirectResponse
     {
-        $olt->delete();
+        $this->oltService->delete($olt);
 
         return redirect()->route('active-device.olt.index')->with('success', 'OLT deleted successfully.');
     }

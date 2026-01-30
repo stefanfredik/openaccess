@@ -4,8 +4,10 @@ namespace Modules\User\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
+use Inertia\Response;
 use Modules\Company\Models\Company;
 use Modules\User\Http\Requests\StoreUserRequest;
 use Modules\User\Http\Requests\UpdateUserRequest;
@@ -13,7 +15,7 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(): Response
     {
         if (! auth()->user()->hasRole('superadmin')) {
             abort(403);
@@ -39,7 +41,7 @@ class UserController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): Response
     {
         if (! auth()->user()->hasRole('superadmin')) {
             abort(403);
@@ -51,7 +53,7 @@ class UserController extends Controller
         ]);
     }
 
-    public function store(StoreUserRequest $request)
+    public function store(StoreUserRequest $request): RedirectResponse
     {
         if (! auth()->user()->hasRole('superadmin')) {
             abort(403);
@@ -66,13 +68,13 @@ class UserController extends Controller
         return redirect()->route('user.index')->with('success', 'User created successfully.');
     }
 
-    public function edit($id)
+    public function edit(User $user): Response
     {
         if (! auth()->user()->hasRole('superadmin')) {
             abort(403);
         }
 
-        $user = User::with(['roles'])->findOrFail($id);
+        $user->load(['roles']);
 
         return Inertia::render('User::Edit', [
             'user' => [
@@ -80,20 +82,19 @@ class UserController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'company_id' => $user->company_id,
-                'role' => $user->roles->first()?->name, // Assuming single role mostly, or pick first
+                'role' => $user->roles->first()?->name,
             ],
             'roles' => Role::all(),
             'companies' => Company::all(),
         ]);
     }
 
-    public function update(UpdateUserRequest $request, $id)
+    public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
         if (! auth()->user()->hasRole('superadmin')) {
             abort(403);
         }
 
-        $user = User::findOrFail($id);
         $data = $request->validated();
 
         if (empty($data['password'])) {
@@ -108,13 +109,12 @@ class UserController extends Controller
         return redirect()->route('user.index')->with('success', 'User updated successfully.');
     }
 
-    public function destroy($id)
+    public function destroy(User $user): RedirectResponse
     {
         if (! auth()->user()->hasRole('superadmin')) {
             abort(403);
         }
 
-        $user = User::findOrFail($id);
         if ($user->id === auth()->id()) {
             return redirect()->back()->with('error', 'Cannot self-delete.');
         }

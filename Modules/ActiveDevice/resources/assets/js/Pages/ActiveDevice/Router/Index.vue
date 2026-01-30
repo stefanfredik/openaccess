@@ -167,19 +167,19 @@
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <div @click.stop>
-                          <DeleteAction
-                            :href="route('active-device.router.destroy', item.id)"
-                            title="Hapus Router"
-                            class="h-auto w-full justify-start px-2 py-1.5 font-normal text-red-600 transition-colors hover:bg-red-50 hover:text-red-700">
-                            <template #trigger>
-                              <div class="flex items-center">
-                                <Trash class="mr-2 h-4 w-4" />
-                                Hapus Router
-                              </div>
-                            </template>
-                          </DeleteAction>
-                        </div>
+                        <DeleteAction
+                          :href="route('active-device.router.destroy', item.id)"
+                          title="Hapus Router">
+                          <template #trigger>
+                            <DropdownMenuItem
+                              class="cursor-pointer text-red-600 hover:!bg-red-50 hover:!text-red-700 focus:!bg-red-50 focus:!text-red-700 dark:hover:!bg-red-950 dark:focus:!bg-red-950"
+                              @click.stop
+                              @select.prevent>
+                              <Trash class="mr-2 h-4 w-4" />
+                              Hapus Router
+                            </DropdownMenuItem>
+                          </template>
+                        </DeleteAction>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>

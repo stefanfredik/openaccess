@@ -9,6 +9,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\ActiveDevice\Models\Ont;
 use Modules\ActiveDevice\Models\Router;
+use Modules\ActiveDevice\Services\DeviceService;
 use Modules\Area\Models\InfrastructureArea;
 use Modules\Cpe\Http\Requests\StoreCpeRequest;
 use Modules\Cpe\Http\Requests\UpdateCpeRequest;
@@ -16,6 +17,10 @@ use Modules\Cpe\Models\Cpe;
 
 class CpeController extends Controller
 {
+    public function __construct(
+        private readonly DeviceService $deviceService
+    ) {}
+
     public function index(Request $request): Response
     {
         $cpes = Cpe::query()
@@ -75,17 +80,9 @@ class CpeController extends Controller
 
     public function show(Cpe $cpe): Response
     {
-        $allDevices = collect();
-        $allDevices = $allDevices->merge(Router::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\AdSwitch::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\Olt::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\Ont::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\AccessPoint::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(Cpe::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-
         return Inertia::render('Cpe::Show', [
             'cpe' => $cpe->load(['area', 'activeDevice', 'sourceConnections.destination', 'sourceConnections.destinationInterface', 'destinationConnections.source', 'destinationConnections.sourceInterface']),
-            'availableDevices' => $allDevices,
+            'availableDevices' => $this->deviceService->getAllDevices(),
         ]);
     }
 

@@ -15,6 +15,7 @@
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
   import { Textarea } from '@/components/ui/textarea'
   import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+  import { Switch } from '@/components/ui/switch'
   import axios from 'axios'
 
   const props = defineProps<{
@@ -130,8 +131,7 @@
   }
 
   // --- Connection Visualization Logic ---
-  const activeDeviceId = ref<number | null>(null)
-  const activeDeviceType = ref<string | null>(null)
+  const showConnections = ref(false)
   const rackContainerRef = ref<HTMLElement | null>(null)
   const portRefs = ref<Map<string, HTMLElement>>(new Map())
   const deviceRefs = ref<Map<string, HTMLElement>>(new Map())
@@ -145,24 +145,42 @@
     { name: 'Slate', value: 'bg-slate-500' },
   ]
 
-  const activeConnections = computed(() => {
-    if (!activeDeviceId.value) return []
+  // Get all connections from all devices in the current rack
+  const allConnections = computed(() => {
+    if (!selectedRack.value?.contents) return []
     
-    const device = selectedRack.value?.contents?.find(
-        (c: any) => c.device_id === activeDeviceId.value && c.device_type === activeDeviceType.value
-    )?.device
-
-    if (!device) return []
-
-    // Merge source and destination connections
-    return [...(device.source_connections || []), ...(device.destination_connections || [])]
+    const connections: any[] = []
+    const seenIds = new Set<number>()
+    
+    selectedRack.value.contents.forEach((content: any) => {
+        const device = content.device
+        if (!device) return
+        
+        // Add source connections
+        ;(device.source_connections || []).forEach((conn: any) => {
+            if (!seenIds.has(conn.id)) {
+                seenIds.add(conn.id)
+                connections.push(conn)
+            }
+        })
+        
+        // Add destination connections
+        ;(device.destination_connections || []).forEach((conn: any) => {
+            if (!seenIds.has(conn.id)) {
+                seenIds.add(conn.id)
+                connections.push(conn)
+            }
+        })
+    })
+    
+    return connections
   })
 
   const connectionLines = ref<any[]>([])
 
   const updateConnectionLines = async () => {
     await nextTick()
-    if (!activeDeviceId.value || !rackContainerRef.value) {
+    if (!showConnections.value || !rackContainerRef.value) {
         connectionLines.value = []
         return
     }
@@ -176,7 +194,7 @@
         devicesInRack.set(`${c.device_type}:${c.device_id}`, c)
     })
 
-    activeConnections.value.forEach((conn: any) => {
+    allConnections.value.forEach((conn: any) => {
         // Use interface IDs as keys - these match what we store in port refs
         const sourceInterfaceId = conn.source_port
         const destInterfaceId = conn.destination_port
@@ -214,14 +232,8 @@
     connectionLines.value = lines
   }
 
-  const handleDeviceClick = (deviceId: number, deviceType: string) => {
-    if (activeDeviceId.value === deviceId && activeDeviceType.value === deviceType) {
-        activeDeviceId.value = null
-        activeDeviceType.value = null
-    } else {
-        activeDeviceId.value = deviceId
-        activeDeviceType.value = deviceType
-    }
+  const toggleConnections = () => {
+    showConnections.value = !showConnections.value
     updateConnectionLines()
   }
 
@@ -447,6 +459,11 @@
                     </div>
 
                     <div v-if="selectedRack" class="flex items-center gap-2">
+                        <!-- Connection Toggle -->
+                        <div class="flex items-center gap-2 rounded-md border px-3 py-1.5 bg-muted/30">
+                            <Label for="connection-toggle" class="text-xs font-medium text-muted-foreground cursor-pointer">Show Connections</Label>
+                            <Switch id="connection-toggle" :checked="showConnections" @update:checked="toggleConnections" />
+                        </div>
                         <Button variant="ghost" size="sm">
                             <Settings2 class="mr-2 h-4 w-4" />
                             Settings

@@ -30,6 +30,8 @@ class UpdateAreaRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        $area = $this->route('area');
+
+        return $area && $this->user()->can('update', $area);
     }
 }

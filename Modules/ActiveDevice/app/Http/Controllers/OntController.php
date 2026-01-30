@@ -9,12 +9,18 @@ use Inertia\Response;
 use Modules\ActiveDevice\Http\Requests\StoreOntRequest;
 use Modules\ActiveDevice\Http\Requests\UpdateOntRequest;
 use Modules\ActiveDevice\Models\Ont;
-use Modules\ActiveDevice\Models\Router;
+use Modules\ActiveDevice\Services\DeviceService;
+use Modules\ActiveDevice\Services\OntService;
 use Modules\Area\Models\InfrastructureArea;
 use Modules\Pop\Models\Pop;
 
 class OntController extends Controller
 {
+    public function __construct(
+        private readonly DeviceService $deviceService,
+        private readonly OntService $ontService
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -73,15 +79,12 @@ class OntController extends Controller
     {
         $data = $request->validated();
         $data['company_id'] = $request->user()->company_id;
-        $ont = Ont::create($data);
 
-        if ($request->has('service_ports')) {
-            foreach ($request->service_ports as $portData) {
-                $ont->servicePorts()->create(array_merge($portData, [
-                    'company_id' => $request->user()->company_id,
-                ]));
-            }
-        }
+        $this->ontService->create(
+            $data,
+            null,
+            $request->service_ports
+        );
 
         if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
             return back()->with('success', 'ONT created successfully.');
@@ -95,17 +98,9 @@ class OntController extends Controller
      */
     public function show(Ont $ont): Response
     {
-        $allDevices = collect();
-        $allDevices = $allDevices->merge(Router::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\AdSwitch::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\Olt::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(Ont::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\AccessPoint::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\Cpe\Models\Cpe::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-
         return Inertia::render('ActiveDevice::Ont/Show', [
             'ont' => $ont->load(['area', 'pop', 'sourceConnections.destination', 'sourceConnections.destinationInterface', 'destinationConnections.source', 'destinationConnections.sourceInterface', 'servicePorts', 'interfaces']),
-            'availableDevices' => $allDevices,
+            'availableDevices' => $this->deviceService->getAllDevices(),
         ]);
     }
 
@@ -126,16 +121,13 @@ class OntController extends Controller
      */
     public function update(UpdateOntRequest $request, Ont $ont): RedirectResponse
     {
-        $ont->update($request->validated());
-
-        if ($request->has('service_ports')) {
-            $ont->servicePorts()->delete();
-            foreach ($request->service_ports as $portData) {
-                $ont->servicePorts()->create(array_merge($portData, [
-                    'company_id' => $request->user()->company_id,
-                ]));
-            }
-        }
+        $this->ontService->update(
+            $ont,
+            $request->validated(),
+            null,
+            $request->has('service_ports') ? $request->service_ports : null,
+            $request->user()->company_id
+        );
 
         return redirect()->route('active-device.ont.index')->with('success', 'ONT updated successfully.');
     }
@@ -145,7 +137,7 @@ class OntController extends Controller
      */
     public function destroy(Ont $ont): RedirectResponse
     {
-        $ont->delete();
+        $this->ontService->delete($ont);
 
         return redirect()->route('active-device.ont.index')->with('success', 'ONT deleted successfully.');
     }

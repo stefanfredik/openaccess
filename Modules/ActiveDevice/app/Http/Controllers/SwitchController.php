@@ -9,11 +9,18 @@ use Inertia\Response;
 use Modules\ActiveDevice\Http\Requests\StoreSwitchRequest;
 use Modules\ActiveDevice\Http\Requests\UpdateSwitchRequest;
 use Modules\ActiveDevice\Models\AdSwitch;
+use Modules\ActiveDevice\Services\DeviceService;
+use Modules\ActiveDevice\Services\SwitchService;
 use Modules\Area\Models\InfrastructureArea;
 use Modules\Pop\Models\Pop;
 
 class SwitchController extends Controller
 {
+    public function __construct(
+        private readonly DeviceService $deviceService,
+        private readonly SwitchService $switchService
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -73,20 +80,11 @@ class SwitchController extends Controller
         $data = $request->validated();
         $data['company_id'] = $request->user()->company_id;
 
-        if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('switch-photos', 'public');
-            $data['photo'] = $path;
-        }
-
-        $switch = AdSwitch::create($data);
-
-        if ($request->has('service_ports')) {
-            foreach ($request->service_ports as $portData) {
-                $switch->servicePorts()->create(array_merge($portData, [
-                    'company_id' => $request->user()->company_id,
-                ]));
-            }
-        }
+        $this->switchService->create(
+            $data,
+            $request->file('photo'),
+            $request->service_ports
+        );
 
         if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
             return back()->with('success', 'Switch created successfully.');
@@ -100,17 +98,9 @@ class SwitchController extends Controller
      */
     public function show(AdSwitch $switch): Response
     {
-        $allDevices = collect();
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\Router::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(AdSwitch::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\Olt::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\Ont::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\ActiveDevice\Models\AccessPoint::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-        $allDevices = $allDevices->merge(\Modules\Cpe\Models\Cpe::all()->map(fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'type' => get_class($d)]));
-
         return Inertia::render('ActiveDevice::Switch/Show', [
             'networkSwitch' => $switch->load(['area', 'pop', 'sourceConnections.destination', 'sourceConnections.destinationInterface', 'destinationConnections.source', 'destinationConnections.sourceInterface', 'servicePorts', 'interfaces']),
-            'availableDevices' => $allDevices,
+            'availableDevices' => $this->deviceService->getAllDevices(),
         ]);
     }
 
@@ -131,16 +121,13 @@ class SwitchController extends Controller
      */
     public function update(UpdateSwitchRequest $request, AdSwitch $switch): RedirectResponse
     {
-        $switch->update($request->validated());
-
-        if ($request->has('service_ports')) {
-            $switch->servicePorts()->delete();
-            foreach ($request->service_ports as $portData) {
-                $switch->servicePorts()->create(array_merge($portData, [
-                    'company_id' => $request->user()->company_id,
-                ]));
-            }
-        }
+        $this->switchService->update(
+            $switch,
+            $request->validated(),
+            $request->file('photo'),
+            $request->has('service_ports') ? $request->service_ports : null,
+            $request->user()->company_id
+        );
 
         return redirect()->route('active-device.switch.index')->with('success', 'Switch updated successfully.');
     }
@@ -150,7 +137,7 @@ class SwitchController extends Controller
      */
     public function destroy(AdSwitch $switch): RedirectResponse
     {
-        $switch->delete();
+        $this->switchService->delete($switch);
 
         return redirect()->route('active-device.switch.index')->with('success', 'Switch deleted successfully.');
     }

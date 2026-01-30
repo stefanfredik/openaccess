@@ -3,8 +3,10 @@
 namespace Modules\Server\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 use Modules\Area\Models\InfrastructureArea;
 use Modules\Pop\Models\Pop;
 use Modules\Server\Http\Requests\StoreServerRequest;
@@ -13,7 +15,7 @@ use Modules\Server\Models\Server;
 
 class ServerController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
         $servers = Server::query()
             ->with(['area', 'pop'])
@@ -37,7 +39,7 @@ class ServerController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): Response
     {
         return Inertia::render('Server::Create', [
             'areas' => InfrastructureArea::all(),
@@ -45,7 +47,7 @@ class ServerController extends Controller
         ]);
     }
 
-    public function store(StoreServerRequest $request)
+    public function store(StoreServerRequest $request): RedirectResponse
     {
         $data = $request->validated();
         $data['company_id'] = $request->user()->company_id;
@@ -67,9 +69,9 @@ class ServerController extends Controller
         return redirect()->route('server.index')->with('success', 'Server created successfully.');
     }
 
-    public function show($id)
+    public function show(Server $server): Response
     {
-        $server = Server::with([
+        $server->load([
             'area',
             'pop',
             'photos',
@@ -78,27 +80,24 @@ class ServerController extends Controller
             'racks.contents.device.sourceConnections.destinationInterface',
             'racks.contents.device.destinationConnections.sourceInterface',
             'racks.contents.device.destinationConnections.destinationInterface',
-        ])->findOrFail($id);
+        ]);
 
         return Inertia::render('Server::Show', [
             'server' => $server,
         ]);
     }
 
-    public function edit($id)
+    public function edit(Server $server): Response
     {
-        $server = Server::with(['photos'])->findOrFail($id);
-
         return Inertia::render('Server::Edit', [
-            'server' => $server,
+            'server' => $server->load(['photos']),
             'areas' => InfrastructureArea::all(),
             'pops' => Pop::all(),
         ]);
     }
 
-    public function update(UpdateServerRequest $request, $id)
+    public function update(UpdateServerRequest $request, Server $server): RedirectResponse
     {
-        $server = Server::findOrFail($id);
         $server->update($request->validated());
 
         if ($request->hasFile('photos')) {
@@ -116,9 +115,8 @@ class ServerController extends Controller
         return redirect()->route('server.index')->with('success', 'Server updated successfully.');
     }
 
-    public function destroy($id)
+    public function destroy(Server $server): RedirectResponse
     {
-        $server = Server::findOrFail($id);
         $server->delete();
 
         return redirect()->route('server.index')->with('success', 'Server deleted successfully.');

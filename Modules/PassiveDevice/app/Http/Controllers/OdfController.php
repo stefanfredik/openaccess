@@ -3,7 +3,9 @@
 namespace Modules\PassiveDevice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
+use Inertia\Response;
 use Modules\Area\Models\InfrastructureArea;
 use Modules\PassiveDevice\Http\Requests\StoreOdfRequest;
 use Modules\PassiveDevice\Http\Requests\UpdateOdfRequest;
@@ -14,7 +16,7 @@ class OdfController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): Response
     {
         $odfs = Odf::with('area')->latest()->paginate(10);
 
@@ -26,7 +28,7 @@ class OdfController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): Response
     {
         return Inertia::render('PassiveDevice::Odf/Create', [
             'areas' => InfrastructureArea::all(),
@@ -36,7 +38,7 @@ class OdfController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreOdfRequest $request)
+    public function store(StoreOdfRequest $request): RedirectResponse
     {
         $data = $request->validated();
         $data['company_id'] = auth()->user()->company_id;
@@ -53,22 +55,18 @@ class OdfController extends Controller
     /**
      * Show the specified resource.
      */
-    public function show($id)
+    public function show(Odf $odf): Response
     {
-        $odf = Odf::with('area')->findOrFail($id);
-
         return Inertia::render('PassiveDevice::Odf/Show', [
-            'odf' => $odf,
+            'odf' => $odf->load('area'),
         ]);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function edit(Odf $odf): Response
     {
-        $odf = Odf::findOrFail($id);
-
         return Inertia::render('PassiveDevice::Odf/Edit', [
             'odf' => $odf,
             'areas' => InfrastructureArea::all(),
@@ -78,9 +76,8 @@ class OdfController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateOdfRequest $request, $id)
+    public function update(UpdateOdfRequest $request, Odf $odf): RedirectResponse
     {
-        $odf = Odf::findOrFail($id);
         $odf->update($request->validated());
 
         return redirect()->route('passive-device.odf.index')
@@ -90,9 +87,8 @@ class OdfController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Odf $odf): RedirectResponse
     {
-        $odf = Odf::findOrFail($id);
         $odf->delete();
 
         return redirect()->route('passive-device.odf.index')

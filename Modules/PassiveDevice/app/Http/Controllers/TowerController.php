@@ -3,7 +3,9 @@
 namespace Modules\PassiveDevice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
+use Inertia\Response;
 use Modules\Area\Models\InfrastructureArea;
 use Modules\PassiveDevice\Http\Requests\StoreTowerRequest;
 use Modules\PassiveDevice\Http\Requests\UpdateTowerRequest;
@@ -14,7 +16,7 @@ class TowerController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): Response
     {
         $towers = Tower::with('area')->latest()->paginate(10);
 
@@ -26,7 +28,7 @@ class TowerController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): Response
     {
         return Inertia::render('PassiveDevice::Tower/Create', [
             'areas' => InfrastructureArea::all(),
@@ -38,7 +40,7 @@ class TowerController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreTowerRequest $request)
+    public function store(StoreTowerRequest $request): RedirectResponse
     {
         $data = $request->validated();
         $data['company_id'] = auth()->user()->company_id;
@@ -55,22 +57,18 @@ class TowerController extends Controller
     /**
      * Show the specified resource.
      */
-    public function show($id)
+    public function show(Tower $tower): Response
     {
-        $tower = Tower::with('area')->findOrFail($id);
-
         return Inertia::render('PassiveDevice::Tower/Show', [
-            'tower' => $tower,
+            'tower' => $tower->load('area'),
         ]);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function edit(Tower $tower): Response
     {
-        $tower = Tower::findOrFail($id);
-
         return Inertia::render('PassiveDevice::Tower/Edit', [
             'tower' => $tower,
             'areas' => InfrastructureArea::all(),
@@ -82,9 +80,8 @@ class TowerController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateTowerRequest $request, $id)
+    public function update(UpdateTowerRequest $request, Tower $tower): RedirectResponse
     {
-        $tower = Tower::findOrFail($id);
         $tower->update($request->validated());
 
         return redirect()->route('passive-device.tower.index')
@@ -94,9 +91,8 @@ class TowerController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Tower $tower): RedirectResponse
     {
-        $tower = Tower::findOrFail($id);
         $tower->delete();
 
         return redirect()->route('passive-device.tower.index')

@@ -3,15 +3,23 @@
 namespace Modules\Area\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Traits\HasFlashMessages;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
+use Modules\ActiveDevice\Models\Olt;
 use Modules\Area\Http\Requests\StoreAreaRequest;
 use Modules\Area\Http\Requests\UpdateAreaRequest;
 use Modules\Area\Models\InfrastructureArea;
+use Modules\Cpe\Models\Cpe;
+use Modules\PassiveDevice\Models\Odp;
 
 class AreaController extends Controller
 {
-    public function index(Request $request)
+    use HasFlashMessages;
+
+    public function index(Request $request): Response
     {
         $filters = $request->only(['search', 'type']);
 
@@ -34,12 +42,12 @@ class AreaController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): Response
     {
         return Inertia::render('Area::Create');
     }
 
-    public function store(StoreAreaRequest $request)
+    public function store(StoreAreaRequest $request): RedirectResponse
     {
         $data = $request->validated();
 
@@ -51,19 +59,17 @@ class AreaController extends Controller
 
         InfrastructureArea::create($data);
 
-        return redirect()->route('area.index')->with('success', 'Area created successfully.');
+        return redirect()->route('area.index')->with('success', $this->flashCreated('area'));
     }
 
-    public function show($id)
+    public function show(InfrastructureArea $area): Response
     {
-        $area = InfrastructureArea::findOrFail($id);
-
         $stats = [
             'pops_count' => $area->pops()->count(),
             'servers_count' => $area->servers()->count(),
-            'olts_count' => \Modules\ActiveDevice\Models\Olt::where('infrastructure_area_id', $area->id)->count(),
-            'odps_count' => \Modules\PassiveDevice\Models\Odp::where('infrastructure_area_id', $area->id)->count(),
-            'cpes_count' => \Modules\Cpe\Models\Cpe::where('infrastructure_area_id', $area->id)->count(),
+            'olts_count' => Olt::where('infrastructure_area_id', $area->id)->count(),
+            'odps_count' => Odp::where('infrastructure_area_id', $area->id)->count(),
+            'cpes_count' => Cpe::where('infrastructure_area_id', $area->id)->count(),
         ];
 
         return Inertia::render('Area::Show', [
@@ -72,33 +78,28 @@ class AreaController extends Controller
         ]);
     }
 
-    public function edit($id)
+    public function edit(InfrastructureArea $area): Response
     {
-        $area = InfrastructureArea::findOrFail($id);
-
         return Inertia::render('Area::Edit', [
             'area' => $area,
         ]);
     }
 
-    public function update(UpdateAreaRequest $request, $id)
+    public function update(UpdateAreaRequest $request, InfrastructureArea $area): RedirectResponse
     {
-        $area = InfrastructureArea::findOrFail($id);
         $area->update($request->validated());
 
-        return redirect()->route('area.index')->with('success', 'Area updated successfully.');
+        return redirect()->route('area.index')->with('success', $this->flashUpdated('area'));
     }
 
-    public function destroy($id)
+    public function destroy(InfrastructureArea $area): RedirectResponse
     {
-        $area = InfrastructureArea::findOrFail($id);
-
         if ($area->pops()->exists() || $area->servers()->exists()) {
-            return back()->with('error', 'Wilayah tidak dapat dihapus karena masih memiliki data terkait (POP/Server).');
+            return back()->with('error', $this->flashDeleteHasRelations('area'));
         }
 
         $area->delete();
 
-        return redirect()->route('area.index')->with('success', 'Area deleted successfully.');
+        return redirect()->route('area.index')->with('success', $this->flashDeleted('area'));
     }
 }
