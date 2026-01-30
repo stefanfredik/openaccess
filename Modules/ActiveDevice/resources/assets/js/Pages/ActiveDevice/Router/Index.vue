@@ -14,7 +14,6 @@
   import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
   import AppLayout from '@/layouts/AppLayout.vue'
 
-
   const props = defineProps<{
     routers: {
       data: Array<any>

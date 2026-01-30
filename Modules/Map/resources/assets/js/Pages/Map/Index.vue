@@ -573,7 +573,6 @@
       relocatingMarker.value = targetMarker
       originalPosition.value = (targetMarker as L.Marker).getLatLng()
       currentPosition.value = (targetMarker as L.Marker).getLatLng()
-
       ;(targetMarker as L.Marker).dragging?.enable()
       ;(targetMarker as L.Marker).on('dragend', (e: any) => {
         currentPosition.value = e.target.getLatLng()
