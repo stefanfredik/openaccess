@@ -221,7 +221,7 @@
   })
 
   let map: L.Map | null = null
-  let markersLayer: L.FeatureGroup | null = null
+  let markersLayer: any | null = null
   let boundaryLayer: L.Layer | null = null
   let tempMarker: L.Marker | null = null
   let drawPolyline: L.Polyline | null = null
@@ -532,7 +532,16 @@
       }
     })
 
-    markersLayer = new L.FeatureGroup().addTo(map!)
+    // Initialize Marker Cluster Group
+    markersLayer = (L as any).markerClusterGroup({
+      disableClusteringAtZoom: 18,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      maxClusterRadius: 60,
+      chunkedLoading: true, // Improved performance
+    })
+    map!.addLayer(markersLayer)
 
     // Initial load
     await loadMapData()
