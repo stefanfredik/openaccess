@@ -3,6 +3,7 @@
 namespace Modules\ActiveDevice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Traits\HasFlashMessages;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -16,6 +17,8 @@ use Modules\Pop\Models\Pop;
 
 class OltController extends Controller
 {
+    use HasFlashMessages;
+
     public function __construct(
         private readonly DeviceService $deviceService,
         private readonly OltService $oltService
@@ -87,10 +90,10 @@ class OltController extends Controller
         );
 
         if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
-            return back()->with('success', 'OLT created successfully.');
+            return back()->with('success', $this->flashCreated('olt'));
         }
 
-        return redirect()->route('active-device.olt.index')->with('success', 'OLT created successfully.');
+        return redirect()->route('active-device.olt.index')->with('success', $this->flashCreated('olt'));
     }
 
     /**
@@ -129,7 +132,7 @@ class OltController extends Controller
             $request->user()->company_id
         );
 
-        return redirect()->route('active-device.olt.index')->with('success', 'OLT updated successfully.');
+        return redirect()->route('active-device.olt.index')->with('success', $this->flashUpdated('olt'));
     }
 
     /**
@@ -139,6 +142,6 @@ class OltController extends Controller
     {
         $this->oltService->delete($olt);
 
-        return redirect()->route('active-device.olt.index')->with('success', 'OLT deleted successfully.');
+        return redirect()->route('active-device.olt.index')->with('success', $this->flashDeleted('olt'));
     }
 }

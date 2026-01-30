@@ -3,6 +3,7 @@
 namespace Modules\ActiveDevice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Traits\HasFlashMessages;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -16,6 +17,8 @@ use Modules\Pop\Models\Pop;
 
 class AccessPointController extends Controller
 {
+    use HasFlashMessages;
+
     public function __construct(
         private readonly DeviceService $deviceService,
         private readonly AccessPointService $accessPointService
@@ -87,10 +90,10 @@ class AccessPointController extends Controller
         );
 
         if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
-            return back()->with('success', 'Access Point created successfully.');
+            return back()->with('success', $this->flashCreated('access_point'));
         }
 
-        return redirect()->route('active-device.access-point.index')->with('success', 'Access Point created successfully.');
+        return redirect()->route('active-device.access-point.index')->with('success', $this->flashCreated('access_point'));
     }
 
     /**
@@ -129,7 +132,7 @@ class AccessPointController extends Controller
             $request->user()->company_id
         );
 
-        return redirect()->route('active-device.access-point.index')->with('success', 'Access Point updated successfully.');
+        return redirect()->route('active-device.access-point.index')->with('success', $this->flashUpdated('access_point'));
     }
 
     /**
@@ -139,6 +142,6 @@ class AccessPointController extends Controller
     {
         $this->accessPointService->delete($accessPoint);
 
-        return redirect()->route('active-device.access-point.index')->with('success', 'Access Point deleted successfully.');
+        return redirect()->route('active-device.access-point.index')->with('success', $this->flashDeleted('access_point'));
     }
 }

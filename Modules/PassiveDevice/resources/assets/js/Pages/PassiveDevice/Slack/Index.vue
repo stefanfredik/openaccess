@@ -1,62 +1,107 @@
 <script setup lang="ts">
-  import { Button } from '@/components/ui/button'
-  import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-  import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+  import { Head, Link, router } from '@inertiajs/vue3'
+  import { debounce } from 'lodash'
+  import { Eye, Pencil, Plus, MapPin } from 'lucide-vue-next'
+  import { ref, watch } from 'vue'
   import AppLayout from '@/layouts/AppLayout.vue'
-  import { Head, Link } from '@inertiajs/vue3'
-  import { Eye, Pencil, Plus } from 'lucide-vue-next'
-  // import { index as slackIndex, create as slackCreate, edit as slackEdit, show as slackShow, destroy as slackDestroy } from '@/routes/passive-device/slack';
+  import DeleteAction from '@/components/DeleteAction.vue'
+  import Pagination from '@/components/Pagination.vue'
+  import ResourceHeader from '@/components/ResourceHeader.vue'
+  import { Button } from '@/components/ui/button'
+  import { Card, CardContent } from '@/components/ui/card'
+  import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+  import type { InfrastructureArea, Slack, PaginatedData } from '@/types'
 
-  defineProps<{
-    slacks: {
-      data: Array<any>
+  const props = defineProps<{
+    slacks: PaginatedData<Slack>
+    areas: InfrastructureArea[]
+    filters: {
+      search?: string
+      area_id?: string
     }
   }>()
+
+  const searchQuery = ref(props.filters.search || '')
+  const filters = ref({
+    area_id: props.filters.area_id || 'all',
+  })
+
+  const updateFilters = debounce(() => {
+    router.get(
+      route('passive-device.slack.index'),
+      {
+        search: searchQuery.value,
+        area_id: filters.value.area_id,
+      },
+      {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+      },
+    )
+  }, 300)
+
+  watch([searchQuery, filters], () => {
+    updateFilters()
+  }, { deep: true })
 </script>
 
 <template>
-  <Head title="Slacks" />
+  <Head title="Slack Inventory" />
 
-  <AppLayout :breadcrumbs="[{ title: 'Slacks', href: route('passive-device.slack.index') }]">
-    <div class="flex flex-col gap-6 p-4 md:p-6">
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-2xl font-bold tracking-tight">Slacks</h1>
-          <p class="text-muted-foreground">Manage fiber optic Slack (storage coil) assets.</p>
+  <AppLayout :breadcrumbs="[{ title: 'Inventory', href: '#' }, { title: 'Slack', href: route('passive-device.slack.index') }]">
+    <div class="flex flex-col gap-6 p-4 md:p-8">
+      <ResourceHeader
+        title="Slack Inventory"
+        description="Kelola inventori slack (kelebihan kabel)."
+        search-placeholder="Cari slack..."
+        add-button-text="Tambah Slack"
+        :add-route="route('passive-device.slack.create')"
+        v-model="searchQuery"
+        v-model:filters="filters"
+        :filter-configs="[
+          {
+            key: 'area_id',
+            label: 'Wilayah',
+            placeholder: 'Wilayah',
+            options: areas.map((a) => ({ label: a.name, value: a.id.toString() })),
+            icon: MapPin,
+          },
+        ]" />
+
+      <Card class="overflow-hidden rounded-xl border-none bg-card shadow-sm">
+        <div class="flex items-center justify-between border-b border-border bg-card p-6">
+          <h2 class="text-lg font-bold text-foreground">Daftar Slack</h2>
         </div>
-        <Button as-child>
-          <Link :href="route('passive-device.slack.create')">
-            <Plus class="mr-2 h-4 w-4" />
-            Add Slack
-          </Link>
-        </Button>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Slacks</CardTitle>
-          <CardDescription> List of all Slack storage coils. </CardDescription>
-        </CardHeader>
-        <CardContent>
+        <CardContent class="p-0">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead class="w-[100px]">Code</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Area</TableHead>
-                <TableHead>Length</TableHead>
-                <TableHead class="text-right">Actions</TableHead>
+            <TableHeader class="bg-muted/50">
+              <TableRow class="border-b border-border hover:bg-transparent">
+                <TableHead class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase">Kode</TableHead>
+                <TableHead class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase">Nama</TableHead>
+                <TableHead class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase">Wilayah</TableHead>
+                <TableHead class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase">Panjang</TableHead>
+                <TableHead class="px-6 py-4 text-right text-xs font-semibold tracking-wider text-muted-foreground uppercase">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow v-for="slack in slacks.data" :key="slack.id">
-                <TableCell class="font-medium">{{ slack.code || '-' }}</TableCell>
-                <TableCell>{{ slack.name }}</TableCell>
-                <TableCell>{{ slack.area?.name || '-' }}</TableCell>
-                <TableCell>{{ slack.length }} m</TableCell>
-                <TableCell class="text-right">
+              <TableRow
+                v-for="slack in slacks.data"
+                :key="slack.id"
+                class="group border-b border-border transition-colors hover:bg-muted/50">
+                <TableCell class="px-6 py-4 font-mono text-xs">
+                  {{ slack.code || '-' }}
+                </TableCell>
+                <TableCell class="px-6 py-4 font-semibold text-foreground">
+                  {{ slack.name }}
+                </TableCell>
+                <TableCell class="px-6 py-4 text-sm text-muted-foreground">
+                  {{ slack.area?.name || '-' }}
+                </TableCell>
+                <TableCell class="px-6 py-4 text-sm"> {{ slack.length }} m </TableCell>
+                <TableCell class="px-6 py-4 text-right">
                   <div class="flex justify-end gap-2">
-                    <Button variant="ghost" size="icon" as-child title="View Detail">
+                    <Button variant="ghost" size="icon" as-child title="Lihat Detail">
                       <Link :href="route('passive-device.slack.show', slack.id)">
                         <Eye class="h-4 w-4" />
                       </Link>
@@ -71,12 +116,14 @@
                 </TableCell>
               </TableRow>
               <TableRow v-if="slacks.data.length === 0">
-                <TableCell colspan="5" class="h-24 text-center"> No Slacks found. </TableCell>
+                <TableCell colspan="5" class="h-32 text-center text-muted-foreground italic"> Tidak ada data slack ditemukan. </TableCell>
               </TableRow>
             </TableBody>
           </Table>
         </CardContent>
       </Card>
+
+      <Pagination :links="slacks.links" />
     </div>
   </AppLayout>
 </template>

@@ -38,7 +38,7 @@ class PopController extends Controller
                 }
             })
             ->latest()
-            ->get();
+            ->paginate(10);
 
         return Inertia::render('Pop::Index', [
             'pops' => $pops,

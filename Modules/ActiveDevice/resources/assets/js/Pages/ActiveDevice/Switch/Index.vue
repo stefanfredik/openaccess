@@ -1,11 +1,12 @@
 <script setup lang="ts">
   import { Head, Link, router } from '@inertiajs/vue3'
   import { debounce } from 'lodash'
-  import { Eye, FileText, MoreVertical, Network, Settings, Trash } from 'lucide-vue-next'
+  import { Eye, FileText, MoreVertical, Network, Settings, Trash, MapPin } from 'lucide-vue-next'
   import { computed, ref, watch } from 'vue'
   import DeviceDetailPreview from '@/../../Modules/ActiveDevice/resources/assets/js/Components/DeviceDetailPreview.vue'
   import DeviceStatusBadge from '@/../../Modules/ActiveDevice/resources/assets/js/Components/DeviceStatusBadge.vue'
-  import InventoryHeader from '@/../../Modules/ActiveDevice/resources/assets/js/Components/InventoryHeader.vue'
+  import Pagination from '@/components/Pagination.vue'
+  import ResourceHeader from '@/components/ResourceHeader.vue'
   import { Button } from '@/components/ui/button'
   import { Card, CardContent } from '@/components/ui/card'
   import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -13,11 +14,11 @@
   import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
   import AppLayout from '@/layouts/AppLayout.vue'
 
+  import type { AdSwitch, InfrastructureArea, PaginatedData } from '@/types'
+
   const props = defineProps<{
-    switches: {
-      data: any[]
-    }
-    areas: any[]
+    switches: PaginatedData<AdSwitch>
+    areas: InfrastructureArea[]
     filters: {
       search?: string
       area_id?: string
@@ -27,14 +28,16 @@
   const selectedSwitchId = ref<number | null>(null)
   const isDrawerOpen = ref(false)
   const searchQuery = ref(props.filters.search || '')
-  const areaId = ref(props.filters.area_id || 'all')
+  const filters = ref({
+    area_id: props.filters.area_id || 'all',
+  })
 
   const updateFilters = debounce(() => {
     router.get(
       route('active-device.switch.index'),
       {
         search: searchQuery.value,
-        area_id: areaId.value,
+        area_id: filters.value.area_id,
       },
       {
         preserveState: true,
@@ -44,16 +47,15 @@
     )
   }, 300)
 
-  watch([searchQuery, areaId], () => {
+  watch([searchQuery, filters], () => {
     updateFilters()
-  })
+  }, { deep: true })
 
   const selectedSwitch = computed(() => {
     return props.switches.data.find((s: any) => s.id === selectedSwitchId.value) || null
   })
 
   const openDrawer = (networkSwitch: any) => {
-    console.log('Opening drawer for:', networkSwitch.name)
     selectedSwitchId.value = networkSwitch.id
     isDrawerOpen.value = true
   }
@@ -68,16 +70,23 @@
       { title: 'Switch', href: route('active-device.switch.index') },
     ]">
     <div class="flex flex-col gap-6 p-4 md:p-8">
-      <!-- Header section -->
-      <InventoryHeader
+      <ResourceHeader
         title="Switch Inventory"
         description="Kelola inventori perangkat Switch dan distribusi jaringan."
         search-placeholder="Cari IP, Port, atau Nama..."
         add-button-text="Tambah Switch"
         :add-route="route('active-device.switch.create')"
         v-model="searchQuery"
-        v-model:area-id="areaId"
-        :areas="areas" />
+        v-model:filters="filters"
+        :filter-configs="[
+          {
+            key: 'area_id',
+            label: 'Wilayah',
+            placeholder: 'Wilayah',
+            options: areas.map((a) => ({ label: a.name, value: a.id.toString() })),
+            icon: MapPin,
+          },
+        ]" />
 
       <!-- Table section -->
       <Card class="overflow-hidden rounded-xl border-none bg-card shadow-sm">
@@ -186,6 +195,8 @@
           </Table>
         </CardContent>
       </Card>
+
+      <Pagination :links="switches.links" />
 
       <!-- Detail Drawer (Sheet) -->
       <Sheet :open="isDrawerOpen" @update:open="isDrawerOpen = $event">

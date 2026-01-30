@@ -3,6 +3,7 @@
 namespace Modules\Cpe\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Traits\HasFlashMessages;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -17,6 +18,8 @@ use Modules\Cpe\Models\Cpe;
 
 class CpeController extends Controller
 {
+    use HasFlashMessages;
+
     public function __construct(
         private readonly DeviceService $deviceService
     ) {}
@@ -72,10 +75,10 @@ class CpeController extends Controller
         Cpe::create($data);
 
         if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
-            return back()->with('success', 'CPE created successfully.');
+            return back()->with('success', $this->flashCreated('CPE'));
         }
 
-        return redirect()->route('cpe.index')->with('success', 'CPE created successfully.');
+        return redirect()->route('cpe.index')->with('success', $this->flashCreated('CPE'));
     }
 
     public function show(Cpe $cpe): Response
@@ -100,13 +103,13 @@ class CpeController extends Controller
     {
         $cpe->update($request->validated());
 
-        return redirect()->route('cpe.index')->with('success', 'CPE updated successfully.');
+        return redirect()->route('cpe.index')->with('success', $this->flashUpdated('CPE'));
     }
 
     public function destroy(Cpe $cpe): RedirectResponse
     {
         $cpe->delete();
 
-        return redirect()->route('cpe.index')->with('success', 'CPE deleted successfully.');
+        return redirect()->route('cpe.index')->with('success', $this->flashDeleted('CPE'));
     }
 }

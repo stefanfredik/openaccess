@@ -1,11 +1,12 @@
 <script setup lang="ts">
   import { Head, Link, router } from '@inertiajs/vue3'
   import { debounce } from 'lodash'
-  import { Eye, FileText, MoreVertical, Router as RouterIcon, Settings, Trash } from 'lucide-vue-next'
+  import { Eye, FileText, MoreVertical, Router as RouterIcon, Settings, Trash, MapPin } from 'lucide-vue-next'
   import { computed, ref, watch } from 'vue'
   import DeviceDetailPreview from '@/../../Modules/ActiveDevice/resources/assets/js/Components/DeviceDetailPreview.vue'
   import DeviceStatusBadge from '@/../../Modules/ActiveDevice/resources/assets/js/Components/DeviceStatusBadge.vue'
-  import InventoryHeader from '@/../../Modules/ActiveDevice/resources/assets/js/Components/InventoryHeader.vue'
+  import Pagination from '@/components/Pagination.vue'
+  import ResourceHeader from '@/components/ResourceHeader.vue'
   import DeleteAction from '@/components/DeleteAction.vue'
   import { Button } from '@/components/ui/button'
   import { Card, CardContent } from '@/components/ui/card'
@@ -14,11 +15,11 @@
   import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
   import AppLayout from '@/layouts/AppLayout.vue'
 
+  import type { InfrastructureArea, PaginatedData, Router } from '@/types'
+
   const props = defineProps<{
-    routers: {
-      data: Array<any>
-    }
-    areas: any[]
+    routers: PaginatedData<Router>
+    areas: InfrastructureArea[]
     filters: {
       search?: string
       area_id?: string
@@ -26,7 +27,9 @@
   }>()
 
   const searchQuery = ref(props.filters.search || '')
-  const areaId = ref(props.filters.area_id || 'all')
+  const filters = ref({
+    area_id: props.filters.area_id || 'all',
+  })
   const selectedRouterId = ref<number | null>(null)
   const isDrawerOpen = ref(false)
 
@@ -35,7 +38,7 @@
       route('active-device.router.index'),
       {
         search: searchQuery.value,
-        area_id: areaId.value,
+        area_id: filters.value.area_id,
       },
       {
         preserveState: true,
@@ -45,16 +48,15 @@
     )
   }, 300)
 
-  watch([searchQuery, areaId], () => {
+  watch([searchQuery, filters], () => {
     updateFilters()
-  })
+  }, { deep: true })
 
   const selectedRouter = computed(() => {
     return props.routers.data.find((r: any) => r.id === selectedRouterId.value) || null
   })
 
   const openDrawer = (router: any) => {
-    console.log('Opening drawer for:', router.name)
     selectedRouterId.value = router.id
     isDrawerOpen.value = true
   }
@@ -69,15 +71,23 @@
       { title: 'Router', href: route('active-device.router.index') },
     ]">
     <div class="flex flex-col gap-6 p-4 md:p-8">
-      <InventoryHeader
+      <ResourceHeader
         title="Router Inventory"
         description="Kelola perangkat Router."
-        search-placeholder="Cari"
+        search-placeholder="Cari router..."
         add-button-text="Tambah Router"
         :add-route="route('active-device.router.create')"
         v-model="searchQuery"
-        v-model:area-id="areaId"
-        :areas="areas" />
+        v-model:filters="filters"
+        :filter-configs="[
+          {
+            key: 'area_id',
+            label: 'Wilayah',
+            placeholder: 'Wilayah',
+            options: areas.map((a) => ({ label: a.name, value: a.id.toString() })),
+            icon: MapPin,
+          },
+        ]" />
 
       <Card class="overflow-hidden rounded-xl border-none bg-card shadow-sm">
         <div class="flex items-center justify-between border-b border-border bg-card p-6">
@@ -192,6 +202,8 @@
           </Table>
         </CardContent>
       </Card>
+
+      <Pagination :links="routers.links" />
 
       <!-- Detail Drawer (Sheet) -->
       <Sheet :open="isDrawerOpen" @update:open="isDrawerOpen = $event">

@@ -19,12 +19,28 @@ class PoleController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): Response
+    public function index(\Illuminate\Http\Request $request): Response
     {
-        $poles = Pole::with('area')->latest()->paginate(10);
+        $poles = Pole::query()
+            ->with('area')
+            ->when($request->input('search'), function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('code', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->input('area_id'), function ($query, $area_id) {
+                if ($area_id !== 'all') {
+                    $query->where('infrastructure_area_id', $area_id);
+                }
+            })
+            ->latest()
+            ->paginate(10);
 
         return Inertia::render('PassiveDevice::Pole/Index', [
             'poles' => $poles,
+            'areas' => InfrastructureArea::all(),
+            'filters' => $request->only(['search', 'area_id']),
         ]);
     }
 

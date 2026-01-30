@@ -19,7 +19,7 @@ class StoreOltRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('olt')->where(fn ($query) => $query->where('company_id', $this->user()->company_id)),
+                Rule::unique('ad_olts')->where(fn ($query) => $query->where('company_id', $this->user()->company_id)),
             ],
             'name' => ['required', 'string', 'max:255'],
             'brand' => ['nullable', 'string', 'max:255'],

@@ -3,6 +3,7 @@
 namespace Modules\PassiveDevice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Traits\HasFlashMessages;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -13,15 +14,33 @@ use Modules\PassiveDevice\Models\Splitter;
 
 class SplitterController extends Controller
 {
+    use HasFlashMessages;
+
     /**
      * Display a listing of the resource.
      */
-    public function index(): Response
+    public function index(\Illuminate\Http\Request $request): Response
     {
-        $splitters = Splitter::with('area')->latest()->paginate(10);
+        $splitters = Splitter::query()
+            ->with('area')
+            ->when($request->input('search'), function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('code', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->input('area_id'), function ($query, $area_id) {
+                if ($area_id !== 'all') {
+                    $query->where('infrastructure_area_id', $area_id);
+                }
+            })
+            ->latest()
+            ->paginate(10);
 
         return Inertia::render('PassiveDevice::Splitter/Index', [
             'splitters' => $splitters,
+            'areas' => InfrastructureArea::all(),
+            'filters' => $request->only(['search', 'area_id']),
         ]);
     }
 
@@ -43,7 +62,7 @@ class SplitterController extends Controller
         Splitter::create($request->validated());
 
         return redirect()->route('passive-device.splitter.index')
-            ->with('success', 'Splitter created successfully.');
+            ->with('success', $this->flashCreated('splitter'));
     }
 
     /**
@@ -75,7 +94,7 @@ class SplitterController extends Controller
         $splitter->update($request->validated());
 
         return redirect()->route('passive-device.splitter.index')
-            ->with('success', 'Splitter updated successfully.');
+            ->with('success', $this->flashUpdated('splitter'));
     }
 
     /**
@@ -86,6 +105,6 @@ class SplitterController extends Controller
         $splitter->delete();
 
         return redirect()->route('passive-device.splitter.index')
-            ->with('success', 'Splitter deleted successfully.');
+            ->with('success', $this->flashDeleted('splitter'));
     }
 }

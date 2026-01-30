@@ -1,11 +1,12 @@
 <script setup lang="ts">
   import { Head, Link, router } from '@inertiajs/vue3'
   import { debounce } from 'lodash'
-  import { Eye, FileText, Globe, MoreVertical, Settings, Trash } from 'lucide-vue-next'
+  import { Eye, FileText, Globe, MoreVertical, Settings, Trash, MapPin } from 'lucide-vue-next'
   import { computed, ref, watch } from 'vue'
   import DeviceDetailPreview from '@/../../Modules/ActiveDevice/resources/assets/js/Components/DeviceDetailPreview.vue'
   import DeviceStatusBadge from '@/../../Modules/ActiveDevice/resources/assets/js/Components/DeviceStatusBadge.vue'
-  import InventoryHeader from '@/../../Modules/ActiveDevice/resources/assets/js/Components/InventoryHeader.vue'
+  import Pagination from '@/components/Pagination.vue'
+  import ResourceHeader from '@/components/ResourceHeader.vue'
   import DeleteAction from '@/components/DeleteAction.vue'
   import { Button } from '@/components/ui/button'
   import { Card, CardContent } from '@/components/ui/card'
@@ -28,14 +29,16 @@
   const selectedOntId = ref<number | null>(null)
   const isDrawerOpen = ref(false)
   const searchQuery = ref(props.filters.search || '')
-  const areaId = ref(props.filters.area_id || 'all')
+  const filters = ref({
+    area_id: props.filters.area_id || 'all',
+  })
 
   const updateFilters = debounce(() => {
     router.get(
       route('active-device.ont.index'),
       {
         search: searchQuery.value,
-        area_id: areaId.value,
+        area_id: filters.value.area_id,
       },
       {
         preserveState: true,
@@ -45,16 +48,15 @@
     )
   }, 300)
 
-  watch([searchQuery, areaId], () => {
+  watch([searchQuery, filters], () => {
     updateFilters()
-  })
+  }, { deep: true })
 
   const selectedOnt = computed(() => {
     return props.onts.data.find((o: any) => o.id === selectedOntId.value) || null
   })
 
   const openDrawer = (ont: any) => {
-    console.log('Opening drawer for:', ont.name)
     selectedOntId.value = ont.id
     isDrawerOpen.value = true
   }
@@ -69,16 +71,23 @@
       { title: 'ONT', href: route('active-device.ont.index') },
     ]">
     <div class="flex flex-col gap-6 p-4 md:p-8">
-      <!-- Header section -->
-      <InventoryHeader
+      <ResourceHeader
         title="ONT Inventory"
         description="Kelola inventori perangkat Optical Network Terminal (ONT)."
         search-placeholder="Cari IP, Port, atau Nama..."
         add-button-text="Tambah ONT"
         :add-route="route('active-device.ont.create')"
         v-model="searchQuery"
-        v-model:area-id="areaId"
-        :areas="areas" />
+        v-model:filters="filters"
+        :filter-configs="[
+          {
+            key: 'area_id',
+            label: 'Wilayah',
+            placeholder: 'Wilayah',
+            options: areas.map((a) => ({ label: a.name, value: a.id.toString() })),
+            icon: MapPin,
+          },
+        ]" />
 
       <!-- Table section -->
       <Card class="overflow-hidden rounded-xl border-none bg-card shadow-none">
@@ -185,6 +194,8 @@
           </Table>
         </CardContent>
       </Card>
+
+      <Pagination :links="onts.links" />
 
       <!-- Detail Drawer (Sheet) -->
       <Sheet :open="isDrawerOpen" @update:open="isDrawerOpen = $event">

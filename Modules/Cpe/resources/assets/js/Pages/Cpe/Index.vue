@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import DeviceDetailPreview from '@/../../Modules/ActiveDevice/resources/assets/js/Components/DeviceDetailPreview.vue'
   import DeviceStatusBadge from '@/../../Modules/ActiveDevice/resources/assets/js/Components/DeviceStatusBadge.vue'
-  import InventoryHeader from '@/../../Modules/ActiveDevice/resources/assets/js/Components/InventoryHeader.vue'
+  import ResourceHeader from '@/components/ResourceHeader.vue'
   import DeleteAction from '@/components/DeleteAction.vue'
   import { Button } from '@/components/ui/button'
   import { Card, CardContent } from '@/components/ui/card'
@@ -9,16 +9,17 @@
   import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
   import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
   import AppLayout from '@/layouts/AppLayout.vue'
+  import Pagination from '@/components/Pagination.vue'
   import { Head, Link, router } from '@inertiajs/vue3'
   import { debounce } from 'lodash'
-  import { Eye, FileText, Home, MoreVertical, Settings, Trash } from 'lucide-vue-next'
+  import { Eye, FileText, Home, MoreVertical, Settings, Trash, MapPin } from 'lucide-vue-next'
   import { computed, ref, watch } from 'vue'
 
+  import type { Cpe, InfrastructureArea, PaginatedData } from '@/types'
+
   const props = defineProps<{
-    cpes: {
-      data: any[]
-    }
-    areas: any[]
+    cpes: PaginatedData<Cpe>
+    areas: InfrastructureArea[]
     filters: {
       search?: string
       area_id?: string
@@ -28,14 +29,16 @@
   const selectedCpeId = ref<number | null>(null)
   const isDrawerOpen = ref(false)
   const searchQuery = ref(props.filters.search || '')
-  const areaId = ref(props.filters.area_id || 'all')
+  const filters = ref({
+    area_id: props.filters.area_id || 'all',
+  })
 
   const updateFilters = debounce(() => {
     router.get(
       route('cpe.index'),
       {
         search: searchQuery.value,
-        area_id: areaId.value,
+        area_id: filters.value.area_id,
       },
       {
         preserveState: true,
@@ -45,16 +48,15 @@
     )
   }, 300)
 
-  watch([searchQuery, areaId], () => {
+  watch([searchQuery, filters], () => {
     updateFilters()
-  })
+  }, { deep: true })
 
   const selectedCpe = computed(() => {
     return props.cpes.data.find((c: any) => c.id === selectedCpeId.value) || null
   })
 
   const openDrawer = (cpe: any) => {
-    console.log('Opening drawer for:', cpe.name)
     selectedCpeId.value = cpe.id
     isDrawerOpen.value = true
   }
@@ -69,16 +71,23 @@
       { title: 'CPE', href: route('cpe.index') },
     ]">
     <div class="flex flex-col gap-6 p-4 md:p-8">
-      <!-- Header section -->
-      <InventoryHeader
+      <ResourceHeader
         title="CPE Inventory"
         description="Kelola inventori perangkat Customer Premises Equipment (CPE)."
         search-placeholder="Cari IP, Port, atau Nama..."
         add-button-text="Tambah CPE"
         :add-route="route('cpe.create')"
         v-model="searchQuery"
-        v-model:area-id="areaId"
-        :areas="areas" />
+        v-model:filters="filters"
+        :filter-configs="[
+          {
+            key: 'area_id',
+            label: 'Wilayah',
+            placeholder: 'Wilayah',
+            options: areas.map((a) => ({ label: a.name, value: a.id.toString() })),
+            icon: MapPin,
+          },
+        ]" />
 
       <!-- Table section -->
       <Card class="overflow-hidden rounded-xl border-none bg-card shadow-sm">
@@ -185,6 +194,8 @@
           </Table>
         </CardContent>
       </Card>
+
+      <Pagination :links="cpes.links" />
 
       <!-- Detail Drawer (Sheet) -->
       <Sheet :open="isDrawerOpen" @update:open="isDrawerOpen = $event">

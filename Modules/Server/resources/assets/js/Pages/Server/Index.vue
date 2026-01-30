@@ -1,21 +1,29 @@
 <script setup lang="ts">
   import DeleteAction from '@/components/DeleteAction.vue'
   import EditAction from '@/components/EditAction.vue'
-  import SearchFilter from '@/components/SearchFilter.vue'
+  import ResourceHeader from '@/components/ResourceHeader.vue'
   import ShowAction from '@/components/ShowAction.vue'
   import { Badge } from '@/components/ui/badge'
-  import { Button } from '@/components/ui/button'
-  import { Card, CardContent, CardHeader } from '@/components/ui/card'
+  import { Card, CardContent } from '@/components/ui/card'
   import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
   import AppLayout from '@/layouts/AppLayout.vue'
-  import { Head, Link } from '@inertiajs/vue3'
-  import { MapPin, Plus, Server as ServerIcon } from 'lucide-vue-next'
-  // import { index as serverIndex, create as serverCreate, edit as serverEdit, show as serverShow, destroy as serverDestroy } from '@/routes/server';
+  import Pagination from '@/components/Pagination.vue'
+  import { Head, router } from '@inertiajs/vue3'
+  import { debounce } from 'lodash'
+  import { MapPin, Server as ServerIcon } from 'lucide-vue-next'
+  import { ref, watch } from 'vue'
 
-  defineProps<{
-    servers: Array<any>
+  import type { PaginatedData, Server } from '@/types'
+
+  const props = defineProps<{
+    servers: PaginatedData<Server>
     filters: any
   }>()
+
+  const searchQuery = ref(props.filters.search || '')
+  const filters = ref({
+    type: props.filters.type || 'all',
+  })
 
   const statusOptions = [
     { label: 'Active', value: 'Active' },
@@ -23,12 +31,23 @@
     { label: 'Planned', value: 'Planned' },
   ]
 
-  const functionOptions = [
-    { label: 'Server', value: 'Server' },
-    { label: 'OLT', value: 'OLT' },
-    { label: 'Core Network', value: 'Core Network' },
-    { label: 'NOC', value: 'NOC' },
-  ]
+  const updateFilters = debounce(() => {
+    router.get(
+      route('server.index'),
+      {
+        search: searchQuery.value,
+        type: filters.value.type === 'all' ? undefined : filters.value.type,
+      },
+      {
+        preserveState: true,
+        replace: true,
+      },
+    )
+  }, 300)
+
+  watch([searchQuery, filters], () => {
+    updateFilters()
+  }, { deep: true })
 
   const getUiStatus = (status: string) => {
     switch (status) {
@@ -61,33 +80,26 @@
   <Head title="Data Server" />
 
   <AppLayout :breadcrumbs="[{ title: 'Server', href: route('server.index') }]">
-    <div class="mb-10 flex flex-col gap-4 p-4 md:p-6">
-      <div class="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
-        <div class="flex flex-col gap-1">
-          <h1 class="text-3xl font-black tracking-tight text-foreground">Data Server & Core</h1>
-          <p class="text-sm font-medium text-muted-foreground">Kelola infrastruktur server, OLT, dan core network.</p>
-        </div>
-        <Button as-child>
-          <Link :href="route('server.create')">
-            <Plus class="mr-2 h-5 w-5" />
-            Tambah Server
-          </Link>
-        </Button>
-      </div>
+    <div class="mb-10 flex flex-col gap-6 p-4 md:p-6 text-foreground">
+      <ResourceHeader
+        title="Data Server & Core"
+        description="Kelola infrastruktur server, OLT, dan core network."
+        search-placeholder="Cari Server..."
+        add-button-text="Tambah Server"
+        :add-route="route('server.create')"
+        v-model="searchQuery"
+        v-model:filters="filters"
+        :filter-configs="[
+          {
+            key: 'type',
+            label: 'Status',
+            placeholder: 'Filter Status',
+            options: statusOptions,
+          },
+        ]" />
 
       <Card class="overflow-hidden border-none shadow-sm">
-        <CardHeader class="p-0">
-          <div class="border-b bg-muted/50 px-6 py-4">
-            <SearchFilter
-              :route="route('server.index')"
-              :filters="filters"
-              placeholder="Cari Server..."
-              show-type-filter
-              type-label="Status"
-              :type-options="statusOptions" />
-          </div>
-        </CardHeader>
-        <CardContent>
+        <CardContent class="p-0 border-t">
           <div class="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -102,7 +114,7 @@
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow v-for="server in servers" :key="server.id">
+                <TableRow v-for="server in servers.data" :key="server.id">
                   <TableCell class="font-medium whitespace-nowrap">
                     <div class="flex items-center gap-2">
                       <ServerIcon class="h-4 w-4 text-primary/70" />
@@ -146,7 +158,7 @@
                     </div>
                   </TableCell>
                 </TableRow>
-                <TableRow v-if="servers.length === 0">
+                <TableRow v-if="servers.data.length === 0">
                   <TableCell colspan="7" class="h-24 text-center text-muted-foreground"> Tidak ada data server ditemukan. </TableCell>
                 </TableRow>
               </TableBody>
@@ -154,6 +166,9 @@
           </div>
         </CardContent>
       </Card>
+
+      <Pagination :links="servers.links" />
     </div>
   </AppLayout>
 </template>
+```

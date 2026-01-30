@@ -34,7 +34,7 @@ class AreaController extends Controller
                 $query->where('type', $type);
             })
             ->latest()
-            ->get();
+            ->paginate(10);
 
         return Inertia::render('Area::Index', [
             'areas' => $areas,

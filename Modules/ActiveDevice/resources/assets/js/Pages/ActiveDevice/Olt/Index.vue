@@ -1,11 +1,12 @@
 <script setup lang="ts">
   import { Head, Link, router } from '@inertiajs/vue3'
   import { debounce } from 'lodash'
-  import { Cpu, Eye, FileText, MoreVertical, Settings, Trash } from 'lucide-vue-next'
+  import { Cpu, Eye, FileText, MoreVertical, Settings, Trash, MapPin } from 'lucide-vue-next'
   import { computed, ref, watch } from 'vue'
   import DeviceDetailPreview from '@/../../Modules/ActiveDevice/resources/assets/js/Components/DeviceDetailPreview.vue'
   import DeviceStatusBadge from '@/../../Modules/ActiveDevice/resources/assets/js/Components/DeviceStatusBadge.vue'
-  import InventoryHeader from '@/../../Modules/ActiveDevice/resources/assets/js/Components/InventoryHeader.vue'
+  import Pagination from '@/components/Pagination.vue'
+  import ResourceHeader from '@/components/ResourceHeader.vue'
   import DeleteAction from '@/components/DeleteAction.vue'
   import { Button } from '@/components/ui/button'
   import { Card, CardContent } from '@/components/ui/card'
@@ -14,11 +15,11 @@
   import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
   import AppLayout from '@/layouts/AppLayout.vue'
 
+  import type { InfrastructureArea, Olt, PaginatedData } from '@/types'
+
   const props = defineProps<{
-    olts: {
-      data: any[]
-    }
-    areas: any[]
+    olts: PaginatedData<Olt>
+    areas: InfrastructureArea[]
     filters: {
       search?: string
       area_id?: string
@@ -28,14 +29,16 @@
   const selectedOltId = ref<number | null>(null)
   const isDrawerOpen = ref(false)
   const searchQuery = ref(props.filters.search || '')
-  const areaId = ref(props.filters.area_id || 'all')
+  const filters = ref({
+    area_id: props.filters.area_id || 'all',
+  })
 
   const updateFilters = debounce(() => {
     router.get(
       route('active-device.olt.index'),
       {
         search: searchQuery.value,
-        area_id: areaId.value,
+        area_id: filters.value.area_id,
       },
       {
         preserveState: true,
@@ -45,16 +48,15 @@
     )
   }, 300)
 
-  watch([searchQuery, areaId], () => {
+  watch([searchQuery, filters], () => {
     updateFilters()
-  })
+  }, { deep: true })
 
   const selectedOlt = computed(() => {
     return props.olts.data.find((o: any) => o.id === selectedOltId.value) || null
   })
 
   const openDrawer = (olt: any) => {
-    console.log('Opening drawer for:', olt.name)
     selectedOltId.value = olt.id
     isDrawerOpen.value = true
   }
@@ -76,16 +78,23 @@
       { title: 'OLT', href: route('active-device.olt.index') },
     ]">
     <div class="flex flex-col gap-6 p-4 md:p-8">
-      <!-- Header section -->
-      <InventoryHeader
+      <ResourceHeader
         title="OLT Inventory"
         description="Kelola inventori perangkat OLT dan jalur fiber."
         search-placeholder="Cari IP, Port, atau Nama..."
         add-button-text="Tambah OLT"
         :add-route="route('active-device.olt.create')"
         v-model="searchQuery"
-        v-model:area-id="areaId"
-        :areas="areas" />
+        v-model:filters="filters"
+        :filter-configs="[
+          {
+            key: 'area_id',
+            label: 'Wilayah',
+            placeholder: 'Wilayah',
+            options: areas.map((a) => ({ label: a.name, value: a.id.toString() })),
+            icon: MapPin,
+          },
+        ]" />
 
       <!-- Table section -->
       <Card class="overflow-hidden rounded-xl border-none bg-card shadow-sm">
@@ -206,6 +215,8 @@
           </Table>
         </CardContent>
       </Card>
+
+      <Pagination :links="olts.links" />
 
       <!-- Detail Drawer (Sheet) -->
       <Sheet :open="isDrawerOpen" @update:open="isDrawerOpen = $event">

@@ -80,6 +80,7 @@ it('can create a new router', function () {
         'ip_address' => '192.168.1.1',
         'brand' => 'Mikrotik',
         'model' => 'CCR1036',
+        'port_count' => 24,
         'status' => 'Active',
     ];
 

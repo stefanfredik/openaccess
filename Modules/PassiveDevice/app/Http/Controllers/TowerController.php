@@ -3,6 +3,7 @@
 namespace Modules\PassiveDevice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Traits\HasFlashMessages;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -13,15 +14,33 @@ use Modules\PassiveDevice\Models\Tower;
 
 class TowerController extends Controller
 {
+    use HasFlashMessages;
+
     /**
      * Display a listing of the resource.
      */
-    public function index(): Response
+    public function index(\Illuminate\Http\Request $request): Response
     {
-        $towers = Tower::with('area')->latest()->paginate(10);
+        $towers = Tower::query()
+            ->with('area')
+            ->when($request->input('search'), function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('code', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->input('area_id'), function ($query, $area_id) {
+                if ($area_id !== 'all') {
+                    $query->where('infrastructure_area_id', $area_id);
+                }
+            })
+            ->latest()
+            ->paginate(10);
 
         return Inertia::render('PassiveDevice::Tower/Index', [
             'towers' => $towers,
+            'areas' => InfrastructureArea::all(),
+            'filters' => $request->only(['search', 'area_id']),
         ]);
     }
 
@@ -47,11 +66,11 @@ class TowerController extends Controller
         Tower::create($data);
 
         if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
-            return back()->with('success', 'Tower created successfully.');
+            return back()->with('success', $this->flashCreated('tower'));
         }
 
         return redirect()->route('passive-device.tower.index')
-            ->with('success', 'Tower created successfully.');
+            ->with('success', $this->flashCreated('tower'));
     }
 
     /**
@@ -85,7 +104,7 @@ class TowerController extends Controller
         $tower->update($request->validated());
 
         return redirect()->route('passive-device.tower.index')
-            ->with('success', 'Tower updated successfully.');
+            ->with('success', $this->flashUpdated('tower'));
     }
 
     /**
@@ -96,6 +115,6 @@ class TowerController extends Controller
         $tower->delete();
 
         return redirect()->route('passive-device.tower.index')
-            ->with('success', 'Tower deleted successfully.');
+            ->with('success', $this->flashDeleted('tower'));
     }
 }

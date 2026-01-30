@@ -3,6 +3,7 @@
 namespace Modules\PassiveDevice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Traits\HasFlashMessages;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -13,15 +14,33 @@ use Modules\PassiveDevice\Models\Odf;
 
 class OdfController extends Controller
 {
+    use HasFlashMessages;
+
     /**
      * Display a listing of the resource.
      */
-    public function index(): Response
+    public function index(\Illuminate\Http\Request $request): Response
     {
-        $odfs = Odf::with('area')->latest()->paginate(10);
+        $odfs = Odf::query()
+            ->with('area')
+            ->when($request->input('search'), function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('code', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->input('area_id'), function ($query, $area_id) {
+                if ($area_id !== 'all') {
+                    $query->where('infrastructure_area_id', $area_id);
+                }
+            })
+            ->latest()
+            ->paginate(10);
 
         return Inertia::render('PassiveDevice::Odf/Index', [
             'odfs' => $odfs,
+            'areas' => InfrastructureArea::all(),
+            'filters' => $request->only(['search', 'area_id']),
         ]);
     }
 
@@ -45,11 +64,11 @@ class OdfController extends Controller
         Odf::create($data);
 
         if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
-            return back()->with('success', 'ODF created successfully.');
+            return back()->with('success', $this->flashCreated('odf'));
         }
 
         return redirect()->route('passive-device.odf.index')
-            ->with('success', 'ODF created successfully.');
+            ->with('success', $this->flashCreated('odf'));
     }
 
     /**
@@ -81,7 +100,7 @@ class OdfController extends Controller
         $odf->update($request->validated());
 
         return redirect()->route('passive-device.odf.index')
-            ->with('success', 'ODF updated successfully.');
+            ->with('success', $this->flashUpdated('odf'));
     }
 
     /**
@@ -92,6 +111,6 @@ class OdfController extends Controller
         $odf->delete();
 
         return redirect()->route('passive-device.odf.index')
-            ->with('success', 'ODF deleted successfully.');
+            ->with('success', $this->flashDeleted('odf'));
     }
 }

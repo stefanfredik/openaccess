@@ -3,6 +3,7 @@
 namespace Modules\ActiveDevice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Traits\HasFlashMessages;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -16,6 +17,8 @@ use Modules\Pop\Models\Pop;
 
 class SwitchController extends Controller
 {
+    use HasFlashMessages;
+
     public function __construct(
         private readonly DeviceService $deviceService,
         private readonly SwitchService $switchService
@@ -87,10 +90,10 @@ class SwitchController extends Controller
         );
 
         if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
-            return back()->with('success', 'Switch created successfully.');
+            return back()->with('success', $this->flashCreated('switch'));
         }
 
-        return redirect()->route('active-device.switch.index')->with('success', 'Switch created successfully.');
+        return redirect()->route('active-device.switch.index')->with('success', $this->flashCreated('switch'));
     }
 
     /**
@@ -129,7 +132,7 @@ class SwitchController extends Controller
             $request->user()->company_id
         );
 
-        return redirect()->route('active-device.switch.index')->with('success', 'Switch updated successfully.');
+        return redirect()->route('active-device.switch.index')->with('success', $this->flashUpdated('switch'));
     }
 
     /**
@@ -139,6 +142,6 @@ class SwitchController extends Controller
     {
         $this->switchService->delete($switch);
 
-        return redirect()->route('active-device.switch.index')->with('success', 'Switch deleted successfully.');
+        return redirect()->route('active-device.switch.index')->with('success', $this->flashDeleted('switch'));
     }
 }

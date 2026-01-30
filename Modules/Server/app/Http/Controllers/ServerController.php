@@ -3,6 +3,7 @@
 namespace Modules\Server\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Traits\HasFlashMessages;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -15,6 +16,8 @@ use Modules\Server\Models\Server;
 
 class ServerController extends Controller
 {
+    use HasFlashMessages;
+
     public function index(Request $request): Response
     {
         $servers = Server::query()
@@ -31,7 +34,7 @@ class ServerController extends Controller
                 }
             })
             ->latest()
-            ->get();
+            ->paginate(10);
 
         return Inertia::render('Server::Index', [
             'servers' => $servers,
@@ -66,7 +69,7 @@ class ServerController extends Controller
             }
         }
 
-        return redirect()->route('server.index')->with('success', 'Server created successfully.');
+        return redirect()->route('server.index')->with('success', $this->flashCreated('server'));
     }
 
     public function show(Server $server): Response
@@ -112,13 +115,13 @@ class ServerController extends Controller
             }
         }
 
-        return redirect()->route('server.index')->with('success', 'Server updated successfully.');
+        return redirect()->route('server.index')->with('success', $this->flashUpdated('server'));
     }
 
     public function destroy(Server $server): RedirectResponse
     {
         $server->delete();
 
-        return redirect()->route('server.index')->with('success', 'Server deleted successfully.');
+        return redirect()->route('server.index')->with('success', $this->flashDeleted('server'));
     }
 }

@@ -122,7 +122,7 @@ it('can delete an area without dependencies', function () {
 
     $response->assertRedirect(route('area.index'));
     $response->assertSessionHas('success');
-    $this->assertDatabaseMissing('infrastructure_areas', [
+    $this->assertSoftDeleted('infrastructure_areas', [
         'id' => $area->id,
     ]);
 });

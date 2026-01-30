@@ -3,6 +3,7 @@
 namespace Modules\PassiveDevice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Traits\HasFlashMessages;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -14,15 +15,30 @@ use Modules\PassiveDevice\Models\SplicingPoint;
 
 class SplicingPointController extends Controller
 {
-    public function index(): Response
+    use HasFlashMessages;
+
+    public function index(\Illuminate\Http\Request $request): Response
     {
         $splicingPoints = SplicingPoint::query()
             ->with(['area', 'jointBox'])
+            ->when($request->input('search'), function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('code', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->input('area_id'), function ($query, $area_id) {
+                if ($area_id !== 'all') {
+                    $query->where('infrastructure_area_id', $area_id);
+                }
+            })
             ->latest()
             ->paginate(10);
 
         return Inertia::render('PassiveDevice::SplicingPoint/Index', [
             'splicingPoints' => $splicingPoints,
+            'areas' => InfrastructureArea::all(),
+            'filters' => $request->only(['search', 'area_id']),
         ]);
     }
 
@@ -40,7 +56,7 @@ class SplicingPointController extends Controller
         $data['company_id'] = auth()->user()->company_id;
         SplicingPoint::create($data);
 
-        return redirect()->route('passive-device.splicing-point.index')->with('success', 'Splicing Point created successfully.');
+        return redirect()->route('passive-device.splicing-point.index')->with('success', $this->flashCreated('splicing_point'));
     }
 
     public function show(SplicingPoint $splicingPoint): Response
@@ -63,13 +79,13 @@ class SplicingPointController extends Controller
     {
         $splicingPoint->update($request->validated());
 
-        return redirect()->route('passive-device.splicing-point.index')->with('success', 'Splicing Point updated successfully.');
+        return redirect()->route('passive-device.splicing-point.index')->with('success', $this->flashUpdated('splicing_point'));
     }
 
     public function destroy(SplicingPoint $splicingPoint): RedirectResponse
     {
         $splicingPoint->delete();
 
-        return redirect()->route('passive-device.splicing-point.index')->with('success', 'Splicing Point deleted successfully.');
+        return redirect()->route('passive-device.splicing-point.index')->with('success', $this->flashDeleted('splicing_point'));
     }
 }

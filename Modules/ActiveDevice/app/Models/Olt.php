@@ -11,7 +11,7 @@ class Olt extends Model
 {
     use \App\Traits\BelongsToCompany, HasFactory;
 
-    protected $table = 'olt';
+    protected $table = 'ad_olts';
 
     protected $fillable = [
         'company_id',

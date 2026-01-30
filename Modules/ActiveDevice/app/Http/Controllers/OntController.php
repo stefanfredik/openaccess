@@ -3,6 +3,7 @@
 namespace Modules\ActiveDevice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Traits\HasFlashMessages;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -16,6 +17,8 @@ use Modules\Pop\Models\Pop;
 
 class OntController extends Controller
 {
+    use HasFlashMessages;
+
     public function __construct(
         private readonly DeviceService $deviceService,
         private readonly OntService $ontService
@@ -87,10 +90,10 @@ class OntController extends Controller
         );
 
         if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
-            return back()->with('success', 'ONT created successfully.');
+            return back()->with('success', $this->flashCreated('ont'));
         }
 
-        return redirect()->route('active-device.ont.index')->with('success', 'ONT created successfully.');
+        return redirect()->route('active-device.ont.index')->with('success', $this->flashCreated('ont'));
     }
 
     /**
@@ -129,7 +132,7 @@ class OntController extends Controller
             $request->user()->company_id
         );
 
-        return redirect()->route('active-device.ont.index')->with('success', 'ONT updated successfully.');
+        return redirect()->route('active-device.ont.index')->with('success', $this->flashUpdated('ont'));
     }
 
     /**
@@ -139,6 +142,6 @@ class OntController extends Controller
     {
         $this->ontService->delete($ont);
 
-        return redirect()->route('active-device.ont.index')->with('success', 'ONT deleted successfully.');
+        return redirect()->route('active-device.ont.index')->with('success', $this->flashDeleted('ont'));
     }
 }

@@ -1,64 +1,115 @@
 <script setup lang="ts">
-  import { Button } from '@/components/ui/button'
-  import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-  import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+  import { Head, Link, router } from '@inertiajs/vue3'
+  import { debounce } from 'lodash'
+  import { Eye, Pencil, Plus, MapPin, Search } from 'lucide-vue-next'
+  import { ref, watch } from 'vue'
   import AppLayout from '@/layouts/AppLayout.vue'
-  import { Head, Link } from '@inertiajs/vue3'
-  import { Eye, Pencil, Plus } from 'lucide-vue-next'
-  // import { index as odpIndex, create as odpCreate, edit as odpEdit, show as odpShow, destroy as odpDestroy } from '@/routes/passive-device/odp';
+  import DeleteAction from '@/components/DeleteAction.vue'
+  import Pagination from '@/components/Pagination.vue'
+  import ResourceHeader from '@/components/ResourceHeader.vue'
+  import { Button } from '@/components/ui/button'
+  import { Card, CardContent } from '@/components/ui/card'
+  import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+  import type { InfrastructureArea, Odp, PaginatedData } from '@/types'
 
-  defineProps<{
-    odps: {
-      data: Array<any>
+  const props = defineProps<{
+    odps: PaginatedData<Odp>
+    areas: InfrastructureArea[]
+    filters: {
+      search?: string
+      area_id?: string
     }
   }>()
+
+  const searchQuery = ref(props.filters.search || '')
+  const filters = ref({
+    area_id: props.filters.area_id || 'all',
+  })
+
+  const updateFilters = debounce(() => {
+    router.get(
+      route('passive-device.odps.index'),
+      {
+        search: searchQuery.value,
+        area_id: filters.value.area_id,
+      },
+      {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+      },
+    )
+  }, 300)
+
+  watch([searchQuery, filters], () => {
+    updateFilters()
+  }, { deep: true })
 </script>
 
 <template>
-  <Head title="ODPs" />
+  <Head title="ODP Inventory" />
 
-  <AppLayout :breadcrumbs="[{ title: 'ODPs', href: route('passive-device.odps.index') }]">
-    <div class="flex flex-col gap-6 p-4 md:p-6">
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-2xl font-bold tracking-tight">ODPs</h1>
-          <p class="text-muted-foreground">Manage Optical Distribution Point (ODP) assets.</p>
+  <AppLayout :breadcrumbs="[{ title: 'Inventory', href: '#' }, { title: 'ODP', href: route('passive-device.odps.index') }]">
+    <div class="flex flex-col gap-6 p-4 md:p-8">
+      <ResourceHeader
+        title="ODP Inventory"
+        description="Kelola inventori Optical Distribution Point (ODP)."
+        search-placeholder="Cari ODP..."
+        add-button-text="Tambah ODP"
+        :add-route="route('passive-device.odps.create')"
+        v-model="searchQuery"
+        v-model:filters="filters"
+        :filter-configs="[
+          {
+            key: 'area_id',
+            label: 'Wilayah',
+            placeholder: 'Wilayah',
+            options: areas.map((a) => ({ label: a.name, value: a.id.toString() })),
+            icon: MapPin,
+          },
+        ]" />
+
+      <Card class="overflow-hidden rounded-xl border-none bg-card shadow-sm">
+        <div class="flex items-center justify-between border-b border-border bg-card p-6">
+          <h2 class="text-lg font-bold text-foreground">Daftar ODP</h2>
         </div>
-        <Button as-child>
-          <Link :href="route('passive-device.odps.create')">
-            <Plus class="mr-2 h-4 w-4" />
-            Add ODP
-          </Link>
-        </Button>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>ODPs</CardTitle>
-          <CardDescription> List of all ODPs. </CardDescription>
-        </CardHeader>
-        <CardContent>
+        <CardContent class="p-0">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead class="w-[100px]">Code</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Area</TableHead>
-                <TableHead>Splitter Type</TableHead>
-                <TableHead>Ports (Used/Total)</TableHead>
-                <TableHead class="text-right">Actions</TableHead>
+            <TableHeader class="bg-muted/50">
+              <TableRow class="border-b border-border hover:bg-transparent">
+                <TableHead class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase">Kode</TableHead>
+                <TableHead class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase">Nama ODP</TableHead>
+                <TableHead class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase">Wilayah</TableHead>
+                <TableHead class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase">Splitter</TableHead>
+                <TableHead class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase">Ports</TableHead>
+                <TableHead class="px-6 py-4 text-right text-xs font-semibold tracking-wider text-muted-foreground uppercase">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow v-for="odp in odps.data" :key="odp.id">
-                <TableCell class="font-medium">{{ odp.code || '-' }}</TableCell>
-                <TableCell>{{ odp.name }}</TableCell>
-                <TableCell>{{ odp.area?.name || '-' }}</TableCell>
-                <TableCell>{{ odp.splitter_type || '-' }}</TableCell>
-                <TableCell>{{ odp.used_port_count }} / {{ odp.port_count }}</TableCell>
-                <TableCell class="text-right">
+              <TableRow
+                v-for="odp in odps.data"
+                :key="odp.id"
+                class="group border-b border-border transition-colors hover:bg-muted/50">
+                <TableCell class="px-6 py-4 font-mono text-xs">
+                  {{ odp.code || '-' }}
+                </TableCell>
+                <TableCell class="px-6 py-4 font-semibold text-foreground">
+                  {{ odp.name }}
+                </TableCell>
+                <TableCell class="px-6 py-4 text-sm text-muted-foreground">
+                  {{ odp.area?.name || '-' }}
+                </TableCell>
+                <TableCell class="px-6 py-4 text-sm">
+                  {{ odp.splitter_type || '-' }}
+                </TableCell>
+                <TableCell class="px-6 py-4 text-sm">
+                  <span :class="odp.used_port_count >= odp.port_count ? 'text-red-500 font-bold' : 'text-muted-foreground'">
+                    {{ odp.used_port_count }} / {{ odp.port_count }}
+                  </span>
+                </TableCell>
+                <TableCell class="px-6 py-4 text-right">
                   <div class="flex justify-end gap-2">
-                    <Button variant="ghost" size="icon" as-child title="View Detail">
+                    <Button variant="ghost" size="icon" as-child title="Lihat Detail">
                       <Link :href="route('passive-device.odps.show', odp.id)">
                         <Eye class="h-4 w-4" />
                       </Link>
@@ -73,12 +124,14 @@
                 </TableCell>
               </TableRow>
               <TableRow v-if="odps.data.length === 0">
-                <TableCell colspan="6" class="h-24 text-center"> No ODPs found. </TableCell>
+                <TableCell colspan="6" class="h-32 text-center text-muted-foreground italic"> Tidak ada data ODP ditemukan. </TableCell>
               </TableRow>
             </TableBody>
           </Table>
         </CardContent>
       </Card>
+
+      <Pagination :links="odps.links" />
     </div>
   </AppLayout>
 </template>

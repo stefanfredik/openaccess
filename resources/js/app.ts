@@ -4,6 +4,8 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers'
 import '../css/app.css'
 import 'vue-sonner/style.css'
 import L from 'leaflet'
+// @ts-ignore
+window.L = L
 
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
