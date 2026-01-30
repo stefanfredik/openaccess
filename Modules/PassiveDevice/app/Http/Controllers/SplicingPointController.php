@@ -37,7 +37,7 @@ class SplicingPointController extends Controller
 
         return Inertia::render('PassiveDevice::SplicingPoint/Index', [
             'splicingPoints' => $splicingPoints,
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
             'filters' => $request->only(['search', 'area_id']),
         ]);
     }
@@ -45,8 +45,8 @@ class SplicingPointController extends Controller
     public function create(): Response
     {
         return Inertia::render('PassiveDevice::SplicingPoint/Create', [
-            'areas' => InfrastructureArea::all(),
-            'jointBoxes' => JointBox::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
+            'jointBoxes' => JointBox::select('id', 'name', 'code')->get(),
         ]);
     }
 
@@ -70,8 +70,8 @@ class SplicingPointController extends Controller
     {
         return Inertia::render('PassiveDevice::SplicingPoint/Edit', [
             'splicingPoint' => $splicingPoint,
-            'areas' => InfrastructureArea::all(),
-            'jointBoxes' => JointBox::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
+            'jointBoxes' => JointBox::select('id', 'name', 'code')->get(),
         ]);
     }
 

@@ -39,7 +39,7 @@ class OdfController extends Controller
 
         return Inertia::render('PassiveDevice::Odf/Index', [
             'odfs' => $odfs,
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
             'filters' => $request->only(['search', 'area_id']),
         ]);
     }
@@ -50,7 +50,7 @@ class OdfController extends Controller
     public function create(): Response
     {
         return Inertia::render('PassiveDevice::Odf/Create', [
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
         ]);
     }
 
@@ -88,7 +88,7 @@ class OdfController extends Controller
     {
         return Inertia::render('PassiveDevice::Odf/Edit', [
             'odf' => $odf,
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
         ]);
     }
 

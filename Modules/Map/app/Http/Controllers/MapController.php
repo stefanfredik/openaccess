@@ -35,172 +35,180 @@ class MapController extends Controller
         ]);
     }
 
-    public function data(Request $request)
+    private function applyFilters($query, Request $request)
     {
         $areaId = $request->query('area_id');
+        $minLat = $request->query('min_lat');
+        $maxLat = $request->query('max_lat');
+        $minLng = $request->query('min_lng');
+        $maxLng = $request->query('max_lng');
 
-        // 1. POPs Layer
-        $popsQuery = Pop::whereNotNull('latitude')->whereNotNull('longitude');
-        if ($areaId) {
-            $popsQuery->where('area_id', $areaId);
+        // Filter by Area if present
+        if ($areaId && $areaId !== 'all') {
+            // Check if model has direct area_id or infrastructure_area_id
+            $table = $query->getModel()->getTable();
+            if ($table === 'pops') {
+                $query->where('area_id', $areaId);
+            } else {
+                $query->where('infrastructure_area_id', $areaId);
+            }
         }
-        $pops = $popsQuery->get()->map(function ($pop) {
-            return [
-                'type' => 'Feature',
-                'geometry' => [
-                    'type' => 'Point',
-                    'coordinates' => [(float) $pop->longitude, (float) $pop->latitude],
-                ],
-                'properties' => [
-                    'id' => $pop->id,
-                    'type' => 'pop',
-                    'name' => $pop->name,
-                    'address' => $pop->address,
-                    'status' => $pop->status ?? 'active',
-                ],
-            ];
-        });
+
+        // Filter by Bounding Box if present
+        if ($minLat && $maxLat && $minLng && $maxLng) {
+            $query->whereBetween('latitude', [$minLat, $maxLat])
+                  ->whereBetween('longitude', [$minLng, $maxLng]);
+        }
+        
+        // Ensure valid coordinates
+        $query->whereNotNull('latitude')->whereNotNull('longitude');
+
+        return $query;
+    }
+
+    public function data(Request $request)
+    {
+        // 1. POPs Layer
+        $pops = $this->applyFilters(Pop::query(), $request)
+            ->get(['id', 'name', 'address', 'status', 'latitude', 'longitude'])
+            ->map(function ($pop) {
+                return [
+                    'type' => 'Feature',
+                    'geometry' => [
+                        'type' => 'Point',
+                        'coordinates' => [(float) $pop->longitude, (float) $pop->latitude],
+                    ],
+                    'properties' => [
+                        'id' => $pop->id,
+                        'type' => 'pop',
+                        'name' => $pop->name,
+                        'address' => $pop->address,
+                        'status' => $pop->status ?? 'active',
+                    ],
+                ];
+            });
 
         // 2. Active Devices
-        $oltsQuery = Olt::whereNotNull('latitude')->whereNotNull('longitude');
-        if ($areaId) {
-            $oltsQuery->where('infrastructure_area_id', $areaId);
-        }
-        $olts = $oltsQuery->get()->map(function ($dev) {
-            return [
-                'type' => 'Feature',
-                'geometry' => ['type' => 'Point', 'coordinates' => [(float) $dev->longitude, (float) $dev->latitude]],
-                'properties' => ['id' => $dev->id, 'type' => 'olt', 'name' => $dev->name, 'status' => $dev->is_active ? 'active' : 'inactive'],
-            ];
-        });
+        $olts = $this->applyFilters(Olt::query(), $request)
+            ->get(['id', 'name', 'is_active', 'latitude', 'longitude'])
+            ->map(function ($dev) {
+                return [
+                    'type' => 'Feature',
+                    'geometry' => ['type' => 'Point', 'coordinates' => [(float) $dev->longitude, (float) $dev->latitude]],
+                    'properties' => ['id' => $dev->id, 'type' => 'olt', 'name' => $dev->name, 'status' => $dev->is_active ? 'active' : 'inactive'],
+                ];
+            });
 
-        $ontsQuery = Ont::whereNotNull('latitude')->whereNotNull('longitude');
-        if ($areaId) {
-            $ontsQuery->where('infrastructure_area_id', $areaId);
-        }
-        $onts = $ontsQuery->get()->map(function ($dev) {
-            return [
-                'type' => 'Feature',
-                'geometry' => ['type' => 'Point', 'coordinates' => [(float) $dev->longitude, (float) $dev->latitude]],
-                'properties' => ['id' => $dev->id, 'type' => 'ont', 'name' => $dev->name, 'status' => $dev->is_active ? 'active' : 'inactive'],
-            ];
-        });
+        $onts = $this->applyFilters(Ont::query(), $request)
+            ->get(['id', 'name', 'is_active', 'latitude', 'longitude'])
+            ->map(function ($dev) {
+                return [
+                    'type' => 'Feature',
+                    'geometry' => ['type' => 'Point', 'coordinates' => [(float) $dev->longitude, (float) $dev->latitude]],
+                    'properties' => ['id' => $dev->id, 'type' => 'ont', 'name' => $dev->name, 'status' => $dev->is_active ? 'active' : 'inactive'],
+                ];
+            });
 
-        $routersQuery = Router::whereNotNull('latitude')->whereNotNull('longitude');
-        if ($areaId) {
-            $routersQuery->where('infrastructure_area_id', $areaId);
-        }
-        $routers = $routersQuery->get()->map(function ($dev) {
-            return [
-                'type' => 'Feature',
-                'geometry' => ['type' => 'Point', 'coordinates' => [(float) $dev->longitude, (float) $dev->latitude]],
-                'properties' => ['id' => $dev->id, 'type' => 'router', 'name' => $dev->name, 'status' => $dev->is_active ? 'active' : 'inactive'],
-            ];
-        });
+        $routers = $this->applyFilters(Router::query(), $request)
+            ->get(['id', 'name', 'is_active', 'latitude', 'longitude'])
+            ->map(function ($dev) {
+                return [
+                    'type' => 'Feature',
+                    'geometry' => ['type' => 'Point', 'coordinates' => [(float) $dev->longitude, (float) $dev->latitude]],
+                    'properties' => ['id' => $dev->id, 'type' => 'router', 'name' => $dev->name, 'status' => $dev->is_active ? 'active' : 'inactive'],
+                ];
+            });
 
-        $switchesQuery = AdSwitch::whereNotNull('latitude')->whereNotNull('longitude');
-        if ($areaId) {
-            $switchesQuery->where('infrastructure_area_id', $areaId);
-        }
-        $switches = $switchesQuery->get()->map(function ($dev) {
-            return [
-                'type' => 'Feature',
-                'geometry' => ['type' => 'Point', 'coordinates' => [(float) $dev->longitude, (float) $dev->latitude]],
-                'properties' => ['id' => $dev->id, 'type' => 'switch', 'name' => $dev->name, 'status' => $dev->is_active ? 'active' : 'inactive'],
-            ];
-        });
+        $switches = $this->applyFilters(AdSwitch::query(), $request)
+            ->get(['id', 'name', 'is_active', 'latitude', 'longitude'])
+            ->map(function ($dev) {
+                return [
+                    'type' => 'Feature',
+                    'geometry' => ['type' => 'Point', 'coordinates' => [(float) $dev->longitude, (float) $dev->latitude]],
+                    'properties' => ['id' => $dev->id, 'type' => 'switch', 'name' => $dev->name, 'status' => $dev->is_active ? 'active' : 'inactive'],
+                ];
+            });
 
-        $apsQuery = AccessPoint::whereNotNull('latitude')->whereNotNull('longitude');
-        if ($areaId) {
-            $apsQuery->where('infrastructure_area_id', $areaId);
-        }
-        $aps = $apsQuery->get()->map(function ($dev) {
-            return [
-                'type' => 'Feature',
-                'geometry' => ['type' => 'Point', 'coordinates' => [(float) $dev->longitude, (float) $dev->latitude]],
-                'properties' => ['id' => $dev->id, 'type' => 'access_point', 'name' => $dev->name, 'status' => $dev->is_active ? 'active' : 'inactive'],
-            ];
-        });
+        $aps = $this->applyFilters(AccessPoint::query(), $request)
+            ->get(['id', 'name', 'is_active', 'latitude', 'longitude'])
+            ->map(function ($dev) {
+                return [
+                    'type' => 'Feature',
+                    'geometry' => ['type' => 'Point', 'coordinates' => [(float) $dev->longitude, (float) $dev->latitude]],
+                    'properties' => ['id' => $dev->id, 'type' => 'access_point', 'name' => $dev->name, 'status' => $dev->is_active ? 'active' : 'inactive'],
+                ];
+            });
 
         // 3. Passive Devices
-        $odpsQuery = Odp::whereNotNull('latitude')->whereNotNull('longitude');
-        if ($areaId) {
-            $odpsQuery->where('infrastructure_area_id', $areaId);
-        }
-        $odps = $odpsQuery->get()->map(function ($dev) {
-            return [
-                'type' => 'Feature',
-                'geometry' => ['type' => 'Point', 'coordinates' => [(float) $dev->longitude, (float) $dev->latitude]],
-                'properties' => ['id' => $dev->id, 'type' => 'odp', 'name' => $dev->name, 'status' => $dev->status ?? 'active'],
-            ];
-        });
+        $odps = $this->applyFilters(Odp::query(), $request)
+            ->get(['id', 'name', 'is_active', 'latitude', 'longitude'])
+            ->map(function ($dev) {
+                return [
+                    'type' => 'Feature',
+                    'geometry' => ['type' => 'Point', 'coordinates' => [(float) $dev->longitude, (float) $dev->latitude]],
+                    'properties' => ['id' => $dev->id, 'type' => 'odp', 'name' => $dev->name, 'status' => $dev->is_active ? 'active' : 'inactive'],
+                ];
+            });
 
-        $odfsQuery = Odf::whereNotNull('latitude')->whereNotNull('longitude');
-        if ($areaId) {
-            $odfsQuery->where('infrastructure_area_id', $areaId);
-        }
-        $odfs = $odfsQuery->get()->map(function ($dev) {
-            return [
-                'type' => 'Feature',
-                'geometry' => ['type' => 'Point', 'coordinates' => [(float) $dev->longitude, (float) $dev->latitude]],
-                'properties' => ['id' => $dev->id, 'type' => 'odf', 'name' => $dev->name, 'status' => $dev->status ?? 'active'],
-            ];
-        });
+        $odfs = $this->applyFilters(Odf::query(), $request)
+            ->get(['id', 'name', 'is_active', 'latitude', 'longitude'])
+            ->map(function ($dev) {
+                return [
+                    'type' => 'Feature',
+                    'geometry' => ['type' => 'Point', 'coordinates' => [(float) $dev->longitude, (float) $dev->latitude]],
+                    'properties' => ['id' => $dev->id, 'type' => 'odf', 'name' => $dev->name, 'status' => $dev->is_active ? 'active' : 'inactive'],
+                ];
+            });
 
-        $polesQuery = Pole::whereNotNull('latitude')->whereNotNull('longitude');
-        if ($areaId) {
-            $polesQuery->where('infrastructure_area_id', $areaId);
-        }
-        $poles = $polesQuery->get()->map(function ($dev) {
-            return [
-                'type' => 'Feature',
-                'geometry' => ['type' => 'Point', 'coordinates' => [(float) $dev->longitude, (float) $dev->latitude]],
-                'properties' => ['id' => $dev->id, 'type' => 'pole', 'name' => $dev->name, 'status' => $dev->status ?? 'active'],
-            ];
-        });
+        $poles = $this->applyFilters(Pole::query(), $request)
+            ->get(['id', 'name', 'is_active', 'latitude', 'longitude'])
+            ->map(function ($dev) {
+                return [
+                    'type' => 'Feature',
+                    'geometry' => ['type' => 'Point', 'coordinates' => [(float) $dev->longitude, (float) $dev->latitude]],
+                    'properties' => ['id' => $dev->id, 'type' => 'pole', 'name' => $dev->name, 'status' => $dev->is_active ? 'active' : 'inactive'],
+                ];
+            });
 
-        $towersQuery = Tower::whereNotNull('latitude')->whereNotNull('longitude');
-        if ($areaId) {
-            $towersQuery->where('infrastructure_area_id', $areaId);
-        }
-        $towers = $towersQuery->get()->map(function ($dev) {
-            return [
-                'type' => 'Feature',
-                'geometry' => ['type' => 'Point', 'coordinates' => [(float) $dev->longitude, (float) $dev->latitude]],
-                'properties' => ['id' => $dev->id, 'type' => 'tower', 'name' => $dev->name, 'status' => $dev->status ?? 'active'],
-            ];
-        });
+        $towers = $this->applyFilters(Tower::query(), $request)
+            ->get(['id', 'name', 'is_active', 'latitude', 'longitude'])
+            ->map(function ($dev) {
+                return [
+                    'type' => 'Feature',
+                    'geometry' => ['type' => 'Point', 'coordinates' => [(float) $dev->longitude, (float) $dev->latitude]],
+                    'properties' => ['id' => $dev->id, 'type' => 'tower', 'name' => $dev->name, 'status' => $dev->is_active ? 'active' : 'inactive'],
+                ];
+            });
 
-        $jbsQuery = JointBox::whereNotNull('latitude')->whereNotNull('longitude');
-        if ($areaId) {
-            $jbsQuery->where('infrastructure_area_id', $areaId);
-        }
-        $jointBoxes = $jbsQuery->get()->map(function ($dev) {
-            return [
-                'type' => 'Feature',
-                'geometry' => ['type' => 'Point', 'coordinates' => [(float) $dev->longitude, (float) $dev->latitude]],
-                'properties' => ['id' => $dev->id, 'type' => 'joint_box', 'name' => $dev->name, 'status' => $dev->status ?? 'active'],
-            ];
-        });
+        $jointBoxes = $this->applyFilters(JointBox::query(), $request)
+            ->get(['id', 'name', 'is_active', 'latitude', 'longitude'])
+            ->map(function ($dev) {
+                return [
+                    'type' => 'Feature',
+                    'geometry' => ['type' => 'Point', 'coordinates' => [(float) $dev->longitude, (float) $dev->latitude]],
+                    'properties' => ['id' => $dev->id, 'type' => 'joint_box', 'name' => $dev->name, 'status' => $dev->is_active ? 'active' : 'inactive'],
+                ];
+            });
 
         // 4. CPEs
-        $cpesQuery = Cpe::whereNotNull('latitude')->whereNotNull('longitude');
-        if ($areaId) {
-            $cpesQuery->where('infrastructure_area_id', $areaId);
-        }
-        $cpes = $cpesQuery->get()->map(function ($dev) {
-            return [
-                'type' => 'Feature',
-                'geometry' => ['type' => 'Point', 'coordinates' => [(float) $dev->longitude, (float) $dev->latitude]],
-                'properties' => ['id' => $dev->id, 'type' => 'cpe', 'name' => $dev->customer_name, 'status' => $dev->status ?? 'active'],
-            ];
-        });
+        $cpes = $this->applyFilters(Cpe::query(), $request)
+            ->get(['id', 'name', 'status', 'latitude', 'longitude'])
+            ->map(function ($dev) {
+                return [
+                    'type' => 'Feature',
+                    'geometry' => ['type' => 'Point', 'coordinates' => [(float) $dev->longitude, (float) $dev->latitude]],
+                    'properties' => ['id' => $dev->id, 'type' => 'cpe', 'name' => $dev->name, 'status' => $dev->status ?? 'active'],
+                ];
+            });
 
-        // 5. Cables
+        // 5. Cables (Special handling for LineString)
         $cablesQuery = \Modules\PassiveDevice\Models\Cable::whereNotNull('path');
-        if ($areaId) {
-            $cablesQuery->where('infrastructure_area_id', $areaId);
+        if ($request->area_id && $request->area_id !== 'all') {
+            $cablesQuery->where('infrastructure_area_id', $request->area_id);
         }
+        // TODO: Implement bounding box check for cables (complex, maybe skip for now or check start/end points)
+        // For now, let's load all cables in area to avoid cutting them off
+        
         $cables = $cablesQuery->get()->map(function ($dev) {
             return [
                 'type' => 'Feature',

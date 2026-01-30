@@ -3,25 +3,10 @@ import { createInertiaApp } from '@inertiajs/vue3'
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers'
 import '../css/app.css'
 import 'vue-sonner/style.css'
-import L from 'leaflet'
-// @ts-ignore
-window.L = L
-
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
-import markerIcon from 'leaflet/dist/images/marker-icon.png'
-import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import { createApp, h } from 'vue'
 import type { DefineComponent } from 'vue'
 import { ZiggyVue } from 'ziggy-js'
 import { initializeTheme } from './composables/useAppearance'
-
-delete (L.Icon.Default.prototype as any)._getIconUrl
-
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-})
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel'
 

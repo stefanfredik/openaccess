@@ -9,10 +9,10 @@
   import { edit as areaEdit, index as areaIndex, update as areaUpdate } from '@/routes/area'
   import { Head, Link, useForm } from '@inertiajs/vue3'
   import axios from 'axios'
-  import L from 'leaflet'
+  import L from '@/utils/leaflet'
   import 'leaflet-draw'
   import 'leaflet-draw/dist/leaflet.draw.css'
-  import 'leaflet/dist/leaflet.css'
+  // leaflet.css is imported in @/utils/leaflet
   import { Maximize2 } from 'lucide-vue-next'
   import { nextTick, onMounted, ref, watch } from 'vue'
 

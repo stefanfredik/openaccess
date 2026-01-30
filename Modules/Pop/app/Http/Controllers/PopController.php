@@ -49,7 +49,7 @@ class PopController extends Controller
     public function create(): Response
     {
         return Inertia::render('Pop::Create', [
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
         ]);
     }
 
@@ -77,7 +77,7 @@ class PopController extends Controller
     {
         return Inertia::render('Pop::Edit', [
             'pop' => $pop->load(['photos']),
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
         ]);
     }
 

@@ -53,7 +53,7 @@ class CpeController extends Controller
 
         return Inertia::render('Cpe::Index', [
             'cpes' => $cpes,
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
             'filters' => $request->only(['search', 'area_id']),
         ]);
     }
@@ -61,9 +61,9 @@ class CpeController extends Controller
     public function create(): Response
     {
         return Inertia::render('Cpe::Create', [
-            'areas' => InfrastructureArea::all(),
-            'onts' => Ont::all(), // For uplink selection
-            'routers' => Router::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
+            'onts' => Ont::select('id', 'name', 'code')->get(), // For uplink selection
+            'routers' => Router::select('id', 'name', 'code')->get(),
         ]);
     }
 
@@ -93,9 +93,9 @@ class CpeController extends Controller
     {
         return Inertia::render('Cpe::Edit', [
             'cpe' => $cpe,
-            'areas' => InfrastructureArea::all(),
-            'onts' => Ont::all(),
-            'routers' => Router::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
+            'onts' => Ont::select('id', 'name', 'code')->get(),
+            'routers' => Router::select('id', 'name', 'code')->get(),
         ]);
     }
 

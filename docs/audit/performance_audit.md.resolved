@@ -1,0 +1,95 @@
+# Performance Audit Report
+
+## Executive Summary
+
+Audit ini berfokus pada kecepatan aplikasi (backend response time) dan performa frontend (core web vitals & bundle size).
+
+| Metric                        | Score | Status                      |
+| :---------------------------- | :---- | :-------------------------- |
+| **Backend Query Performance** | 5/10  | ⚠️ High Risk (N+1 Problems) |
+| **Database Indexing**         | 7/10  | ✅ Good                     |
+| **Frontend Bundle Size**      | 6/10  | ⚠️ Needs Optimization       |
+| **Caching Strategy**          | 8/10  | ✅ Good (Implemented)       |
+
+---
+
+## 🔍 Backend Performance Findings
+
+### 1. N+1 Query Problems (Critical)
+
+Masalah paling signifikan yang memperlambat aplikasi adalah **N+1 Queries** pada saat memuat data relasi.
+
+**Temuan:**
+
+- Pada `RouterController::index`, data diload dengan relations tapi filtering logic di PHP closure `->filter()` sering kali memicu query tambahan jika tidak hati-hati, atau mengambil terlalu banyak data ke memory.
+- `DeviceService::getAllDevices()` sudah menggunakan caching, ini **BAGUS**. Namun logic query union manual bisa dioptimalkan dengan database view jika data semakin besar.
+
+### 2. Heavy Data Loading
+
+Beberapa controller memuat `::all()` untuk dropdown filters tanpa limitasi.
+
+**Contoh berbahaya:**
+
+```php
+'areas' => InfrastructureArea::all(), // Jika ada 1000 area, ini akan lambat
+'pops' => Pop::all(),
+```
+
+**Rekomendasi:**
+Gunakan AJAX/Async select untuk dropdown yang datanya bisa tumbuh besar.
+
+---
+
+## 🚀 Frontend Performance Findings
+
+### 1. Large Bundle Sizes
+
+Hasil build menunjukkan ukuran bundle yang masih wajar namun bisa dioptimasi:
+- `app.js`: **463 kB** (gzip: ~150 kB) - Main entry point.
+- `leaflet.draw.js`: **67 kB** (gzip: ~14 kB) - Library map.
+- `index.js`: **71 kB** (gzip: ~23 kB)
+
+**Rekomendasi:**
+Implementasi **Dynamic Import** untuk component peta.
+```javascript
+// Sebelum
+import L from 'leaflet'
+// Sesudah (di dalam onMounted atau method)
+const L = await import('leaflet')
+```
+
+### 2. Vue Component Lazy Loading
+
+Penggunaan `Inertia` sudah cukup baik dalam membagi halaman. Namun, pastikan component berat (seperti Maps/Leaflet) di-load secara **lazy** (dynamic import).
+
+**Temuan:**
+`leaflet` dan `leaflet-draw` diimport secara global di [resources/js/app.ts](file:///home/homenet/dev/oa-inertia/openaccess/resources/js/app.ts) (`window.L = L`). Ini membuat library tersebut di-load di **SETIAP** halaman, bahkan halaman login atau profile yang tidak butuh peta.
+
+---
+
+## 🔍 Database Indexing Audit
+
+**Tabel `ad_routers` (dan device lainnya):**
+- Index `code` ✅ Ada.
+- Index Foreign Keys (`infrastructure_area_id`, `pop_id`) ✅ Ada.
+- **MISSING INDEXES**: Kolom yang sering dicari via search feature belum di-index:
+  - `name`
+  - `ip_address`
+  - `serial_number`
+  - `mac_address`
+  - `brand`
+
+**Impact:** Pencarian device akan menjadi lambat (Full Table Scan) seiring bertambahnya data.
+
+---
+
+## 💡 Recommendations
+
+### Short Term (Quick Wins)
+1. **Add Database Indexes**: Tambahkan migration baru untuk indexing kolom `name`, `ip_address`, `serial_number`.
+2. **Eager Loading Strictness**: Pastikan semua penggunaan relasi di loop menggunakan `with()`.
+3. **Limit Dropdown Data**: Ubah `Model::all()` menjadi `Model::select('id', 'name')->get()` untuk mengurangi memory usage PHP.
+
+### Long Term
+1. **Remove Global Leaflet**: Hapus `window.L = L` di [app.ts](file:///home/homenet/dev/oa-inertia/openaccess/resources/js/app.ts). Import Leaflet hanya di component [Map](file:///home/homenet/dev/oa-inertia/openaccess/Modules/Area/resources/assets/js/Pages/Area/Create.vue#96-137) atau `Topology`.
+2. **Implementasi Database View** untuk `all_devices` agara query lebih cepat langsung dari SQL layer dibanding Union di PHP.

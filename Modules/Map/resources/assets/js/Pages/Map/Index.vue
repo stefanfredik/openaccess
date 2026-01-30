@@ -22,12 +22,13 @@
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
   import { Switch as UiSwitch } from '@/components/ui/switch'
   import axios from 'axios'
-  import L from 'leaflet'
-  import 'leaflet/dist/leaflet.css'
-  import { Layers, Plus } from 'lucide-vue-next'
+  import L from '@/utils/leaflet'
+  // leaflet.css is imported in @/utils/leaflet
+  import { Layers, MapPin, Plus } from 'lucide-vue-next'
   import { computed, onMounted, reactive, ref, watch } from 'vue'
   import { toast } from 'vue-sonner'
   import DeviceCreateModal from './Components/DeviceCreateModal.vue'
+  import { debounce } from 'lodash'
 
   const props = defineProps<{
     areas: Array<{ id: number; name: string; boundary: any }>
@@ -383,21 +384,32 @@
 
   const loadMapData = async () => {
     try {
-      const url = selectedAreaId.value === 'all' ? route('map.data') : route('map.data', { area_id: selectedAreaId.value })
+      const params: any = {}
 
-      const response = await axios.get(url)
+      if (selectedAreaId.value !== 'all') {
+        params.area_id = selectedAreaId.value
+      } else if (map) {
+        // Only send bounds if not filtering by specific area (Global View Optimization)
+        const bounds = map.getBounds()
+        params.min_lat = bounds.getSouth()
+        params.max_lat = bounds.getNorth()
+        params.min_lng = bounds.getWest()
+        params.max_lng = bounds.getEast()
+      }
+
+      const response = await axios.get(route('map.data', params))
       mapData.value = response.data
 
       renderMap()
 
       // Handle Boundary and Zoom logic remains same but using mapData.value
       if (selectedAreaId.value !== 'all') {
-        // ... existing boundary logic ...
         if (boundaryLayer) {
           map?.removeLayer(boundaryLayer)
           boundaryLayer = null
         }
         const area = props.areas.find((a) => a.id === parseInt(selectedAreaId.value))
+
         if (area && area.boundary) {
           boundaryLayer = L.polygon(area.boundary, {
             color: '#3b82f6',
@@ -454,15 +466,25 @@
       maxZoom: 19,
     }).addTo(map!)
 
-    // PERSISTENCE: Listen for map view changes
-    map!.on('moveend', () => {
-      const center = map!.getCenter()
-      localStorage.setItem('map_center_lat', center.lat.toString())
-      localStorage.setItem('map_center_lng', center.lng.toString())
-    })
+    // PERSISTENCE & OPTIMIZATION: Listen for map view changes
+    map!.on(
+      'moveend',
+      debounce(() => {
+        if (!map) return
+
+        const center = map.getCenter()
+        localStorage.setItem('map_center_lat', center.lat.toString())
+        localStorage.setItem('map_center_lng', center.lng.toString())
+        localStorage.setItem('map_zoom', map.getZoom().toString())
+
+        // Reload data based on new viewport
+        loadMapData()
+      }, 500),
+    ) // Debounce 500ms
 
     map!.on('zoomend', () => {
-      localStorage.setItem('map_zoom', map!.getZoom().toString())
+      // Zoom end is also covered by moveend in Leaflet usually, but explicit save is fine
+      if (map) localStorage.setItem('map_zoom', map.getZoom().toString())
     })
 
     map!.on('click', (e: L.LeafletMouseEvent) => {
@@ -516,6 +538,7 @@
 
     markersLayer = new L.FeatureGroup().addTo(map!)
 
+    // Initial load
     await loadMapData()
   }
 
@@ -1015,7 +1038,13 @@
       :areas="areas"
       :pops="pops"
       :selected-area-id="selectedAreaId"
-      @success="loadMapData(); pendingDeviceType = null; cancelCableDrawing()" />
+      @success="
+        () => {
+          loadMapData()
+          pendingDeviceType = null
+          cancelCableDrawing()
+        }
+      " />
   </AppLayout>
 </template>
 

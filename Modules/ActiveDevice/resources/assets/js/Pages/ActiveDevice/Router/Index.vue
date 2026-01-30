@@ -7,10 +7,9 @@
   import DeviceStatusBadge from '@/../../Modules/ActiveDevice/resources/assets/js/Components/DeviceStatusBadge.vue'
   import Pagination from '@/components/Pagination.vue'
   import ResourceHeader from '@/components/ResourceHeader.vue'
-  import DeleteAction from '@/components/DeleteAction.vue'
+  import ActionMenu from '@/components/ActionMenu.vue'
   import { Button } from '@/components/ui/button'
   import { Card, CardContent } from '@/components/ui/card'
-  import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
   import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
   import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
   import AppLayout from '@/layouts/AppLayout.vue'
@@ -90,17 +89,7 @@
         ]" />
 
       <Card class="overflow-hidden rounded-xl border-none bg-card shadow-sm">
-        <div class="flex items-center justify-between border-b border-border bg-card p-6">
-          <h2 class="text-lg font-bold text-foreground">Daftar Router</h2>
-          <!-- <div class="flex space-x-2">
-                        <Button variant="outline" size="sm" class="h-8 text-xs"
-                            >Filter</Button
-                        >
-                        <Button variant="outline" size="sm" class="h-8 text-xs"
-                            >Export</Button
-                        >
-                    </div> -->
-        </div>
+
         <CardContent class="p-0">
           <Table>
             <TableHeader class="bg-muted/50">
@@ -147,52 +136,13 @@
                   <DeviceStatusBadge :status="item.is_active ? 'Active' : 'Inactive'" />
                 </TableCell>
                 <TableCell class="px-6 py-4 text-right" @click.stop>
-                  <div class="flex items-center justify-end gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      class="h-8 w-8 text-blue-600 opacity-60 transition-opacity hover:bg-blue-50 hover:opacity-100"
-                      @click="openDrawer(item)"
-                      title="Pratinjau Cepat">
-                      <Eye class="h-4 w-4" />
-                    </Button>
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger as-child>
-                        <Button variant="ghost" size="icon" class="h-8 w-8 p-0 opacity-60 transition-opacity hover:opacity-100">
-                          <MoreVertical class="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" class="w-48">
-                        <DropdownMenuItem as-child class="cursor-pointer">
-                          <Link :href="route('active-device.router.show', item.id)">
-                            <FileText class="mr-2 h-4 w-4" />
-                            Detail Lengkap
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem as-child class="cursor-pointer">
-                          <Link :href="route('active-device.router.edit', item.id)">
-                            <Settings class="mr-2 h-4 w-4" />
-                            Edit Router
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DeleteAction
-                          :href="route('active-device.router.destroy', item.id)"
-                          title="Hapus Router">
-                          <template #trigger>
-                            <DropdownMenuItem
-                              class="cursor-pointer text-red-600 hover:!bg-red-50 hover:!text-red-700 focus:!bg-red-50 focus:!text-red-700 dark:hover:!bg-red-950 dark:focus:!bg-red-950"
-                              @click.stop
-                              @select.prevent>
-                              <Trash class="mr-2 h-4 w-4" />
-                              Hapus Router
-                            </DropdownMenuItem>
-                          </template>
-                        </DeleteAction>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+<ActionMenu
+                    :detail-route="route('active-device.router.show', item.id)"
+                    :edit-route="route('active-device.router.edit', item.id)"
+                    :delete-route="route('active-device.router.destroy', item.id)"
+                    delete-message="Hapus Router"
+                    @preview="openDrawer(item)"
+                  />
                 </TableCell>
               </TableRow>
               <TableRow v-if="routers.data.length === 0">

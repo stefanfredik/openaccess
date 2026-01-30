@@ -39,7 +39,7 @@ class OdpController extends Controller
 
         return Inertia::render('PassiveDevice::Odp/Index', [
             'odps' => $odps,
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
             'filters' => $request->only(['search', 'area_id']),
         ]);
     }
@@ -50,7 +50,7 @@ class OdpController extends Controller
     public function create(): Response
     {
         return Inertia::render('PassiveDevice::Odp/Create', [
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
         ]);
     }
 
@@ -88,7 +88,7 @@ class OdpController extends Controller
     {
         return Inertia::render('PassiveDevice::Odp/Edit', [
             'odp' => $odp,
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
         ]);
     }
 

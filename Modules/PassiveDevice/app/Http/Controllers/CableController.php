@@ -39,7 +39,7 @@ class CableController extends Controller
 
         return Inertia::render('PassiveDevice::Cable/Index', [
             'cables' => $cables,
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
             'filters' => $request->only(['search', 'area_id']),
         ]);
     }
@@ -50,7 +50,7 @@ class CableController extends Controller
     public function create(): Response
     {
         return Inertia::render('PassiveDevice::Cable/Create', [
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
             'types' => ['Single Mode', 'Multi Mode'],
         ]);
     }
@@ -89,7 +89,7 @@ class CableController extends Controller
     {
         return Inertia::render('PassiveDevice::Cable/Edit', [
             'cable' => $cable,
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
             'types' => ['Single Mode', 'Multi Mode'],
         ]);
     }

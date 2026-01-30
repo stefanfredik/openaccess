@@ -49,7 +49,7 @@ class UserController extends Controller
 
         return Inertia::render('User::Create', [
             'roles' => Role::all(),
-            'companies' => Company::all(),
+            'companies' => Company::select('id', 'name')->get(),
         ]);
     }
 
@@ -85,7 +85,7 @@ class UserController extends Controller
                 'role' => $user->roles->first()?->name,
             ],
             'roles' => Role::all(),
-            'companies' => Company::all(),
+            'companies' => Company::select('id', 'name')->get(),
         ]);
     }
 

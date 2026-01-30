@@ -39,7 +39,7 @@ class JointBoxController extends Controller
 
         return Inertia::render('PassiveDevice::JointBox/Index', [
             'jointBoxes' => $jointBoxes,
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
             'filters' => $request->only(['search', 'area_id']),
         ]);
     }
@@ -50,7 +50,7 @@ class JointBoxController extends Controller
     public function create(): Response
     {
         return Inertia::render('PassiveDevice::JointBox/Create', [
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
         ]);
     }
 
@@ -88,7 +88,7 @@ class JointBoxController extends Controller
     {
         return Inertia::render('PassiveDevice::JointBox/Edit', [
             'jointBox' => $jointBox,
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
         ]);
     }
 

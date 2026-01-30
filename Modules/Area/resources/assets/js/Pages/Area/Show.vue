@@ -6,8 +6,8 @@
   import { edit as areaEdit, index as areaIndex, show as areaShow } from '@/routes/area'
   import { Head, Link } from '@inertiajs/vue3'
   import axios from 'axios'
-  import L from 'leaflet'
-  import 'leaflet/dist/leaflet.css'
+  import L from '@/utils/leaflet'
+  // leaflet.css is imported in @/utils/leaflet
   import { Box, Building2, Cpu, Map as MapIcon, Monitor, Pencil, Server } from 'lucide-vue-next'
   import { onMounted, ref } from 'vue'
 

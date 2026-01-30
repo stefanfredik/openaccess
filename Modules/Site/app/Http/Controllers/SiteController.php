@@ -36,7 +36,7 @@ class SiteController extends Controller
 
         return Inertia::render('Site::Index', [
             'sites' => $sites,
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
             'filters' => $request->only(['search', 'area_id']),
         ]);
     }
@@ -44,7 +44,7 @@ class SiteController extends Controller
     public function create(): Response
     {
         return Inertia::render('Site::Create', [
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
         ]);
     }
 
@@ -78,7 +78,7 @@ class SiteController extends Controller
     {
         return Inertia::render('Site::Edit', [
             'site' => $site->load(['photos']),
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
         ]);
     }
 

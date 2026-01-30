@@ -1,8 +1,6 @@
 <script setup lang="ts">
-  import DeleteAction from '@/components/DeleteAction.vue'
-  import EditAction from '@/components/EditAction.vue'
+  import ActionMenu from '@/components/ActionMenu.vue'
   import ResourceHeader from '@/components/ResourceHeader.vue'
-  import ShowAction from '@/components/ShowAction.vue'
   import { Badge } from '@/components/ui/badge'
   import { Card, CardContent } from '@/components/ui/card'
   import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -151,11 +149,13 @@
                     </Badge>
                   </TableCell>
                   <TableCell class="text-right">
-                    <div class="flex justify-end gap-2">
-                      <ShowAction :href="route('server.show', server.id)" title="Detail Server" />
-                      <EditAction :href="route('server.edit', server.id)" title="Ubah Server" />
-                      <DeleteAction :href="route('server.destroy', server.id)" />
-                    </div>
+<ActionMenu
+                        :detail-route="route('server.show', server.id)"
+                        :edit-route="route('server.edit', server.id)"
+                        :delete-route="route('server.destroy', server.id)"
+                        delete-message="Hapus Server"
+                        :quick-preview="false"
+                      />
                   </TableCell>
                 </TableRow>
                 <TableRow v-if="servers.data.length === 0">

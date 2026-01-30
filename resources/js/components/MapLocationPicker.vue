@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import L from 'leaflet'
+  import L from '@/utils/leaflet'
   import { Button } from '@/components/ui/button'
   import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
   import { Label } from '@/components/ui/label'
@@ -44,22 +44,6 @@
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors',
     }).addTo(map)
-
-    // Initial marker icon setup
-    const iconRetinaUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png'
-    const iconUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png'
-    const shadowUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
-
-    const DefaultIcon = L.icon({
-      iconUrl,
-      iconRetinaUrl,
-      shadowUrl,
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-      popupAnchor: [1, -34],
-      shadowSize: [41, 41],
-    })
-    L.Marker.prototype.options.icon = DefaultIcon
 
     if (hasLocation) {
       addMarker(lat, lng)

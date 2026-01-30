@@ -39,7 +39,7 @@ class TowerController extends Controller
 
         return Inertia::render('PassiveDevice::Tower/Index', [
             'towers' => $towers,
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
             'filters' => $request->only(['search', 'area_id']),
         ]);
     }
@@ -50,7 +50,7 @@ class TowerController extends Controller
     public function create(): Response
     {
         return Inertia::render('PassiveDevice::Tower/Create', [
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
             'types' => ['SST', 'Monopole', 'Guyed'],
             'ownerships' => ['Sendiri', 'Sewa'],
         ]);
@@ -90,7 +90,7 @@ class TowerController extends Controller
     {
         return Inertia::render('PassiveDevice::Tower/Edit', [
             'tower' => $tower,
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
             'types' => ['SST', 'Monopole', 'Guyed'],
             'ownerships' => ['Sendiri', 'Sewa'],
         ]);

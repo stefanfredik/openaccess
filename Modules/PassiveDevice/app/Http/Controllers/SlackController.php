@@ -39,7 +39,7 @@ class SlackController extends Controller
 
         return Inertia::render('PassiveDevice::Slack/Index', [
             'slacks' => $slacks,
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
             'filters' => $request->only(['search', 'area_id']),
         ]);
     }
@@ -50,7 +50,7 @@ class SlackController extends Controller
     public function create(): Response
     {
         return Inertia::render('PassiveDevice::Slack/Create', [
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
         ]);
     }
 
@@ -82,7 +82,7 @@ class SlackController extends Controller
     {
         return Inertia::render('PassiveDevice::Slack/Edit', [
             'slack' => $slack,
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
         ]);
     }
 

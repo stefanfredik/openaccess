@@ -45,8 +45,8 @@ class ServerController extends Controller
     public function create(): Response
     {
         return Inertia::render('Server::Create', [
-            'areas' => InfrastructureArea::all(),
-            'pops' => Pop::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
+            'pops' => Pop::select('id', 'name', 'code')->get(),
         ]);
     }
 
@@ -94,8 +94,8 @@ class ServerController extends Controller
     {
         return Inertia::render('Server::Edit', [
             'server' => $server->load(['photos']),
-            'areas' => InfrastructureArea::all(),
-            'pops' => Pop::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
+            'pops' => Pop::select('id', 'name', 'code')->get(),
         ]);
     }
 

@@ -58,7 +58,7 @@ class RouterController extends Controller
 
         return Inertia::render('ActiveDevice::Router/Index', [
             'routers' => $routers,
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
             'filters' => $request->only(['search', 'area_id']),
         ]);
     }
@@ -69,8 +69,8 @@ class RouterController extends Controller
     public function create(): Response
     {
         return Inertia::render('ActiveDevice::Router/Create', [
-            'areas' => InfrastructureArea::all(),
-            'pops' => Pop::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
+            'pops' => Pop::select('id', 'name', 'code')->get(),
         ]);
     }
 
@@ -113,8 +113,8 @@ class RouterController extends Controller
     {
         return Inertia::render('ActiveDevice::Router/Edit', [
             'router' => $router->load('servicePorts'),
-            'areas' => InfrastructureArea::all(),
-            'pops' => Pop::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
+            'pops' => Pop::select('id', 'name', 'code')->get(),
         ]);
     }
 

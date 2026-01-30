@@ -4,7 +4,7 @@
   import { Eye, Pencil, Plus, MapPin, Search } from 'lucide-vue-next'
   import { ref, watch } from 'vue'
   import AppLayout from '@/layouts/AppLayout.vue'
-  import DeleteAction from '@/components/DeleteAction.vue'
+  import ActionMenu from '@/components/ActionMenu.vue'
   import Pagination from '@/components/Pagination.vue'
   import ResourceHeader from '@/components/ResourceHeader.vue'
   import { Button } from '@/components/ui/button'
@@ -108,19 +108,13 @@
                   </span>
                 </TableCell>
                 <TableCell class="px-6 py-4 text-right">
-                  <div class="flex justify-end gap-2">
-                    <Button variant="ghost" size="icon" as-child title="Lihat Detail">
-                      <Link :href="route('passive-device.odps.show', odp.id)">
-                        <Eye class="h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <Button variant="ghost" size="icon" as-child title="Edit">
-                      <Link :href="route('passive-device.odps.edit', odp.id)">
-                        <Pencil class="h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <DeleteAction :href="route('passive-device.odps.destroy', odp.id)" />
-                  </div>
+<ActionMenu
+                    :detail-route="route('passive-device.odps.show', odp.id)"
+                    :edit-route="route('passive-device.odps.edit', odp.id)"
+                    :delete-route="route('passive-device.odps.destroy', odp.id)"
+                    delete-message="Hapus ODP"
+                    :quick-preview="false"
+                  />
                 </TableCell>
               </TableRow>
               <TableRow v-if="odps.data.length === 0">

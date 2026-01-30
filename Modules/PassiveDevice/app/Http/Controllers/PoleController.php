@@ -39,7 +39,7 @@ class PoleController extends Controller
 
         return Inertia::render('PassiveDevice::Pole/Index', [
             'poles' => $poles,
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
             'filters' => $request->only(['search', 'area_id']),
         ]);
     }
@@ -50,7 +50,7 @@ class PoleController extends Controller
     public function create(): Response
     {
         return Inertia::render('PassiveDevice::Pole/Create', [
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
             'materials' => ['Beton', 'Besi', 'Kayu'],
             'ownerships' => ['Sendiri', 'PLN', 'Sewa'],
         ]);
@@ -90,7 +90,7 @@ class PoleController extends Controller
     {
         return Inertia::render('PassiveDevice::Pole/Edit', [
             'pole' => $pole,
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
             'materials' => ['Beton', 'Besi', 'Kayu'],
             'ownerships' => ['Sendiri', 'PLN', 'Sewa'],
         ]);

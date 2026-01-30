@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import L from 'leaflet'
+  import L from '@/utils/leaflet'
   import { onMounted, ref, watch } from 'vue'
   import 'leaflet/dist/leaflet.css'
 

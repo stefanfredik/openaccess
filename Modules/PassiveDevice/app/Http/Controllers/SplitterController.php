@@ -39,7 +39,7 @@ class SplitterController extends Controller
 
         return Inertia::render('PassiveDevice::Splitter/Index', [
             'splitters' => $splitters,
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
             'filters' => $request->only(['search', 'area_id']),
         ]);
     }
@@ -50,7 +50,7 @@ class SplitterController extends Controller
     public function create(): Response
     {
         return Inertia::render('PassiveDevice::Splitter/Create', [
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
         ]);
     }
 
@@ -82,7 +82,7 @@ class SplitterController extends Controller
     {
         return Inertia::render('PassiveDevice::Splitter/Edit', [
             'splitter' => $splitter,
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
         ]);
     }
 

@@ -1,14 +1,13 @@
 <script setup lang="ts">
   import { Head, Link, router } from '@inertiajs/vue3'
   import { debounce } from 'lodash'
-  import { Eye, Pencil, Plus, MapPin } from 'lucide-vue-next'
+  import { MapPin, Plus } from 'lucide-vue-next'
   import { ref, watch } from 'vue'
   import AppLayout from '@/layouts/AppLayout.vue'
-  import DeleteAction from '@/components/DeleteAction.vue'
   import Pagination from '@/components/Pagination.vue'
   import ResourceHeader from '@/components/ResourceHeader.vue'
+  import ActionMenu from '@/components/ActionMenu.vue'
   import { Badge } from '@/components/ui/badge'
-  import { Button } from '@/components/ui/button'
   import { Card, CardContent } from '@/components/ui/card'
   import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
   import type { InfrastructureArea, PaginatedData } from '@/types'
@@ -120,19 +119,13 @@
                   <Badge :variant="getUiStatus(site.status)">{{ site.status }}</Badge>
                 </TableCell>
                 <TableCell class="px-6 py-4 text-right">
-                  <div class="flex justify-end gap-2">
-                    <Button variant="ghost" size="icon" as-child title="Lihat Detail">
-                      <Link :href="route('site.show', site.id)">
-                        <Eye class="h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <Button variant="ghost" size="icon" as-child title="Edit">
-                      <Link :href="route('site.edit', site.id)">
-                        <Pencil class="h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <DeleteAction :href="route('site.destroy', site.id)" />
-                  </div>
+<ActionMenu
+                        :detail-route="route('site.show', site.id)"
+                        :edit-route="route('site.edit', site.id)"
+                        :delete-route="route('site.destroy', site.id)"
+                        delete-message="Hapus Site"
+                        :quick-preview="false"
+                      />
                 </TableCell>
               </TableRow>
               <TableRow v-if="sites.data.length === 0">

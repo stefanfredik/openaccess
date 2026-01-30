@@ -59,7 +59,7 @@ class OltController extends Controller
 
         return Inertia::render('ActiveDevice::Olt/Index', [
             'olts' => $olts,
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
             'filters' => $request->only(['search', 'area_id']),
         ]);
     }
@@ -70,8 +70,8 @@ class OltController extends Controller
     public function create(): Response
     {
         return Inertia::render('ActiveDevice::Olt/Create', [
-            'areas' => InfrastructureArea::all(),
-            'pops' => Pop::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
+            'pops' => Pop::select('id', 'name', 'code')->get(),
         ]);
     }
 
@@ -114,8 +114,8 @@ class OltController extends Controller
     {
         return Inertia::render('ActiveDevice::Olt/Edit', [
             'olt' => $olt->load(['servicePorts', 'interfaces']),
-            'areas' => InfrastructureArea::all(),
-            'pops' => Pop::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
+            'pops' => Pop::select('id', 'name', 'code')->get(),
         ]);
     }
 

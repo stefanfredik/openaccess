@@ -59,7 +59,7 @@ class SwitchController extends Controller
 
         return Inertia::render('ActiveDevice::Switch/Index', [
             'switches' => $switches,
-            'areas' => InfrastructureArea::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
             'filters' => $request->only(['search', 'area_id']),
         ]);
     }
@@ -70,8 +70,8 @@ class SwitchController extends Controller
     public function create(): Response
     {
         return Inertia::render('ActiveDevice::Switch/Create', [
-            'areas' => InfrastructureArea::all(),
-            'pops' => Pop::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
+            'pops' => Pop::select('id', 'name', 'code')->get(),
         ]);
     }
 
@@ -114,8 +114,8 @@ class SwitchController extends Controller
     {
         return Inertia::render('ActiveDevice::Switch/Edit', [
             'networkSwitch' => $switch->load('servicePorts'),
-            'areas' => InfrastructureArea::all(),
-            'pops' => Pop::all(),
+            'areas' => InfrastructureArea::select('id', 'name', 'code')->get(),
+            'pops' => Pop::select('id', 'name', 'code')->get(),
         ]);
     }
 
