@@ -44,6 +44,8 @@ class Olt extends Model
         'installed_at' => 'date:Y-m-d',
     ];
 
+    protected $appends = ['port_count'];
+
     public function photos()
     {
         return $this->hasMany(OltPhoto::class);
@@ -77,5 +79,10 @@ class Olt extends Model
     public function servicePorts()
     {
         return $this->morphMany(ServicePort::class, 'portable');
+    }
+
+    public function getPortCountAttribute(): int
+    {
+        return $this->interfaces()->count() ?: 8;
     }
 }

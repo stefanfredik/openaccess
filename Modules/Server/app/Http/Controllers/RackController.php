@@ -130,6 +130,7 @@ class RackController extends Controller
                 'type' => $type,
                 'class' => get_class($d),
                 'code' => $d->code,
+                'port_count' => $d->port_count ?? ($d->interfaces_count ?? 0),
             ]);
 
             $allDevices = $allDevices->concat($devices);

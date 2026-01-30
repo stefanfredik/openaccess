@@ -389,13 +389,30 @@
                                                                             'border-white/20',
                                                                         ]"
                                                                         :style="{ height: `calc(${getDeviceAtU(selectedRack, u).unit_size} * 40px + (${getDeviceAtU(selectedRack, u).unit_size} - 1) * 1px)` }">
-                                                                        <div class="flex flex-col min-w-0">
+                                                                        <div class="flex flex-col min-w-0 z-10">
                                                                             <span class="truncate text-[11px] font-bold leading-tight">{{ getDeviceAtU(selectedRack, u).device?.name }}</span>
                                                                             <span class="text-[9px] uppercase tracking-wider opacity-80 leading-tight font-medium">
                                                                                 {{ getDeviceAtU(selectedRack, u).device_type.split('\\').pop() }}
                                                                             </span>
                                                                         </div>
-                                                                        <div class="flex-shrink-0 h-1.5 w-1.5 rounded-full bg-white/40 ring-4 ring-white/5 ml-2"></div>
+                                                                        
+                                                                        <!-- Hardware Ports Visualization -->
+                                                                        <div class="absolute inset-x-[120px] inset-y-1.5 flex items-center justify-end pr-4 pointer-events-none">
+                                                                            <div class="bg-black/20 rounded-sm p-1 border border-white/5 flex items-center h-full">
+                                                                                <div class="grid grid-flow-col gap-1" 
+                                                                                    :style="{ 
+                                                                                        gridTemplateRows: `repeat(${getDeviceAtU(selectedRack, u).unit_size > 1 ? 4 : 2}, minmax(0, 1fr))`,
+                                                                                        gridTemplateColumns: `repeat(${Math.ceil((getDeviceAtU(selectedRack, u).device?.port_count || 0) / (getDeviceAtU(selectedRack, u).unit_size > 1 ? 4 : 2))}, minmax(0, 1fr))`
+                                                                                    }">
+                                                                                    <div v-for="p in (getDeviceAtU(selectedRack, u).device?.port_count || 0)" 
+                                                                                        :key="p" 
+                                                                                        class="h-1.5 w-1.5 rounded-full bg-white/60 shadow-[0_0_3px_rgba(255,255,255,0.6)] ring-1 ring-white/10">
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div class="flex-shrink-0 h-1.5 w-1.5 rounded-full bg-white/40 ring-4 ring-white/5 ml-2 z-10"></div>
                                                                     </div>
                                                             </TooltipTrigger>
                                                             <TooltipContent side="right" :side-offset="15" class="w-64 p-0 overflow-hidden border-slate-800 bg-slate-950 shadow-2xl">
@@ -421,6 +438,11 @@
                                                                                 <span class="text-[10px] text-slate-400 uppercase">Code</span>
                                                                                 <span class="text-xs font-medium text-slate-200">{{ getDeviceAtU(selectedRack, u).device?.code || '-' }}</span>
                                                                             </div>
+                                                                        </div>
+
+                                                                        <div class="flex flex-col border-t border-white/5 pt-2">
+                                                                            <span class="text-[10px] text-slate-400 uppercase">Hardware Configuration</span>
+                                                                            <span class="text-xs font-medium text-slate-200">{{ getDeviceAtU(selectedRack, u).device?.port_count || 0 }} Total Ports</span>
                                                                         </div>
 
                                                                         <div class="flex flex-col border-t border-white/5 pt-2">
