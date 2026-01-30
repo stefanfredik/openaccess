@@ -17,7 +17,7 @@ class UpdatePoleRequest extends FormRequest
                 'required',
                 'string',
                 \Illuminate\Validation\Rule::unique('pd_poles')
-                    ->where(fn($query) => $query->where('company_id', auth()->user()->company_id))
+                    ->where(fn ($query) => $query->where('company_id', auth()->user()->company_id))
                     ->ignore($this->route('pole')),
             ],
             'name' => ['required', 'string', 'max:255'],

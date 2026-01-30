@@ -2,13 +2,14 @@
 
 namespace Modules\Cpe\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
 // use Modules\Cpe\Database\Factories\CpeFactory;
 
 class Cpe extends Model
 {
-    use HasFactory, \App\Traits\BelongsToCompany;
+    use \App\Traits\BelongsToCompany, HasFactory;
 
     protected $table = 'cpes';
 

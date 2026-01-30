@@ -2,13 +2,14 @@
 
 namespace Modules\PassiveDevice\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
 // use Modules\PassiveDevice\Database\Factories\PoleFactory;
 
 class Pole extends Model
 {
-    use HasFactory, \App\Traits\BelongsToCompany;
+    use \App\Traits\BelongsToCompany, HasFactory;
 
     protected $table = 'pd_poles';
 

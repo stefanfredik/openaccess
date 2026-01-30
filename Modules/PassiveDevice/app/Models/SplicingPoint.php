@@ -2,14 +2,14 @@
 
 namespace Modules\PassiveDevice\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Traits\BelongsToCompany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Modules\Area\Models\InfrastructureArea;
 
 class SplicingPoint extends Model
 {
-    use HasFactory, BelongsToCompany;
+    use BelongsToCompany, HasFactory;
 
     protected $table = 'pd_splicing_points';
 

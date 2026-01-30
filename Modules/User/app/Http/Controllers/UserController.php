@@ -3,21 +3,19 @@
 namespace Modules\User\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
-use Inertia\Inertia;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Hash;
+use Inertia\Inertia;
 use Modules\Company\Models\Company;
 use Modules\User\Http\Requests\StoreUserRequest;
 use Modules\User\Http\Requests\UpdateUserRequest;
-use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
     public function index()
     {
-        if (!auth()->user()->hasRole('superadmin')) {
+        if (! auth()->user()->hasRole('superadmin')) {
             abort(403);
         }
 
@@ -43,7 +41,7 @@ class UserController extends Controller
 
     public function create()
     {
-        if (!auth()->user()->hasRole('superadmin')) {
+        if (! auth()->user()->hasRole('superadmin')) {
             abort(403);
         }
 
@@ -55,7 +53,7 @@ class UserController extends Controller
 
     public function store(StoreUserRequest $request)
     {
-        if (!auth()->user()->hasRole('superadmin')) {
+        if (! auth()->user()->hasRole('superadmin')) {
             abort(403);
         }
 
@@ -70,7 +68,7 @@ class UserController extends Controller
 
     public function edit($id)
     {
-        if (!auth()->user()->hasRole('superadmin')) {
+        if (! auth()->user()->hasRole('superadmin')) {
             abort(403);
         }
 
@@ -91,7 +89,7 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request, $id)
     {
-        if (!auth()->user()->hasRole('superadmin')) {
+        if (! auth()->user()->hasRole('superadmin')) {
             abort(403);
         }
 
@@ -112,7 +110,7 @@ class UserController extends Controller
 
     public function destroy($id)
     {
-        if (!auth()->user()->hasRole('superadmin')) {
+        if (! auth()->user()->hasRole('superadmin')) {
             abort(403);
         }
 

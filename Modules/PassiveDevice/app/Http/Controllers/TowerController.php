@@ -3,13 +3,11 @@
 namespace Modules\PassiveDevice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
 use Inertia\Inertia;
-use Modules\PassiveDevice\Models\Tower;
+use Modules\Area\Models\InfrastructureArea;
 use Modules\PassiveDevice\Http\Requests\StoreTowerRequest;
 use Modules\PassiveDevice\Http\Requests\UpdateTowerRequest;
-use Modules\Area\Models\InfrastructureArea;
+use Modules\PassiveDevice\Models\Tower;
 
 class TowerController extends Controller
 {

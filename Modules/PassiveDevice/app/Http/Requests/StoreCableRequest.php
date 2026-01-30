@@ -16,7 +16,7 @@ class StoreCableRequest extends FormRequest
             'code' => [
                 'required',
                 'string',
-                \Illuminate\Validation\Rule::unique('pd_cables')->where(fn($query) => $query->where('company_id', auth()->user()->company_id)),
+                \Illuminate\Validation\Rule::unique('pd_cables')->where(fn ($query) => $query->where('company_id', auth()->user()->company_id)),
             ],
             'name' => ['required', 'string', 'max:255'],
             'length' => ['required', 'numeric', 'min:0'],

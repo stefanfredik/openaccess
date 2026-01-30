@@ -4,13 +4,11 @@ namespace Modules\Pop\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-
 use Inertia\Inertia;
-use Modules\Pop\Models\Pop;
-use Modules\Pop\Models\PopPhoto;
 use Modules\Area\Models\InfrastructureArea;
 use Modules\Pop\Http\Requests\StorePopRequest;
 use Modules\Pop\Http\Requests\UpdatePopRequest;
+use Modules\Pop\Models\Pop;
 
 class PopController extends Controller
 {
@@ -21,7 +19,7 @@ class PopController extends Controller
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('code', 'like', "%{$search}%");
+                        ->orWhere('code', 'like', "%{$search}%");
                 });
             })
             ->when($request->input('type'), function ($query, $type) {

@@ -3,13 +3,11 @@
 namespace Modules\PassiveDevice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
 use Inertia\Inertia;
-use Modules\PassiveDevice\Models\Odf;
+use Modules\Area\Models\InfrastructureArea;
 use Modules\PassiveDevice\Http\Requests\StoreOdfRequest;
 use Modules\PassiveDevice\Http\Requests\UpdateOdfRequest;
-use Modules\Area\Models\InfrastructureArea;
+use Modules\PassiveDevice\Models\Odf;
 
 class OdfController extends Controller
 {

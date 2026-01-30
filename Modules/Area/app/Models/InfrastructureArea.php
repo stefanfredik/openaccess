@@ -2,17 +2,14 @@
 
 namespace Modules\Area\Models;
 
-
 use App\Traits\BelongsToCompany;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class InfrastructureArea extends Model
 {
-    use HasFactory, SoftDeletes, BelongsToCompany;
+    use BelongsToCompany, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'company_id',

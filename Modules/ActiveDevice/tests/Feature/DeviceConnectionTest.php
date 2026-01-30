@@ -2,21 +2,22 @@
 
 namespace Modules\ActiveDevice\Tests\Feature;
 
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\User;
-use Modules\Company\Models\Company;
-use Modules\ActiveDevice\Models\Router;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\ActiveDevice\Models\AdSwitch;
-use Modules\ActiveDevice\Models\DeviceConnection;
+use Modules\ActiveDevice\Models\Router;
 use Modules\Area\Models\InfrastructureArea;
+use Modules\Company\Models\Company;
+use Tests\TestCase;
 
 class DeviceConnectionTest extends TestCase
 {
     use RefreshDatabase;
 
     protected $user;
+
     protected $company;
+
     protected $area;
 
     protected function setUp(): void
@@ -28,14 +29,14 @@ class DeviceConnectionTest extends TestCase
             'code' => 'TEST',
             'address' => 'Test Address',
             'phone' => '08123',
-            'email' => 'test@test.com'
+            'email' => 'test@test.com',
         ]);
 
         $this->area = InfrastructureArea::create([
             'company_id' => $this->company->id,
             'name' => 'Test Area',
             'code' => 'AREA-01',
-            'type' => 'Village'
+            'type' => 'Village',
         ]);
 
         $this->user = User::factory()->create([
@@ -98,7 +99,7 @@ class DeviceConnectionTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertInertia(
-            fn($page) => $page
+            fn ($page) => $page
                 ->component('ActiveDevice::Topology', false)
                 ->has('topology')
         );

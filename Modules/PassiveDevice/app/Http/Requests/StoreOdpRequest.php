@@ -16,7 +16,7 @@ class StoreOdpRequest extends FormRequest
             'code' => [
                 'required',
                 'string',
-                \Illuminate\Validation\Rule::unique('pd_odps')->where(fn($query) => $query->where('company_id', auth()->user()->company_id)),
+                \Illuminate\Validation\Rule::unique('pd_odps')->where(fn ($query) => $query->where('company_id', auth()->user()->company_id)),
             ],
             'name' => ['required', 'string', 'max:255'],
             'port_count' => ['required', 'integer', 'min:0'],

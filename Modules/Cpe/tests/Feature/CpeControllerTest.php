@@ -2,19 +2,21 @@
 
 namespace Modules\Cpe\Tests\Feature;
 
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\User;
-use Modules\Company\Models\Company;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Area\Models\InfrastructureArea;
+use Modules\Company\Models\Company;
 use Modules\Cpe\Models\Cpe;
+use Tests\TestCase;
 
 class CpeControllerTest extends TestCase
 {
     use RefreshDatabase;
 
     protected $user;
+
     protected $company;
+
     protected $area;
 
     protected function setUp(): void
@@ -58,7 +60,7 @@ class CpeControllerTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertInertia(
-            fn($page) => $page
+            fn ($page) => $page
                 ->component('Cpe::Index', false)
                 ->has('cpes.data', 1)
         );

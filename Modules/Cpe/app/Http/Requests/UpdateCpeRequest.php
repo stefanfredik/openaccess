@@ -15,7 +15,7 @@ class UpdateCpeRequest extends FormRequest
             'infrastructure_area_id' => 'required|exists:infrastructure_areas,id',
             'active_device_id' => 'nullable|integer',
             'active_device_type' => 'nullable|string',
-            'code' => 'required|string|max:255|unique:cpes,code,' . $this->route('cpe')->id,
+            'code' => 'required|string|max:255|unique:cpes,code,'.$this->route('cpe')->id,
             'name' => 'required|string|max:255',
             'address' => 'required|string|max:255',
             'longitude' => 'nullable|numeric|between:-180,180',

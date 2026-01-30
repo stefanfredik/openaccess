@@ -5,7 +5,6 @@ namespace Modules\User\Tests\Feature;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Company\Models\Company;
-
 use Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);

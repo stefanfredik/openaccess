@@ -4,14 +4,12 @@ namespace Modules\Server\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-
 use Inertia\Inertia;
-use Modules\Server\Models\Server;
-use Modules\Server\Models\ServerPhoto;
 use Modules\Area\Models\InfrastructureArea;
 use Modules\Pop\Models\Pop;
 use Modules\Server\Http\Requests\StoreServerRequest;
 use Modules\Server\Http\Requests\UpdateServerRequest;
+use Modules\Server\Models\Server;
 
 class ServerController extends Controller
 {
@@ -22,7 +20,7 @@ class ServerController extends Controller
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('code', 'like', "%{$search}%");
+                        ->orWhere('code', 'like', "%{$search}%");
                 });
             })
             ->when($request->input('type'), function ($query, $type) {
@@ -57,7 +55,7 @@ class ServerController extends Controller
         if ($request->hasFile('photos')) {
             foreach ($request->file('photos') as $category => $files) {
                 foreach ($files as $file) {
-                    $path = $file->store('server-photos/' . $category, 'public');
+                    $path = $file->store('server-photos/'.$category, 'public');
                     $server->photos()->create([
                         'path' => $path,
                         'category' => $category,
@@ -97,7 +95,7 @@ class ServerController extends Controller
         if ($request->hasFile('photos')) {
             foreach ($request->file('photos') as $category => $files) {
                 foreach ($files as $file) {
-                    $path = $file->store('server-photos/' . $category, 'public');
+                    $path = $file->store('server-photos/'.$category, 'public');
                     $server->photos()->create([
                         'path' => $path,
                         'category' => $category,

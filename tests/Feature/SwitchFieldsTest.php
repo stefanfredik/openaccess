@@ -7,29 +7,29 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Modules\ActiveDevice\Models\AdSwitch;
-use Modules\Company\Models\Company;
 use Modules\Area\Models\InfrastructureArea;
+use Modules\Company\Models\Company;
 use Modules\Pop\Models\Pop;
 
 uses(RefreshDatabase::class);
 
 test('can create switch with new fields and photo', function () {
     Storage::fake('public');
-    
+
     $user = User::factory()->create([
         'company_id' => Company::create([
             'name' => 'Test Company',
             'code' => 'TC01',
             'address' => '123 Test St',
             'phone' => '1234567890',
-            'email' => 'test@company.com'
-        ])->id
+            'email' => 'test@company.com',
+        ])->id,
     ]);
 
     $area = InfrastructureArea::create([
         'company_id' => $user->company_id,
         'name' => 'Test Area',
-        'code' => 'TA01'
+        'code' => 'TA01',
     ]);
 
     $pop = Pop::create([
@@ -40,7 +40,7 @@ test('can create switch with new fields and photo', function () {
         'code' => 'POP02',
         'address' => 'Test Address',
         'latitude' => '-6.200000',
-        'longitude' => '106.816666'
+        'longitude' => '106.816666',
     ]);
 
     $photo = UploadedFile::fake()->image('switch.jpg');
@@ -58,8 +58,8 @@ test('can create switch with new fields and photo', function () {
         'purchase_year' => 2023,
         'photo' => $photo,
         'service_ports' => [
-            ['name' => 'SSH', 'port' => 22, 'status' => 'Active']
-        ]
+            ['name' => 'SSH', 'port' => 22, 'status' => 'Active'],
+        ],
     ]);
 
     $response->assertRedirect(route('active-device.switch.index'));
@@ -68,7 +68,7 @@ test('can create switch with new fields and photo', function () {
 
     expect($switch->username)->toBe('admin');
     expect($switch->purchase_year)->toBe(2023);
-    
+
     // Check if photo is stored
     expect($switch->photo)->not->toBeNull();
     Storage::disk('public')->assertExists($switch->photo);
@@ -81,18 +81,18 @@ test('can create switch with new fields and photo', function () {
 test('unmanageable switch stores null technical fields', function () {
     $user = User::factory()->create([
         'company_id' => Company::create([
-            'name' => 'Test Company', 
+            'name' => 'Test Company',
             'code' => 'TC02',
             'address' => '123 Test St',
             'phone' => '1234567890',
-            'email' => 'test@company.com'
-        ])->id
+            'email' => 'test@company.com',
+        ])->id,
     ]);
 
     $area = InfrastructureArea::create([
         'company_id' => $user->company_id,
         'name' => 'Test Area',
-        'code' => 'TA01'
+        'code' => 'TA01',
     ]);
 
     $pop = Pop::create([
@@ -103,7 +103,7 @@ test('unmanageable switch stores null technical fields', function () {
         'code' => 'POP02',
         'address' => 'Test Address',
         'latitude' => '-6.200000',
-        'longitude' => '106.816666'
+        'longitude' => '106.816666',
     ]);
 
     $response = $this->actingAs($user)->post(route('active-device.switch.store'), [

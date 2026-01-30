@@ -5,21 +5,21 @@ namespace Modules\Area\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Modules\Area\Models\InfrastructureArea;
 use Modules\Area\Http\Requests\StoreAreaRequest;
 use Modules\Area\Http\Requests\UpdateAreaRequest;
+use Modules\Area\Models\InfrastructureArea;
 
 class AreaController extends Controller
 {
     public function index(Request $request)
     {
         $filters = $request->only(['search', 'type']);
-        
+
         $areas = InfrastructureArea::query()
             ->when($filters['search'] ?? null, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('code', 'like', "%{$search}%");
+                        ->orWhere('code', 'like', "%{$search}%");
                 });
             })
             ->when($filters['type'] ?? null, function ($query, $type) {

@@ -3,13 +3,11 @@
 namespace Modules\PassiveDevice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
 use Inertia\Inertia;
-use Modules\PassiveDevice\Models\JointBox;
+use Modules\Area\Models\InfrastructureArea;
 use Modules\PassiveDevice\Http\Requests\StoreJointBoxRequest;
 use Modules\PassiveDevice\Http\Requests\UpdateJointBoxRequest;
-use Modules\Area\Models\InfrastructureArea;
+use Modules\PassiveDevice\Models\JointBox;
 
 class JointBoxController extends Controller
 {

@@ -3,7 +3,6 @@
 namespace Modules\PassiveDevice\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-
 use Illuminate\Validation\Rule;
 
 class StoreOdfRequest extends FormRequest
@@ -18,7 +17,7 @@ class StoreOdfRequest extends FormRequest
             'code' => [
                 'required',
                 'string',
-                Rule::unique('pd_odfs')->where(fn($query) => $query->where('company_id', auth()->user()->company_id)),
+                Rule::unique('pd_odfs')->where(fn ($query) => $query->where('company_id', auth()->user()->company_id)),
             ],
             'name' => ['required', 'string', 'max:255'],
             'port_count' => ['required', 'integer', 'min:0'],

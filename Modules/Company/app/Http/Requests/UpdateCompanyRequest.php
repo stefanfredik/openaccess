@@ -22,7 +22,7 @@ class UpdateCompanyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['required', 'string', 'max:20', 'unique:companies,code,' . $this->company->id],
+            'code' => ['required', 'string', 'max:20', 'unique:companies,code,'.$this->company->id],
             'name' => ['required', 'string', 'max:255'],
             'address' => ['required', 'string'],
             'phone' => ['required', 'string', 'max:20'],

@@ -11,7 +11,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable, \Spatie\Permission\Traits\HasRoles, \App\Traits\BelongsToCompany;
+    use \App\Traits\BelongsToCompany, HasFactory, Notifiable, \Spatie\Permission\Traits\HasRoles, TwoFactorAuthenticatable;
 
     /**
      * The attributes that are mass assignable.

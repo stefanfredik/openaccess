@@ -36,7 +36,7 @@ class StoreSwitchRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'username' => ['nullable', 'string', 'max:255'],
             'password' => ['nullable', 'string', 'max:255'],
-            'purchase_year' => ['nullable', 'integer', 'digits:4', 'min:1900', 'max:' . (date('Y') + 1)],
+            'purchase_year' => ['nullable', 'integer', 'digits:4', 'min:1900', 'max:'.(date('Y') + 1)],
             'photo' => ['nullable', 'image', 'max:2048'], // Max 2MB
             'service_ports' => ['nullable', 'array'],
             'service_ports.*.name' => ['required', 'string', 'max:255'],

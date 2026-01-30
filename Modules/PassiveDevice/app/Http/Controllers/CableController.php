@@ -3,13 +3,11 @@
 namespace Modules\PassiveDevice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
 use Inertia\Inertia;
-use Modules\PassiveDevice\Models\Cable;
+use Modules\Area\Models\InfrastructureArea;
 use Modules\PassiveDevice\Http\Requests\StoreCableRequest;
 use Modules\PassiveDevice\Http\Requests\UpdateCableRequest;
-use Modules\Area\Models\InfrastructureArea;
+use Modules\PassiveDevice\Models\Cable;
 
 class CableController extends Controller
 {

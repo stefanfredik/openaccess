@@ -35,7 +35,7 @@ class StoreRouterRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'username' => ['nullable', 'string', 'max:255'],
             'password' => ['nullable', 'string', 'max:255'],
-            'purchase_year' => ['nullable', 'integer', 'min:1900', 'max:' . date('Y')],
+            'purchase_year' => ['nullable', 'integer', 'min:1900', 'max:'.date('Y')],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
             'service_ports' => ['nullable', 'array'],
             'service_ports.*.name' => ['required', 'string', 'max:255'],

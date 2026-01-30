@@ -17,7 +17,7 @@ class UpdateTowerRequest extends FormRequest
                 'required',
                 'string',
                 \Illuminate\Validation\Rule::unique('pd_towers')
-                    ->where(fn($query) => $query->where('company_id', auth()->user()->company_id))
+                    ->where(fn ($query) => $query->where('company_id', auth()->user()->company_id))
                     ->ignore($this->route('tower')),
             ],
             'name' => ['required', 'string', 'max:255'],

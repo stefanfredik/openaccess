@@ -14,7 +14,7 @@ class UpdateServerRequest extends FormRequest
         return [
             'area_id' => 'required|exists:infrastructure_areas,id',
             'pop_id' => 'nullable|exists:pops,id',
-            'code' => 'required|string|unique:servers,code,' . $this->route('server'),
+            'code' => 'required|string|unique:servers,code,'.$this->route('server'),
             'name' => 'required|string|max:255',
             'function' => 'required|in:Server,OLT,Core Network,NOC',
             'building' => 'nullable|string',

@@ -17,7 +17,7 @@ class UpdateJointBoxRequest extends FormRequest
                 'required',
                 'string',
                 \Illuminate\Validation\Rule::unique('pd_joint_boxes')
-                    ->where(fn($query) => $query->where('company_id', auth()->user()->company_id))
+                    ->where(fn ($query) => $query->where('company_id', auth()->user()->company_id))
                     ->ignore($this->route('joint_box')),
             ],
             'name' => ['required', 'string', 'max:255'],

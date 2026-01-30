@@ -14,7 +14,7 @@ class UpdateSplicingPointRequest extends FormRequest
         return [
             'infrastructure_area_id' => 'required|exists:infrastructure_areas,id',
             'joint_box_id' => 'required|exists:pd_joint_boxes,id',
-            'code' => 'required|string|max:255|unique:pd_splicing_points,code,' . $this->route('splicing_point'),
+            'code' => 'required|string|max:255|unique:pd_splicing_points,code,'.$this->route('splicing_point'),
             'name' => 'required|string|max:255',
             'tray_number' => 'nullable|string|max:255',
             'splicing_type' => 'nullable|string|max:255',

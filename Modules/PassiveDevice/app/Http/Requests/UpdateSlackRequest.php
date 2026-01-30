@@ -17,7 +17,7 @@ class UpdateSlackRequest extends FormRequest
                 'required',
                 'string',
                 \Illuminate\Validation\Rule::unique('pd_slacks')
-                    ->where(fn($query) => $query->where('company_id', auth()->user()->company_id))
+                    ->where(fn ($query) => $query->where('company_id', auth()->user()->company_id))
                     ->ignore($this->route('slack')),
             ],
             'name' => ['required', 'string', 'max:255'],

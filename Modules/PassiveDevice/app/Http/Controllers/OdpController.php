@@ -3,13 +3,11 @@
 namespace Modules\PassiveDevice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
 use Inertia\Inertia;
-use Modules\PassiveDevice\Models\Odp;
+use Modules\Area\Models\InfrastructureArea;
 use Modules\PassiveDevice\Http\Requests\StoreOdpRequest;
 use Modules\PassiveDevice\Http\Requests\UpdateOdpRequest;
-use Modules\Area\Models\InfrastructureArea;
+use Modules\PassiveDevice\Models\Odp;
 
 class OdpController extends Controller
 {

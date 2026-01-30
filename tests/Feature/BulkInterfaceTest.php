@@ -3,13 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use Modules\ActiveDevice\Models\AdSwitch;
-use Modules\Company\Models\Company;
-use Modules\Area\Models\InfrastructureArea;
-use Modules\Pop\Models\Pop;
-use Modules\ActiveDevice\Models\DeviceInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
+use Modules\ActiveDevice\Models\AdSwitch;
+use Modules\ActiveDevice\Models\DeviceInterface;
+use Modules\Area\Models\InfrastructureArea;
+use Modules\Company\Models\Company;
+use Modules\Pop\Models\Pop;
 use Tests\TestCase;
 
 class BulkInterfaceTest extends TestCase
@@ -44,7 +43,7 @@ class BulkInterfaceTest extends TestCase
             'code' => 'POP01',
             'address' => 'Test Address',
             'latitude' => '-6.200000',
-            'longitude' => '106.816666'
+            'longitude' => '106.816666',
         ]);
 
         $switch = AdSwitch::create([
@@ -103,7 +102,7 @@ class BulkInterfaceTest extends TestCase
             'code' => 'POP02',
             'address' => 'Test Address',
             'latitude' => '-6.200000',
-            'longitude' => '106.816666'
+            'longitude' => '106.816666',
         ]);
 
         $switch = AdSwitch::create([
@@ -130,7 +129,7 @@ class BulkInterfaceTest extends TestCase
         ]);
 
         $response->assertSessionHasNoErrors();
-        
+
         // Verify 5 interfaces created
         $this->assertEquals(5, DeviceInterface::where('interfacable_id', $switch->id)->count());
 

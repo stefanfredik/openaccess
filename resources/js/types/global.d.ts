@@ -1,9 +1,8 @@
-
 // Ziggy route helper type definition
-declare function route(name?: string, params?: any, absolute?: boolean, config?: any): string;
+declare function route(name?: string, params?: any, absolute?: boolean, config?: any): string
 
 declare module '@vue/runtime-core' {
-    interface ComponentCustomProperties {
-        route: (name?: string, params?: any, absolute?: boolean, config?: any) => string;
-    }
+  interface ComponentCustomProperties {
+    route: (name?: string, params?: any, absolute?: boolean, config?: any) => string
+  }
 }

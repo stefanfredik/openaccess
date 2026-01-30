@@ -46,7 +46,6 @@ class Router extends Model
         'purchase_year' => 'integer',
     ];
 
-
     public function area()
     {
         return $this->belongsTo(\Modules\Area\Models\InfrastructureArea::class, 'infrastructure_area_id');

@@ -2,13 +2,14 @@
 
 namespace Modules\ActiveDevice\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
 // use Modules\ActiveDevice\Database\Factories\DeviceConnectionFactory;
 
 class DeviceConnection extends Model
 {
-    use HasFactory, \App\Traits\BelongsToCompany;
+    use \App\Traits\BelongsToCompany, HasFactory;
 
     protected $table = 'ad_device_connections';
 

@@ -3,14 +3,14 @@
 namespace Modules\ActiveDevice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\TopologyNodePosition;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Modules\ActiveDevice\Http\Requests\StoreDeviceConnectionRequest;
-use Modules\ActiveDevice\Models\DeviceConnection;
-use Modules\ActiveDevice\Models\Router;
-use Modules\ActiveDevice\Models\Olt;
 use Modules\ActiveDevice\Models\AdSwitch;
-use App\Models\TopologyNodePosition;
+use Modules\ActiveDevice\Models\DeviceConnection;
+use Modules\ActiveDevice\Models\Olt;
+use Modules\ActiveDevice\Models\Router;
 
 class DeviceConnectionController extends Controller
 {
@@ -22,12 +22,12 @@ class DeviceConnectionController extends Controller
         // Check if Source Port is already occupied
         $isSourceBusy = DeviceConnection::where(function ($query) use ($data) {
             $query->where('source_type', $data['source_type'])
-                  ->where('source_id', $data['source_id'])
-                  ->where('source_port', $data['source_port']);
+                ->where('source_id', $data['source_id'])
+                ->where('source_port', $data['source_port']);
         })->orWhere(function ($query) use ($data) {
             $query->where('destination_type', $data['source_type'])
-                  ->where('destination_id', $data['source_id'])
-                  ->where('destination_port', $data['source_port']);
+                ->where('destination_id', $data['source_id'])
+                ->where('destination_port', $data['source_port']);
         })->exists();
 
         if ($isSourceBusy) {
@@ -37,12 +37,12 @@ class DeviceConnectionController extends Controller
         // Check if Destination Port is already occupied
         $isDestBusy = DeviceConnection::where(function ($query) use ($data) {
             $query->where('source_type', $data['destination_type'])
-                  ->where('source_id', $data['destination_id'])
-                  ->where('source_port', $data['destination_port']);
+                ->where('source_id', $data['destination_id'])
+                ->where('source_port', $data['destination_port']);
         })->orWhere(function ($query) use ($data) {
             $query->where('destination_type', $data['destination_type'])
-                  ->where('destination_id', $data['destination_id'])
-                  ->where('destination_port', $data['destination_port']);
+                ->where('destination_id', $data['destination_id'])
+                ->where('destination_port', $data['destination_port']);
         })->exists();
 
         if ($isDestBusy) {
@@ -63,6 +63,7 @@ class DeviceConnectionController extends Controller
     }
 
     private $seenDeviceUids = [];
+
     private $savedPositions = [];
 
     public function topology()
@@ -71,14 +72,14 @@ class DeviceConnectionController extends Controller
         $this->savedPositions = TopologyNodePosition::where('company_id', auth()->user()->company_id)
             ->get()
             ->pluck('y', 'node_uid')
-            ->mapWithKeys(fn($y, $uid) => [$uid => ['x' => TopologyNodePosition::where('node_uid', $uid)->first()->x, 'y' => $y]])
+            ->mapWithKeys(fn ($y, $uid) => [$uid => ['x' => TopologyNodePosition::where('node_uid', $uid)->first()->x, 'y' => $y]])
             ->toArray();
 
         // Simpler way to pluck x and y
         $this->savedPositions = TopologyNodePosition::where('company_id', auth()->user()->company_id)
             ->get()
             ->keyBy('node_uid')
-            ->map(fn($p) => ['x' => $p->x, 'y' => $p->y])
+            ->map(fn ($p) => ['x' => $p->x, 'y' => $p->y])
             ->toArray();
 
         // Get all connections to identify destinations correctly
@@ -86,6 +87,7 @@ class DeviceConnectionController extends Controller
 
         $isDestination = function ($device) use ($allConnections) {
             $class = get_class($device);
+
             return $allConnections->contains(function ($conn) use ($device, $class) {
                 return (string) $conn->destination_id === (string) $device->id
                     && $conn->destination_type === $class;
@@ -120,19 +122,20 @@ class DeviceConnectionController extends Controller
         });
 
         return Inertia::render('ActiveDevice::Topology', [
-            'topology' => $topology->filter()->values()
+            'topology' => $topology->filter()->values(),
         ]);
     }
 
     private function mapDeviceToNode($device, $connection = null)
     {
-        if (!$device)
+        if (! $device) {
             return null;
+        }
 
-        $uid = get_class($device) . '-' . $device->id;
+        $uid = get_class($device).'-'.$device->id;
         $isDuplicate = in_array($uid, $this->seenDeviceUids);
 
-        if (!$isDuplicate) {
+        if (! $isDuplicate) {
             $this->seenDeviceUids[] = $uid;
         }
 
@@ -151,10 +154,10 @@ class DeviceConnectionController extends Controller
             'is_duplicate' => $isDuplicate,
             'x' => $this->savedPositions[$uid]['x'] ?? null,
             'y' => $this->savedPositions[$uid]['y'] ?? null,
-            'children' => (!$isDuplicate && method_exists($device, 'sourceConnections'))
+            'children' => (! $isDuplicate && method_exists($device, 'sourceConnections'))
                 ? $device->sourceConnections()->with('destination')->get()->map(function ($conn) {
                     return $this->mapDeviceToNode($conn->destination, $conn);
-                })->filter()->values() : []
+                })->filter()->values() : [],
         ];
     }
 
@@ -176,7 +179,7 @@ class DeviceConnectionController extends Controller
     public function details(Request $request)
     {
         $uid = $request->input('uid');
-        if (!$uid) {
+        if (! $uid) {
             return response()->json(['error' => 'UID required'], 400);
         }
 
@@ -188,7 +191,7 @@ class DeviceConnectionController extends Controller
         $id = array_pop($parts);
         $modelClass = implode('-', $parts); // Rejoin in case class name had hyphens? (unlikely but safe)
 
-        if (!class_exists($modelClass)) {
+        if (! class_exists($modelClass)) {
             return response()->json(['error' => 'Invalid model class'], 400);
         }
 
@@ -196,10 +199,10 @@ class DeviceConnectionController extends Controller
             'area',
             'pop',
             'sourceConnections.destination',
-            'destinationConnections.source'
+            'destinationConnections.source',
         ])->find($id);
 
-        if (!$device) {
+        if (! $device) {
             return response()->json(['error' => 'Device not found'], 404);
         }
 

@@ -13,7 +13,7 @@ class UpdatePopRequest extends FormRequest
     {
         return [
             'area_id' => 'required|exists:infrastructure_areas,id',
-            'code' => 'required|string|unique:pops,code,' . $this->route('pop'),
+            'code' => 'required|string|unique:pops,code,'.$this->route('pop'),
             'name' => 'required|string|max:255',
             'address' => 'nullable|string',
             'province' => 'nullable|string',

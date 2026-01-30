@@ -17,7 +17,7 @@ class UpdateOdpRequest extends FormRequest
                 'required',
                 'string',
                 \Illuminate\Validation\Rule::unique('pd_odps')
-                    ->where(fn($query) => $query->where('company_id', auth()->user()->company_id))
+                    ->where(fn ($query) => $query->where('company_id', auth()->user()->company_id))
                     ->ignore($this->route('odp')),
             ],
             'name' => ['required', 'string', 'max:255'],

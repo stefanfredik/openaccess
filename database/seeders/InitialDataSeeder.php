@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class InitialDataSeeder extends Seeder
@@ -29,7 +28,7 @@ class InitialDataSeeder extends Seeder
             ]
         );
 
-        if (!$user->hasRole('superadmin')) {
+        if (! $user->hasRole('superadmin')) {
             $user->assignRole($superadminRole);
         }
     }

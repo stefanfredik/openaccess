@@ -3,13 +3,11 @@
 namespace Modules\PassiveDevice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
 use Inertia\Inertia;
-use Modules\PassiveDevice\Models\Splitter;
+use Modules\Area\Models\InfrastructureArea;
 use Modules\PassiveDevice\Http\Requests\StoreSplitterRequest;
 use Modules\PassiveDevice\Http\Requests\UpdateSplitterRequest;
-use Modules\Area\Models\InfrastructureArea;
+use Modules\PassiveDevice\Models\Splitter;
 
 class SplitterController extends Controller
 {

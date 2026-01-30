@@ -3,15 +3,11 @@
 namespace Modules\Site\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
 use Inertia\Inertia;
-use Modules\Site\Models\Site;
+use Modules\Area\Models\InfrastructureArea;
 use Modules\Site\Http\Requests\StoreSiteRequest;
 use Modules\Site\Http\Requests\UpdateSiteRequest;
-use Modules\Area\Models\InfrastructureArea;
-
-use Modules\Site\Models\SitePhoto;
+use Modules\Site\Models\Site;
 
 class SiteController extends Controller
 {

@@ -2,9 +2,8 @@
 
 namespace Modules\ActiveDevice\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Modules\ActiveDevice\Database\Factories\OltPhotoFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class OltPhoto extends Model
 {

@@ -4,6 +4,7 @@ namespace Modules\Company\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Modules\Company\Http\Requests\StoreCompanyRequest;
@@ -17,15 +18,15 @@ class CompanyController extends Controller
      */
     public function index(Request $request)
     {
-        if (!auth()->user()->hasRole('superadmin')) {
+        if (! Auth::user()->hasRole('superadmin')) {
             abort(403);
         }
 
         $query = Company::query();
 
         if ($request->has('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                ->orWhere('code', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%'.$request->search.'%')
+                ->orWhere('code', 'like', '%'.$request->search.'%');
         }
 
         $companies = $query->paginate(10)->withQueryString();
@@ -41,7 +42,7 @@ class CompanyController extends Controller
      */
     public function create()
     {
-        if (!auth()->user()->hasRole('superadmin')) {
+        if (! Auth::user()->hasRole('superadmin')) {
             abort(403);
         }
 
@@ -53,7 +54,7 @@ class CompanyController extends Controller
      */
     public function store(StoreCompanyRequest $request)
     {
-        if (!auth()->user()->hasRole('superadmin')) {
+        if (! Auth::user()->hasRole('superadmin')) {
             abort(403);
         }
 
@@ -74,7 +75,7 @@ class CompanyController extends Controller
      */
     public function show(Company $company)
     {
-        if (!auth()->user()->hasRole('superadmin') && auth()->user()->company_id !== $company->id) {
+        if (! Auth::user()->hasRole('superadmin') && Auth::user()->company_id !== $company->id) {
             abort(403);
         }
 
@@ -88,7 +89,7 @@ class CompanyController extends Controller
      */
     public function edit(Company $company)
     {
-        if (!auth()->user()->hasRole('superadmin')) {
+        if (! Auth::user()->hasRole('superadmin')) {
             // According to the request, company admin might only see details.
             // If they can't "mengelola" (manage), they probably can't edit.
             abort(403);
@@ -105,7 +106,7 @@ class CompanyController extends Controller
      */
     public function update(UpdateCompanyRequest $request, Company $company)
     {
-        if (!auth()->user()->hasRole('superadmin')) {
+        if (! Auth::user()->hasRole('superadmin')) {
             abort(403);
         }
 
@@ -130,7 +131,7 @@ class CompanyController extends Controller
      */
     public function destroy(Company $company)
     {
-        if (!auth()->user()->hasRole('superadmin')) {
+        if (! Auth::user()->hasRole('superadmin')) {
             abort(403);
         }
 

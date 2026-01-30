@@ -2,8 +2,9 @@
 
 namespace Modules\Server\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
 // use Modules\Server\Database\Factories\ServerPhotoFactory;
 
 class ServerPhoto extends Model

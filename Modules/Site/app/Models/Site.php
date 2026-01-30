@@ -2,13 +2,14 @@
 
 namespace Modules\Site\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
 // use Modules\Site\Database\Factories\SiteFactory;
 
 class Site extends Model
 {
-    use HasFactory, \Illuminate\Database\Eloquent\SoftDeletes, \App\Traits\BelongsToCompany;
+    use \App\Traits\BelongsToCompany, HasFactory, \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $fillable = [
         'company_id',

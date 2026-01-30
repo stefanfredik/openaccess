@@ -18,7 +18,7 @@ class Company extends Model
 
         static::addGlobalScope('company', function ($builder) {
             if (Auth::hasUser() && Auth::user()->company_id) {
-                $builder->where($builder->getModel()->getTable() . '.id', Auth::user()->company_id);
+                $builder->where($builder->getModel()->getTable().'.id', Auth::user()->company_id);
             }
         });
     }

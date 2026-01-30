@@ -16,7 +16,7 @@ class UpdateCableRequest extends FormRequest
             'code' => [
                 'sometimes',
                 'string',
-                \Illuminate\Validation\Rule::unique('pd_cables')->where(fn($query) => $query->where('company_id', auth()->user()->company_id))->ignore($this->route('cable')),
+                \Illuminate\Validation\Rule::unique('pd_cables')->where(fn ($query) => $query->where('company_id', auth()->user()->company_id))->ignore($this->route('cable')),
             ],
             'name' => ['sometimes', 'string', 'max:255'],
             'length' => ['sometimes', 'numeric', 'min:0'],

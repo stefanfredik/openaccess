@@ -2,8 +2,9 @@
 
 namespace Modules\Site\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
 // use Modules\Site\Database\Factories\SitePhotoFactory;
 
 class SitePhoto extends Model

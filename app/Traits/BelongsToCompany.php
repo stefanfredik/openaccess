@@ -16,12 +16,12 @@ trait BelongsToCompany
     {
         static::addGlobalScope('company', function (Builder $builder) {
             if (Auth::hasUser() && Auth::user()->company_id) {
-                $builder->where($builder->getModel()->getTable() . '.company_id', Auth::user()->company_id);
+                $builder->where($builder->getModel()->getTable().'.company_id', Auth::user()->company_id);
             }
         });
 
         static::creating(function ($model) {
-            if (Auth::check() && Auth::user()->company_id && !$model->company_id) {
+            if (Auth::check() && Auth::user()->company_id && ! $model->company_id) {
                 $model->company_id = Auth::user()->company_id;
             }
         });

@@ -2,12 +2,11 @@
 
 namespace Modules\Area\Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Modules\Area\Models\InfrastructureArea;
-use Tests\TestCase;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\Area\Models\InfrastructureArea;
 use Modules\Company\Models\Company;
+use Tests\TestCase;
 
 class AreaControllerTest extends TestCase
 {
@@ -28,17 +27,17 @@ class AreaControllerTest extends TestCase
             'phone' => '123456789',
             'email' => 'test@example.com',
         ]);
-        
+
         $user = User::factory()->create([
-            'company_id' => $company->id
+            'company_id' => $company->id,
         ]);
-        
+
         $this->actingAs($user);
-        
+
         $area = InfrastructureArea::create([
             'company_id' => $company->id,
             'name' => 'Test Area',
-            'type' => 'area'
+            'type' => 'area',
         ]);
 
         $response = $this->get(route('area.index'));

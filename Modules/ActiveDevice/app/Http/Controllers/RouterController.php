@@ -31,20 +31,20 @@ class RouterController extends Controller
             'destinationConnections.sourceInterface',
             'destinationConnections.destinationInterface',
         ])
-        ->when($request->search, function ($query, $search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('ip_address', 'like', "%{$search}%")
-                    ->orWhere('brand', 'like', "%{$search}%")
-                    ->orWhere('model', 'like', "%{$search}%")
-                    ->orWhere('code', 'like', "%{$search}%");
-            });
-        })
-        ->when($request->area_id && $request->area_id !== 'all', function ($query, $areaId) {
-            $query->where('infrastructure_area_id', $areaId);
-        })
-        ->latest()
-        ->paginate(10);
+            ->when($request->search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('ip_address', 'like', "%{$search}%")
+                        ->orWhere('brand', 'like', "%{$search}%")
+                        ->orWhere('model', 'like', "%{$search}%")
+                        ->orWhere('code', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->area_id && $request->area_id !== 'all', function ($query, $areaId) {
+                $query->where('infrastructure_area_id', $areaId);
+            })
+            ->latest()
+            ->paginate(10);
 
         return Inertia::render('ActiveDevice::Router/Index', [
             'routers' => $routers,

@@ -16,7 +16,7 @@ class StoreTowerRequest extends FormRequest
             'code' => [
                 'required',
                 'string',
-                \Illuminate\Validation\Rule::unique('pd_towers')->where(fn($query) => $query->where('company_id', auth()->user()->company_id)),
+                \Illuminate\Validation\Rule::unique('pd_towers')->where(fn ($query) => $query->where('company_id', auth()->user()->company_id)),
             ],
             'name' => ['required', 'string', 'max:255'],
             'height' => ['required', 'numeric', 'min:0'],

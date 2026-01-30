@@ -4,14 +4,13 @@ namespace Modules\PassiveDevice\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\PassiveDevice\Models\SplicingPoint;
-use Modules\PassiveDevice\Models\JointBox;
 use Modules\Area\Models\InfrastructureArea;
 use Modules\PassiveDevice\Http\Requests\StoreSplicingPointRequest;
 use Modules\PassiveDevice\Http\Requests\UpdateSplicingPointRequest;
+use Modules\PassiveDevice\Models\JointBox;
+use Modules\PassiveDevice\Models\SplicingPoint;
 
 class SplicingPointController extends Controller
 {

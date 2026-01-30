@@ -72,7 +72,7 @@ class DeviceInterfaceController extends Controller
             for ($i = 0; $i < $count; $i++) {
                 $data = $validated;
                 unset($data['prefix'], $data['start_number'], $data['count']);
-                $data['name'] = $prefix . ($start + $i);
+                $data['name'] = $prefix.($start + $i);
                 DeviceInterface::create($data);
             }
 
