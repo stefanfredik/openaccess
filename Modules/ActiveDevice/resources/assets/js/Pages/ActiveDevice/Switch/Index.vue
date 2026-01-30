@@ -113,12 +113,12 @@ const openDrawer = (networkSwitch: any) => {
 
             <!-- Table section -->
             <Card
-                class="overflow-hidden rounded-xl border-none bg-white shadow-sm"
+                class="overflow-hidden rounded-xl border-none bg-card shadow-sm"
             >
                 <div
-                    class="flex items-center justify-between border-b border-gray-50 bg-white p-6"
+                    class="flex items-center justify-between border-b border-border bg-card p-6"
                 >
-                    <h2 class="text-lg font-bold text-slate-800">
+                    <h2 class="text-lg font-bold text-foreground">
                         Daftar Inventori Switch
                     </h2>
                     <div class="flex space-x-2">
@@ -132,34 +132,36 @@ const openDrawer = (networkSwitch: any) => {
                 </div>
                 <CardContent class="p-0">
                     <Table>
-                        <TableHeader class="bg-gray-50/50">
-                            <TableRow class="border-b hover:bg-transparent">
+                        <TableHeader class="bg-muted/50">
+                            <TableRow
+                                class="border-b border-border hover:bg-transparent"
+                            >
                                 <TableHead
-                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                                     >Nama Perangkat</TableHead
                                 >
                                 <TableHead
-                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                                     >Brand / Model</TableHead
                                 >
                                 <TableHead
-                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                                     >Tipe Switch</TableHead
                                 >
                                 <TableHead
-                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                                     >IP Address</TableHead
                                 >
                                 <TableHead
-                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                                     >Port Count</TableHead
                                 >
                                 <TableHead
-                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                                     >Status</TableHead
                                 >
                                 <TableHead
-                                    class="px-6 py-4 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    class="px-6 py-4 text-right text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                                     >Aksi</TableHead
                                 >
                             </TableRow>
@@ -169,14 +171,14 @@ const openDrawer = (networkSwitch: any) => {
                                 v-for="item in switches.data"
                                 :key="item.id"
                                 @click="openDrawer(item)"
-                                class="group cursor-pointer border-b border-gray-50 transition-colors hover:bg-blue-50/40"
+                                class="group cursor-pointer border-b border-border transition-colors hover:bg-muted/50"
                             >
                                 <TableCell
-                                    class="px-6 py-4 font-semibold text-slate-800"
+                                    class="px-6 py-4 font-semibold text-foreground"
                                 >
                                     <div class="flex items-center gap-3">
                                         <div
-                                            class="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-100/50 bg-slate-50 text-slate-600 shadow-sm"
+                                            class="flex h-9 w-9 items-center justify-center rounded-lg border border-primary/10 bg-primary/5 text-primary shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-foreground"
                                         >
                                             <Network class="h-4.5 w-4.5" />
                                         </div>
@@ -190,21 +192,23 @@ const openDrawer = (networkSwitch: any) => {
                                     </div>
                                 </TableCell>
                                 <TableCell
-                                    class="px-6 py-4 font-medium text-gray-600"
+                                    class="px-6 py-4 font-medium text-muted-foreground"
                                 >
                                     {{ item.brand }} {{ item.model }}
                                 </TableCell>
                                 <TableCell
-                                    class="px-6 py-4 text-sm font-medium text-slate-600"
+                                    class="px-6 py-4 text-sm font-medium text-muted-foreground"
                                 >
                                     {{ item.switch_type || '-' }}
                                 </TableCell>
                                 <TableCell
-                                    class="px-6 py-4 font-mono text-xs text-blue-600"
+                                    class="px-6 py-4 font-mono text-xs text-blue-500 dark:text-blue-400"
                                 >
                                     {{ item.ip_address || '-' }}
                                 </TableCell>
-                                <TableCell class="px-6 py-4 text-sm">
+                                <TableCell
+                                    class="px-6 py-4 text-sm text-muted-foreground"
+                                >
                                     {{ item.port_count }} Ports
                                 </TableCell>
                                 <TableCell class="px-6 py-4">

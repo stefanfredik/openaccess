@@ -122,12 +122,12 @@ const getPortAbbreviation = (name: string) => {
 
             <!-- Table section -->
             <Card
-                class="overflow-hidden rounded-xl border-none bg-white shadow-sm"
+                class="overflow-hidden rounded-xl border-none bg-card shadow-sm"
             >
                 <div
-                    class="flex items-center justify-between border-b border-gray-50 bg-white p-6"
+                    class="flex items-center justify-between border-b border-border bg-card p-6"
                 >
-                    <h2 class="text-lg font-bold text-slate-800">
+                    <h2 class="text-lg font-bold text-foreground">
                         Daftar Inventori OLT
                     </h2>
                     <div class="flex space-x-2">
@@ -141,30 +141,32 @@ const getPortAbbreviation = (name: string) => {
                 </div>
                 <CardContent class="p-0">
                     <Table>
-                        <TableHeader class="bg-gray-50/50">
-                            <TableRow class="border-b hover:bg-transparent">
+                        <TableHeader class="bg-muted/50">
+                            <TableRow
+                                class="border-b border-border hover:bg-transparent"
+                            >
                                 <TableHead
-                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                                     >Nama Perangkat</TableHead
                                 >
                                 <TableHead
-                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                                     >Brand / Model</TableHead
                                 >
                                 <TableHead
-                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                                     >IP Address</TableHead
                                 >
                                 <TableHead
-                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                                     >Port Aktif</TableHead
                                 >
                                 <TableHead
-                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                                     >Status</TableHead
                                 >
                                 <TableHead
-                                    class="px-6 py-4 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    class="px-6 py-4 text-right text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                                     >Aksi</TableHead
                                 >
                             </TableRow>
@@ -174,14 +176,14 @@ const getPortAbbreviation = (name: string) => {
                                 v-for="olt in olts.data"
                                 :key="olt.id"
                                 @click="openDrawer(olt)"
-                                class="group cursor-pointer border-b border-gray-50 transition-colors hover:bg-blue-50/40"
+                                class="group cursor-pointer border-b border-border transition-colors hover:bg-muted/50"
                             >
                                 <TableCell
-                                    class="px-6 py-4 font-semibold text-slate-800"
+                                    class="px-6 py-4 font-semibold text-foreground"
                                 >
                                     <div class="flex items-center gap-3">
                                         <div
-                                            class="flex h-9 w-9 items-center justify-center rounded-lg border border-blue-100/50 bg-blue-50 text-blue-600 shadow-sm"
+                                            class="flex h-9 w-9 items-center justify-center rounded-lg border border-primary/10 bg-primary/5 text-primary shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-foreground"
                                         >
                                             <Cpu class="h-4.5 w-4.5" />
                                         </div>
@@ -195,12 +197,12 @@ const getPortAbbreviation = (name: string) => {
                                     </div>
                                 </TableCell>
                                 <TableCell
-                                    class="px-6 py-4 font-medium text-gray-600"
+                                    class="px-6 py-4 font-medium text-muted-foreground"
                                 >
                                     {{ olt.brand }} {{ olt.model }}
                                 </TableCell>
                                 <TableCell
-                                    class="px-6 py-4 font-mono text-xs text-blue-600"
+                                    class="px-6 py-4 font-mono text-xs text-blue-500 dark:text-blue-400"
                                 >
                                     {{ olt.ip_address }}
                                 </TableCell>
@@ -213,7 +215,7 @@ const getPortAbbreviation = (name: string) => {
                                             :key="port.id"
                                         >
                                             <span
-                                                class="flex h-7 w-7 items-center justify-center rounded border-2 border-white bg-green-50 text-[9px] font-bold text-green-700 shadow-sm"
+                                                class="flex h-7 w-7 items-center justify-center rounded border-2 border-background bg-emerald-500/10 text-[9px] font-bold text-emerald-600 shadow-sm dark:text-emerald-400"
                                                 :title="port.name"
                                             >
                                                 {{
@@ -225,7 +227,7 @@ const getPortAbbreviation = (name: string) => {
                                         </template>
                                         <span
                                             v-if="olt.service_ports?.length > 3"
-                                            class="flex h-7 w-7 items-center justify-center rounded border-2 border-white bg-gray-100 text-[9px] font-bold text-gray-400 shadow-sm"
+                                            class="flex h-7 w-7 items-center justify-center rounded border-2 border-background bg-muted text-[9px] font-bold text-muted-foreground shadow-sm"
                                         >
                                             +{{ olt.service_ports.length - 3 }}
                                         </span>

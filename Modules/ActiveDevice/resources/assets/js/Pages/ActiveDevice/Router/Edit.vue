@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FileUploader from '@/components/FileUploader.vue';
 import MapLocationPicker from '@/components/MapLocationPicker.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -222,27 +223,6 @@ const removeServicePort = (index: number) => {
                                     class="text-sm text-destructive"
                                 >
                                     {{ form.errors.ip_address }}
-                                </p>
-                            </div>
-                        </div>
-
-                        <MapLocationPicker
-                            v-model:latitude="form.latitude"
-                            v-model:longitude="form.longitude"
-                            :area-id="form.infrastructure_area_id"
-                            :areas="areas"
-                        />
-
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <div class="space-y-2">
-                                id="longitude" v-model="form.longitude"
-                                :class="{ 'border-destructive':
-                                form.errors.longitude, }" />
-                                <p
-                                    v-if="form.errors.longitude"
-                                    class="text-sm text-destructive"
-                                >
-                                    {{ form.errors.longitude }}
                                 </p>
                             </div>
                         </div>

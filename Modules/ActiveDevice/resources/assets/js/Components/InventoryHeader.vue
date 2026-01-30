@@ -30,7 +30,7 @@ const emit = defineEmits(['update:modelValue', 'update:areaId']);
     >
         <div>
             <h1
-                class="font-inter text-2xl font-bold tracking-tight text-slate-900"
+                class="font-inter text-2xl font-bold tracking-tight text-foreground"
             >
                 {{ title }}
             </h1>
@@ -42,7 +42,7 @@ const emit = defineEmits(['update:modelValue', 'update:areaId']);
             <!-- Search Input -->
             <div class="relative hidden sm:block">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3">
-                    <Search class="h-4 w-4 text-gray-400" />
+                    <Search class="h-4 w-4 text-muted-foreground/60" />
                 </span>
                 <input
                     type="text"
@@ -53,7 +53,7 @@ const emit = defineEmits(['update:modelValue', 'update:areaId']);
                             ($event.target as HTMLInputElement).value,
                         )
                     "
-                    class="block w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pr-3 pl-10 text-sm transition focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    class="block w-full rounded-lg border border-border bg-muted/40 py-2 pr-3 pl-10 text-sm transition focus:bg-background focus:ring-2 focus:ring-ring focus:outline-none"
                     :placeholder="searchPlaceholder || 'Search...'"
                 />
             </div>
@@ -64,9 +64,13 @@ const emit = defineEmits(['update:modelValue', 'update:areaId']);
                     :model-value="areaId?.toString()"
                     @update:model-value="$emit('update:areaId', $event)"
                 >
-                    <SelectTrigger class="h-9 bg-gray-50 text-xs shadow-none">
+                    <SelectTrigger
+                        class="h-9 border-border bg-muted/40 text-xs shadow-none"
+                    >
                         <div class="flex items-center gap-2">
-                            <MapPin class="h-3.5 w-3.5 text-gray-400" />
+                            <MapPin
+                                class="h-3.5 w-3.5 text-muted-foreground/60"
+                            />
                             <SelectValue placeholder="Semua Wilayah" />
                         </div>
                     </SelectTrigger>

@@ -78,7 +78,7 @@ const getUiStatus = (status: string) => {
 
             <Card class="overflow-hidden border-none shadow-sm">
                 <CardHeader class="p-0">
-                    <div class="border-b bg-slate-50/50 px-6 py-4">
+                    <div class="border-b bg-muted/50 px-6 py-4">
                         <SearchFilter
                             :route="popIndex().url"
                             :filters="filters"
@@ -120,7 +120,7 @@ const getUiStatus = (status: string) => {
                                     >
                                         <div class="flex items-center gap-3">
                                             <div
-                                                class="flex h-9 w-9 items-center justify-center rounded-lg border border-red-100/50 bg-red-50 text-red-600 shadow-sm"
+                                                class="flex h-9 w-9 items-center justify-center rounded-lg border border-red-100/50 bg-red-50 text-red-600 shadow-sm dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400"
                                             >
                                                 <MapPin class="h-4.5 w-4.5" />
                                             </div>

@@ -172,7 +172,7 @@ onUnmounted(() => {
                         >Lat</span
                     >
                     <div
-                        class="flex h-11 items-center rounded-lg border border-slate-200 bg-slate-50/50 px-3 pl-10 font-mono text-sm text-slate-600"
+                        class="border-borderpx-3 flex h-11 items-center rounded-lg border pl-10 font-mono text-sm text-slate-600"
                     >
                         {{ latitude || '-' }}
                     </div>
@@ -183,7 +183,7 @@ onUnmounted(() => {
                         >Lng</span
                     >
                     <div
-                        class="flex h-11 items-center rounded-lg border border-slate-200 bg-slate-50/50 px-3 pl-10 font-mono text-sm text-slate-600"
+                        class="border-borderpx-3 flex h-11 items-center rounded-lg border pl-10 font-mono text-sm text-slate-600"
                     >
                         {{ longitude || '-' }}
                     </div>

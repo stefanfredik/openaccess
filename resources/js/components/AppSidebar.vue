@@ -101,7 +101,7 @@ const generalNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
     {
-        title: 'Pendataan',
+        title: 'Inventory',
         href: '/pendataan',
         icon: Database,
     },

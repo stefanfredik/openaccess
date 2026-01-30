@@ -98,7 +98,7 @@ const submit = () => {
                                 v-model="form.name"
                                 required
                                 placeholder="Contoh: CORE-ROUTER-01"
-                                class="h-11 rounded-lg border-slate-200"
+                                class="h-11 rounded-lg border-border"
                             />
                             <div
                                 v-if="form.errors.name"
@@ -118,7 +118,7 @@ const submit = () => {
                                     v-model="form.code"
                                     required
                                     placeholder="Contoh: SRV-001"
-                                    class="h-11 rounded-lg border-slate-200"
+                                    class="h-11 rounded-lg border-border"
                                 />
                                 <div
                                     v-if="form.errors.code"
@@ -135,7 +135,7 @@ const submit = () => {
                                 >
                                 <Select v-model="form.function">
                                     <SelectTrigger
-                                        class="h-11 rounded-lg border-slate-200"
+                                        class="h-11 rounded-lg border-border"
                                     >
                                         <SelectValue
                                             placeholder="Pilih Fungsi"
@@ -165,7 +165,7 @@ const submit = () => {
                                 >
                                 <Select v-model="form.status">
                                     <SelectTrigger
-                                        class="h-11 rounded-lg border-slate-200"
+                                        class="h-11 rounded-lg border-border"
                                     >
                                         <SelectValue
                                             placeholder="Pilih Status"
@@ -213,7 +213,7 @@ const submit = () => {
                                 >
                                 <Select v-model="form.area_id">
                                     <SelectTrigger
-                                        class="h-11 rounded-lg border-slate-200"
+                                        class="h-11 rounded-lg border-border"
                                     >
                                         <SelectValue
                                             placeholder="Pilih Wilayah"
@@ -236,7 +236,7 @@ const submit = () => {
                                 >
                                 <Select v-model="form.pop_id">
                                     <SelectTrigger
-                                        class="h-11 rounded-lg border-slate-200"
+                                        class="h-11 rounded-lg border-border"
                                     >
                                         <SelectValue
                                             placeholder="Pilih POP (Jika ada)"
@@ -266,7 +266,7 @@ const submit = () => {
                                     id="building"
                                     v-model="form.building"
                                     placeholder="Contoh: Gedung A"
-                                    class="h-11 rounded-lg border-slate-200"
+                                    class="h-11 rounded-lg border-border"
                                 />
                             </div>
                             <div class="space-y-1.5">
@@ -277,7 +277,7 @@ const submit = () => {
                                     id="floor"
                                     v-model="form.floor"
                                     placeholder="Contoh: 2"
-                                    class="h-11 rounded-lg border-slate-200"
+                                    class="h-11 rounded-lg border-border"
                                 />
                             </div>
                         </div>
@@ -292,7 +292,7 @@ const submit = () => {
                                 id="area_location"
                                 v-model="form.area_location"
                                 placeholder="Contoh: Server Room 1"
-                                class="h-11 rounded-lg border-slate-200"
+                                class="h-11 rounded-lg border-border"
                             />
                         </div>
 
@@ -311,7 +311,7 @@ const submit = () => {
                                     <Input
                                         v-model="form.latitude"
                                         placeholder="Latitude"
-                                        class="h-11 rounded-lg border-slate-200"
+                                        class="h-11 rounded-lg border-border"
                                     />
                                 </div>
                                 <div class="space-y-1.5">
@@ -321,7 +321,7 @@ const submit = () => {
                                     <Input
                                         v-model="form.longitude"
                                         placeholder="Longitude"
-                                        class="h-11 rounded-lg border-slate-200"
+                                        class="h-11 rounded-lg border-border"
                                     />
                                 </div>
                             </div>
@@ -403,12 +403,12 @@ const submit = () => {
                                 v-model="form.description"
                                 rows="4"
                                 placeholder="Keterangan tambahan..."
-                                class="min-h-[100px] resize-none rounded-lg border-slate-200"
+                                class="min-h-[100px] resize-none rounded-lg border-border"
                             />
                         </div>
                     </CardContent>
                     <CardFooter
-                        class="flex justify-end gap-3 rounded-b-lg border-t bg-slate-50/50 p-6"
+                        class="flex justify-end gap-3 rounded-b-lg border-t bg-muted/50 p-6"
                     >
                         <Button variant="ghost" as-child class="font-medium">
                             <Link :href="route('server.index')">Batal</Link>

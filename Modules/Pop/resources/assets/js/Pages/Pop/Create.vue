@@ -96,7 +96,7 @@ const submit = () => {
                                 v-model="form.name"
                                 required
                                 placeholder="Contoh: POP Pusat Jakarta"
-                                class="h-11 rounded-lg border-slate-200"
+                                class="h-11 rounded-lg border-border"
                             />
                             <div
                                 v-if="form.errors.name"
@@ -116,7 +116,7 @@ const submit = () => {
                                     v-model="form.code"
                                     required
                                     placeholder="Contoh: POP-JKT-01"
-                                    class="h-11 rounded-lg border-slate-200"
+                                    class="h-11 rounded-lg border-border"
                                 />
                                 <div
                                     v-if="form.errors.code"
@@ -131,7 +131,7 @@ const submit = () => {
                                 >
                                 <Select v-model="form.area_id">
                                     <SelectTrigger
-                                        class="h-11 w-full rounded-lg border-slate-200"
+                                        class="h-11 w-full rounded-lg border-border"
                                     >
                                         <SelectValue
                                             placeholder="Pilih Wilayah"
@@ -160,7 +160,7 @@ const submit = () => {
                                 >
                                 <Select v-model="form.status">
                                     <SelectTrigger
-                                        class="h-11 w-full rounded-lg border-slate-200"
+                                        class="h-11 w-full rounded-lg border-border"
                                     >
                                         <SelectValue
                                             placeholder="Pilih Status"
@@ -212,7 +212,7 @@ const submit = () => {
                                 type="number"
                                 v-model="form.electrical_capacity"
                                 placeholder="Contoh: 1300"
-                                class="h-11 rounded-lg border-slate-200"
+                                class="h-11 rounded-lg border-border"
                             />
                             <div
                                 v-if="form.errors.electrical_capacity"
@@ -229,7 +229,7 @@ const submit = () => {
                             >
                             <Select v-model="form.power_source">
                                 <SelectTrigger
-                                    class="h-11 w-full rounded-lg border-slate-200"
+                                    class="h-11 w-full rounded-lg border-border"
                                 >
                                     <SelectValue
                                         placeholder="Pilih Sumber Daya"
@@ -297,7 +297,7 @@ const submit = () => {
                                         id="latitude"
                                         v-model="form.latitude"
                                         placeholder="-6.200000"
-                                        class="h-11 rounded-lg border-slate-200"
+                                        class="h-11 rounded-lg border-border"
                                     />
                                     <div
                                         v-if="form.errors.latitude"
@@ -316,7 +316,7 @@ const submit = () => {
                                         id="longitude"
                                         v-model="form.longitude"
                                         placeholder="106.816666"
-                                        class="h-11 rounded-lg border-slate-200"
+                                        class="h-11 rounded-lg border-border"
                                     />
                                     <div
                                         v-if="form.errors.longitude"
@@ -335,7 +335,7 @@ const submit = () => {
                                 id="address"
                                 v-model="form.address"
                                 placeholder="Detail alamat lengkap..."
-                                class="min-h-[80px] resize-none rounded-lg border-slate-200"
+                                class="min-h-[80px] resize-none rounded-lg border-border"
                             />
                             <div
                                 v-if="form.errors.address"
@@ -354,7 +354,7 @@ const submit = () => {
                                 <Input
                                     id="province"
                                     v-model="form.province"
-                                    class="h-11 rounded-lg border-slate-200"
+                                    class="h-11 rounded-lg border-border"
                                 />
                             </div>
                             <div class="space-y-1.5">
@@ -364,7 +364,7 @@ const submit = () => {
                                 <Input
                                     id="regency"
                                     v-model="form.regency"
-                                    class="h-11 rounded-lg border-slate-200"
+                                    class="h-11 rounded-lg border-border"
                                 />
                             </div>
                         </div>
@@ -402,7 +402,7 @@ const submit = () => {
                                 id="description"
                                 v-model="form.description"
                                 placeholder="Informasi tambahan mengenai POP ini..."
-                                class="min-h-[100px] resize-none rounded-lg border-slate-200"
+                                class="min-h-[100px] resize-none rounded-lg border-border"
                             />
                             <div
                                 v-if="form.errors.description"
@@ -413,7 +413,7 @@ const submit = () => {
                         </div>
                     </CardContent>
                     <CardFooter
-                        class="flex justify-end gap-3 rounded-b-lg border-t bg-slate-50/50 p-6"
+                        class="flex justify-end gap-3 rounded-b-lg border-t p-6"
                     >
                         <Button variant="ghost" as-child class="font-medium">
                             <Link :href="popIndex().url">Batal</Link>

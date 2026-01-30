@@ -45,6 +45,7 @@ const form = useForm({
     name: '',
     type: 'Gigabit',
     speed: '1000Mbps',
+    mac_address: '',
     status: 'down',
     description: '',
     is_bulk: false,
@@ -150,9 +151,9 @@ defineExpose({ openAdd });
             </Button>
         </CardHeader>
         <CardContent>
-            <div class="overflow-hidden rounded-md border">
+            <div class="overflow-hidden rounded-md border border-border">
                 <table class="w-full text-left text-sm">
-                    <thead class="border-b bg-muted/50">
+                    <thead class="border-b border-border bg-muted/50">
                         <tr>
                             <th class="px-4 py-2 font-semibold">Name</th>
                             <th class="px-4 py-2 font-semibold">Type</th>
@@ -162,7 +163,7 @@ defineExpose({ openAdd });
                             </th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y">
+                    <tbody class="divide-y divide-border">
                         <tr
                             v-for="inf in interfaces"
                             :key="inf.id"

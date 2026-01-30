@@ -165,20 +165,20 @@ const deviceDetails = computed(() => {
 
 <template>
     <div class="flex h-full flex-col">
-        <div class="border-b bg-slate-50 p-6">
-            <h2 class="text-xl font-bold text-slate-900">{{ device.name }}</h2>
-            <p class="text-sm text-slate-500 italic">
+        <div class="border-b bg-muted/40 p-6">
+            <h2 class="text-xl font-bold text-foreground">{{ device.name }}</h2>
+            <p class="text-sm text-muted-foreground italic">
                 {{ deviceSubtitle }}
             </p>
         </div>
 
         <Tabs default-value="detail" class="flex flex-1 flex-col">
             <TabsList
-                class="h-12 w-full justify-start space-x-2 rounded-none border-b bg-white px-6"
+                class="h-12 w-full justify-start space-x-2 rounded-none border-b bg-background px-6"
             >
                 <TabsTrigger
                     value="detail"
-                    class="relative flex h-12 items-center gap-2 rounded-none border-b-2 border-transparent px-2 text-xs font-bold tracking-wider text-slate-400 uppercase hover:text-blue-600 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600"
+                    class="relative flex h-12 items-center gap-2 rounded-none border-b-2 border-transparent px-2 text-xs font-bold tracking-wider text-muted-foreground uppercase hover:text-primary data-[state=active]:border-primary data-[state=active]:text-primary"
                 >
                     <Info class="h-4 w-4" />
                     Info
@@ -186,21 +186,21 @@ const deviceDetails = computed(() => {
                 <TabsTrigger
                     v-if="device.switch_type !== 'Unmanageable'"
                     value="services"
-                    class="relative flex h-12 items-center gap-2 rounded-none border-b-2 border-transparent px-2 text-xs font-bold tracking-wider text-slate-400 uppercase hover:text-blue-600 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600"
+                    class="relative flex h-12 items-center gap-2 rounded-none border-b-2 border-transparent px-2 text-xs font-bold tracking-wider text-muted-foreground uppercase hover:text-primary data-[state=active]:border-primary data-[state=active]:text-primary"
                 >
                     <ShieldCheck class="h-4 w-4" />
                     Services
                 </TabsTrigger>
                 <TabsTrigger
                     value="interfaces"
-                    class="relative flex h-12 items-center gap-2 rounded-none border-b-2 border-transparent px-2 text-xs font-bold tracking-wider text-slate-400 uppercase hover:text-blue-600 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600"
+                    class="relative flex h-12 items-center gap-2 rounded-none border-b-2 border-transparent px-2 text-xs font-bold tracking-wider text-muted-foreground uppercase hover:text-primary data-[state=active]:border-primary data-[state=active]:text-primary"
                 >
                     <Monitor class="h-4 w-4" />
                     Ports
                 </TabsTrigger>
                 <TabsTrigger
                     value="topology"
-                    class="relative flex h-12 items-center gap-2 rounded-none border-b-2 border-transparent px-2 text-xs font-bold tracking-wider text-slate-400 uppercase hover:text-blue-600 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600"
+                    class="relative flex h-12 items-center gap-2 rounded-none border-b-2 border-transparent px-2 text-xs font-bold tracking-wider text-muted-foreground uppercase hover:text-primary data-[state=active]:border-primary data-[state=active]:text-primary"
                 >
                     <Network class="h-4 w-4" />
                     Links
@@ -226,22 +226,22 @@ const deviceDetails = computed(() => {
                     </div>
 
                     <div
-                        class="overflow-hidden rounded-lg border border-slate-100 bg-white shadow-sm"
+                        class="overflow-hidden rounded-lg border border-border bg-card shadow-sm"
                     >
                         <table class="w-full text-left text-sm">
-                            <tbody class="divide-y divide-gray-50">
+                            <tbody class="divide-y divide-border/50">
                                 <tr
                                     v-for="(val, key) in deviceDetails"
                                     :key="key"
-                                    class="transition-colors hover:bg-slate-50/50"
+                                    class="transition-colors hover:bg-muted/30"
                                 >
                                     <td
-                                        class="w-1/3 border-r border-slate-50/50 bg-slate-50/30 px-4 py-3 font-medium text-slate-500"
+                                        class="w-1/3 border-r border-border/50 bg-muted/20 px-4 py-3 font-medium text-muted-foreground"
                                     >
                                         {{ key }}
                                     </td>
                                     <td
-                                        class="px-4 py-3 font-semibold text-slate-700"
+                                        class="px-4 py-3 font-semibold text-foreground"
                                     >
                                         {{ val || '-' }}
                                     </td>
@@ -270,7 +270,7 @@ const deviceDetails = computed(() => {
                         >
                             <div class="flex items-center space-x-3">
                                 <div
-                                    class="flex h-10 w-10 items-center justify-center rounded border bg-slate-50 font-bold text-slate-600 italic group-hover:border-blue-100 group-hover:bg-blue-50 group-hover:text-blue-600"
+                                    class="flex h-10 w-10 items-center justify-center rounded border bg-muted/50 font-bold text-muted-foreground italic group-hover:border-primary/20 group-hover:bg-primary/10 group-hover:text-primary"
                                 >
                                     {{ port.port }}
                                 </div>
@@ -351,10 +351,10 @@ const deviceDetails = computed(() => {
                                         :class="[
                                             'relative flex aspect-square flex-col items-center justify-center rounded-lg border-2 p-2 transition',
                                             inf.status === 'up'
-                                                ? 'border-green-500 bg-green-50 text-green-700'
+                                                ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                                                 : inf.status === 'error'
-                                                  ? 'border-red-200 bg-red-50 text-red-500'
-                                                  : 'border-slate-200 bg-white text-slate-400 hover:border-slate-300',
+                                                  ? 'border-red-500/50 bg-red-500/10 text-red-500'
+                                                  : 'border-border bg-card text-muted-foreground hover:border-muted-foreground/30',
                                         ]"
                                         :title="
                                             inf.name +
@@ -396,10 +396,10 @@ const deviceDetails = computed(() => {
                                         :class="[
                                             'relative flex aspect-square flex-col items-center justify-center rounded-lg border-2 p-2 transition',
                                             inf.status === 'up'
-                                                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                                ? 'border-blue-500/50 bg-blue-500/10 text-blue-600 dark:text-blue-400'
                                                 : inf.status === 'error'
-                                                  ? 'border-red-200 bg-red-50 text-red-500'
-                                                  : 'border-slate-200 bg-white text-slate-400 hover:border-slate-300',
+                                                  ? 'border-red-500/50 bg-red-500/10 text-red-500'
+                                                  : 'border-border bg-card text-muted-foreground hover:border-muted-foreground/30',
                                         ]"
                                         :title="
                                             inf.name +
@@ -444,10 +444,10 @@ const deviceDetails = computed(() => {
                                         :class="[
                                             'relative flex aspect-square flex-col items-center justify-center rounded-lg border-2 p-2 transition',
                                             inf.status === 'up'
-                                                ? 'border-orange-500 bg-orange-50 text-orange-700'
+                                                ? 'border-orange-500/50 bg-orange-500/10 text-orange-600 dark:text-orange-400'
                                                 : inf.status === 'error'
-                                                  ? 'border-red-200 bg-red-50 text-red-500'
-                                                  : 'border-slate-200 bg-white text-slate-400 hover:border-slate-300',
+                                                  ? 'border-red-500/50 bg-red-500/10 text-red-500'
+                                                  : 'border-border bg-card text-muted-foreground hover:border-muted-foreground/30',
                                         ]"
                                         :title="
                                             inf.name +
@@ -514,7 +514,7 @@ const deviceDetails = computed(() => {
 
                     <div class="relative space-y-6">
                         <div
-                            class="absolute top-2 bottom-2 left-[7px] w-0.5 border-l-2 border-dashed border-blue-100"
+                            class="absolute top-2 bottom-2 left-[7px] w-0.5 border-l-2 border-dashed border-border"
                         ></div>
 
                         <div
@@ -531,7 +531,7 @@ const deviceDetails = computed(() => {
                                 ]"
                             ></div>
                             <div
-                                class="rounded-lg border border-blue-100 bg-blue-50 p-4"
+                                class="rounded-lg border border-border bg-muted/40 p-4"
                             >
                                 <div
                                     class="mb-2 flex items-center justify-between"
@@ -548,7 +548,7 @@ const deviceDetails = computed(() => {
                                         {{ conn.local_port_display }}
                                     </span>
                                     <span
-                                        class="text-[10px] font-bold tracking-widest text-blue-600 uppercase"
+                                        class="text-[10px] font-bold tracking-widest text-primary uppercase"
                                     >
                                         {{ conn.connection_type }}
                                     </span>
@@ -559,17 +559,19 @@ const deviceDetails = computed(() => {
                                     />
                                     <div>
                                         <p
-                                            class="text-sm font-bold text-slate-800"
+                                            class="text-sm font-bold text-foreground"
                                         >
                                             {{
                                                 conn.peer?.name ||
                                                 'Unknown Device'
                                             }}
                                         </p>
-                                        <p class="text-xs text-slate-500">
+                                        <p
+                                            class="text-xs text-muted-foreground"
+                                        >
                                             {{ conn.remote_label }}:
                                             <span
-                                                class="font-mono text-blue-600"
+                                                class="font-mono text-primary"
                                             >
                                                 {{ conn.peer_port_display }}
                                             </span>

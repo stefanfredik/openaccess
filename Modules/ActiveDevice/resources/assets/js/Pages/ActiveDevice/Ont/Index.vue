@@ -113,49 +113,57 @@ const openDrawer = (ont: any) => {
 
             <!-- Table section -->
             <Card
-                class="overflow-hidden rounded-xl border-none bg-white shadow-sm"
+                class="overflow-hidden rounded-xl border-none bg-card shadow-none"
             >
                 <div
-                    class="flex items-center justify-between border-b border-gray-50 bg-white p-6"
+                    class="flex items-center justify-between border-b border-border bg-card p-6"
                 >
-                    <h2 class="text-lg font-bold text-slate-800">
+                    <h2 class="text-lg font-bold text-foreground">
                         Daftar Inventori ONT
                     </h2>
                     <div class="flex space-x-2">
-                        <Button variant="outline" size="sm" class="h-8 text-xs"
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            class="h-8 border-border text-xs hover:bg-muted"
                             >Filter</Button
                         >
-                        <Button variant="outline" size="sm" class="h-8 text-xs"
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            class="h-8 border-border text-xs hover:bg-muted"
                             >Export</Button
                         >
                     </div>
                 </div>
                 <CardContent class="p-0">
                     <Table>
-                        <TableHeader class="bg-gray-50/50">
-                            <TableRow class="border-b hover:bg-transparent">
+                        <TableHeader class="bg-muted/50">
+                            <TableRow
+                                class="border-b border-border hover:bg-transparent"
+                            >
                                 <TableHead
-                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                                     >Nama Perangkat</TableHead
                                 >
                                 <TableHead
-                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                                     >Brand / Model</TableHead
                                 >
                                 <TableHead
-                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                                     >IP Address</TableHead
                                 >
                                 <TableHead
-                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                                     >Type</TableHead
                                 >
                                 <TableHead
-                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    class="px-6 py-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                                     >Status</TableHead
                                 >
                                 <TableHead
-                                    class="px-6 py-4 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                                    class="px-6 py-4 text-right text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                                     >Aksi</TableHead
                                 >
                             </TableRow>
@@ -165,14 +173,14 @@ const openDrawer = (ont: any) => {
                                 v-for="item in onts.data"
                                 :key="item.id"
                                 @click="openDrawer(item)"
-                                class="group cursor-pointer border-b border-gray-50 transition-colors hover:bg-blue-50/40"
+                                class="group cursor-pointer border-b border-border transition-colors hover:bg-muted/50"
                             >
                                 <TableCell
-                                    class="px-6 py-4 font-semibold text-slate-800"
+                                    class="px-6 py-4 font-semibold text-foreground"
                                 >
                                     <div class="flex items-center gap-3">
                                         <div
-                                            class="flex h-9 w-9 items-center justify-center rounded-lg border border-teal-100/50 bg-teal-50 text-teal-600 shadow-sm"
+                                            class="flex h-9 w-9 items-center justify-center rounded-lg border border-teal-500/20 bg-teal-500/10 text-teal-600 shadow-sm dark:text-teal-400"
                                         >
                                             <Globe class="h-4.5 w-4.5" />
                                         </div>
@@ -186,12 +194,12 @@ const openDrawer = (ont: any) => {
                                     </div>
                                 </TableCell>
                                 <TableCell
-                                    class="px-6 py-4 font-medium text-gray-600"
+                                    class="px-6 py-4 font-medium text-foreground/80"
                                 >
                                     {{ item.brand }} {{ item.model }}
                                 </TableCell>
                                 <TableCell
-                                    class="px-6 py-4 font-mono text-xs text-blue-600"
+                                    class="px-6 py-4 font-mono text-xs text-primary dark:text-primary/90"
                                 >
                                     {{ item.ip_address || '-' }}
                                 </TableCell>
@@ -217,7 +225,7 @@ const openDrawer = (ont: any) => {
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            class="h-8 w-8 text-blue-600 opacity-60 transition-opacity hover:bg-blue-50 hover:opacity-100"
+                                            class="h-8 w-8 text-primary opacity-60 transition-opacity hover:bg-muted/50 hover:opacity-100"
                                             @click="openDrawer(item)"
                                             title="Pratinjau Cepat"
                                         >
@@ -286,7 +294,7 @@ const openDrawer = (ont: any) => {
                                                             )
                                                         "
                                                         title="Hapus ONT"
-                                                        class="h-auto w-full justify-start px-2 py-1.5 font-normal text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
+                                                        class="h-auto w-full justify-start px-2 py-1.5 font-normal text-destructive transition-colors hover:bg-destructive/10 hover:text-destructive"
                                                     >
                                                         <template #trigger>
                                                             <div

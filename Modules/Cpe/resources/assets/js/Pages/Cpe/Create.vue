@@ -321,7 +321,7 @@ const submit = () => {
                         </div>
                     </CardContent>
                     <CardFooter
-                        class="mt-6 flex justify-end gap-2 border-t p-6"
+                        class="mt-6 flex justify-end gap-2 rounded-b-lg border-t bg-muted/50 p-6"
                     >
                         <Button variant="outline" as-child>
                             <Link :href="route('cpe.index')">Cancel</Link>

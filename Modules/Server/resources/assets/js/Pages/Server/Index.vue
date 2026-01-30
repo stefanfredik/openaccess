@@ -94,7 +94,7 @@ const getFunctionBadge = (func: string) => {
 
             <Card class="overflow-hidden border-none shadow-sm">
                 <CardHeader class="p-0">
-                    <div class="border-b bg-slate-50/50 px-6 py-4">
+                    <div class="border-b bg-muted/50 px-6 py-4">
                         <SearchFilter
                             :route="route('server.index')"
                             :filters="filters"
