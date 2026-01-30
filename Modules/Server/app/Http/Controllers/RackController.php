@@ -135,10 +135,32 @@ class RackController extends Controller
             $allDevices = $allDevices->concat($devices);
         }
 
-        $mounted = RackContent::all()->map(fn ($c) => $c->device_type.':'.$c->device_id)->toArray();
+        // Get all currently mounted devices across all racks
+        $mounted = RackContent::all()->flatMap(function ($c) {
+            return [
+                $c->device_type.':'.$c->device_id,
+                // If it's a full class name, also add the base class name just in case of inconsistencies
+                (str_contains($c->device_type, '\\') ? '\\'.$c->device_type : $c->device_type).':'.$c->device_id,
+            ];
+        })->unique()->toArray();
 
-        $available = $allDevices->filter(function ($d) use ($mounted) {
-            return ! in_array($d['class'].':'.$d['id'], $mounted);
+        // Get all devices currently assigned to a CPE
+        $inCpe = \Modules\Cpe\Models\Cpe::whereNotNull('active_device_id')
+            ->whereNotNull('active_device_type')
+            ->get()
+            ->flatMap(function ($c) {
+                return [
+                    $c->active_device_type.':'.$c->active_device_id,
+                    (str_contains($c->active_device_type, '\\') ? '\\'.$c->active_device_type : $c->active_device_type).':'.$c->active_device_id,
+                ];
+            })->unique()->toArray();
+
+        $excluded = array_values(array_unique(array_merge($mounted, $inCpe)));
+
+        $available = $allDevices->filter(function ($d) use ($excluded) {
+            $key = $d['class'].':'.$d['id'];
+            $altKey = '\\'.$d['class'].':'.$d['id'];
+            return !in_array($key, $excluded) && !in_array($altKey, $excluded);
         })->values();
 
         return response()->json($available);

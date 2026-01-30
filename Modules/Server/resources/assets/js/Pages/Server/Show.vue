@@ -75,15 +75,15 @@
   const isOverlapDetected = computed(() => {
     if (!selectedRack.value) return false
     const start = mountForm.unit_start
-    const size = mountForm.unit_size
-    const end = start - size + 1
+    const end = start + mountForm.unit_size - 1
+    
+    if (end > selectedRack.value.u_capacity) return true
     
     // Check if any part of the new device range overlaps with existing devices
     return selectedRack.value.contents?.some((c: any) => {
         const cStart = c.unit_start
-        const cEnd = cStart - c.unit_size + 1
-        // Overlap occurs if [newStart, newEnd] intersects with [cStart, cEnd]
-        return (start >= cEnd && end <= cStart)
+        const cEnd = cStart + c.unit_size - 1
+        return (start <= cEnd && end >= cStart)
     })
   })
 
@@ -112,7 +112,7 @@
   }
 
   const isUSlotOccupied = (rack: any, u: number) => {
-    return rack?.contents?.some((c: any) => u <= c.unit_start && u > c.unit_start - c.unit_size)
+    return rack?.contents?.some((c: any) => u >= c.unit_start && u < c.unit_start + c.unit_size)
   }
 
   const getUiStatus = (status: string) => {
@@ -367,36 +367,36 @@
                                 <CardDescription>{{ selectedRack.code }} - {{ selectedRack.brand || 'Universal' }}</CardDescription>
                             </CardHeader>
                             <CardContent class="px-3">
-                                <div class="relative mx-auto w-full rounded-t-lg border-x-[12px] border-t-[12px] border-slate-800 bg-slate-900 p-1 shadow-2xl">
+                                <div class="relative mx-auto w-full rounded-t-lg border-x-[12px] border-t-[12px] border-slate-800 bg-slate-900 shadow-2xl">
                                     <!-- Rack Interior -->
-                                    <div class="flex flex-col-reverse gap-px bg-slate-800">
-                                        <div v-for="u in selectedRack.u_capacity" :key="u" class="group relative flex h-10 w-full items-center bg-slate-900/50">
+                                    <div class="flex flex-col-reverse gap-px bg-slate-800 overflow-hidden relative">
+                                        <div v-for="u in selectedRack.u_capacity" :key="u" class="group relative flex h-[40px] w-full items-center bg-slate-900/50">
                                             <!-- U Number -->
-                                            <div class="flex w-10 items-center justify-center border-r border-slate-800 text-xs font-bold text-slate-500">
+                                            <div class="flex w-10 h-full items-center justify-center border-r border-slate-800 text-[10px] font-bold text-slate-500 bg-slate-950/40">
                                                 {{ u }}
                                             </div>
-
+                                            
                                             <!-- Slot Content -->
-                                            <div class="relative flex-1 px-2">
+                                            <div class="relative flex-1 h-full">
                                                 <template v-if="getDeviceAtU(selectedRack, u)">
                                                     <TooltipProvider>
                                                         <Tooltip>
                                                             <TooltipTrigger as-child>
-                                                                <div
-                                                                    :class="[
-                                                                        'absolute inset-x-1 bottom-0.5 z-10 flex items-center justify-between rounded border-l-4 px-4 text-sm font-semibold text-white shadow-xl transition-all hover:brightness-110 cursor-pointer',
-                                                                        getDeviceAtU(selectedRack, u).color,
-                                                                        'border-white/20',
-                                                                    ]"
-                                                                    :style="{ height: `calc(${getDeviceAtU(selectedRack, u).unit_size} * 40px + (${getDeviceAtU(selectedRack, u).unit_size} - 1) * 1px - 4px)` }">
-                                                                    <div class="flex flex-col">
-                                                                        <span class="truncate max-w-[120px]">{{ getDeviceAtU(selectedRack, u).device?.name }}</span>
-                                                                        <span class="text-[10px] uppercase tracking-wider opacity-70">
-                                                                            {{ getDeviceAtU(selectedRack, u).device_type.split('\\').pop() }}
-                                                                        </span>
+                                                                    <div
+                                                                        :class="[
+                                                                            'absolute inset-x-0 bottom-0 z-10 flex items-center justify-between border-l-4 px-3 text-white shadow-2xl transition-all hover:brightness-110 cursor-pointer overflow-hidden',
+                                                                            getDeviceAtU(selectedRack, u).color,
+                                                                            'border-white/20',
+                                                                        ]"
+                                                                        :style="{ height: `calc(${getDeviceAtU(selectedRack, u).unit_size} * 40px + (${getDeviceAtU(selectedRack, u).unit_size} - 1) * 1px)` }">
+                                                                        <div class="flex flex-col min-w-0">
+                                                                            <span class="truncate text-[11px] font-bold leading-tight">{{ getDeviceAtU(selectedRack, u).device?.name }}</span>
+                                                                            <span class="text-[9px] uppercase tracking-wider opacity-80 leading-tight font-medium">
+                                                                                {{ getDeviceAtU(selectedRack, u).device_type.split('\\').pop() }}
+                                                                            </span>
+                                                                        </div>
+                                                                        <div class="flex-shrink-0 h-1.5 w-1.5 rounded-full bg-white/40 ring-4 ring-white/5 ml-2"></div>
                                                                     </div>
-                                                                    <div class="h-2 w-2 rounded-full bg-white/40 ring-4 ring-white/10 animate-pulse"></div>
-                                                                </div>
                                                             </TooltipTrigger>
                                                             <TooltipContent side="right" :side-offset="15" class="w-64 p-0 overflow-hidden border-slate-800 bg-slate-950 shadow-2xl">
                                                                 <div :class="['h-1', getDeviceAtU(selectedRack, u).color]"></div>
@@ -555,14 +555,14 @@
                     <div class="hidden md:flex flex-col">
                         <span class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2 px-1">Rack Preview</span>
                         <div class="flex-1 border-2 border-slate-800 rounded-lg bg-slate-950 p-1.5 overflow-y-auto max-h-[350px] scrollbar-thin">
-                            <div class="flex flex-col-reverse gap-px bg-slate-800">
+                            <div class="flex flex-col-reverse gap-px bg-slate-800 overflow-hidden">
                                 <div v-for="u in selectedRack?.u_capacity" :key="u" 
-                                    class="relative h-6 w-full border-b border-slate-900 flex items-center px-1.5 cursor-pointer transition-colors hover:bg-white/5"
+                                    class="relative h-[28px] w-full border-b border-slate-900 flex items-center px-1.5 cursor-pointer transition-colors hover:bg-white/5"
                                     @click="mountForm.unit_start = u">
                                     <span class="text-[9px] font-mono text-slate-600 w-4">{{ u }}</span>
                                     <div class="flex-1 h-full relative">
                                         <!-- Proposed Selection -->
-                                        <div v-if="u <= mountForm.unit_start && u > mountForm.unit_start - mountForm.unit_size"
+                                        <div v-if="u >= mountForm.unit_start && u < mountForm.unit_start + mountForm.unit_size"
                                             :class="[
                                                 'absolute inset-x-0 inset-y-0.5 z-20 border flex items-center justify-center transition-all',
                                                 isOverlapDetected 
