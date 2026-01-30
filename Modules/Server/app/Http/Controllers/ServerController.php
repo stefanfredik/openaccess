@@ -69,7 +69,13 @@ class ServerController extends Controller
 
     public function show($id)
     {
-        $server = Server::with(['area', 'pop', 'photos', 'racks.contents.device'])->findOrFail($id);
+        $server = Server::with([
+            'area', 
+            'pop', 
+            'photos', 
+            'racks.contents.device.sourceConnections',
+            'racks.contents.device.destinationConnections'
+        ])->findOrFail($id);
 
         return Inertia::render('Server::Show', [
             'server' => $server,

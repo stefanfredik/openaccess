@@ -76,4 +76,10 @@ class AdSwitch extends Model
     {
         return $this->morphMany(DeviceInterface::class, 'interfacable');
     }
+
+    public function getPortCountAttribute($value)
+    {
+        $realCount = $this->interfaces()->count();
+        return $realCount > 0 ? $realCount : $value;
+    }
 }

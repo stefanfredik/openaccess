@@ -124,13 +124,18 @@ class RackController extends Controller
                 $query->where('pop_id', $popId);
             }
 
+            // Eager load interface count for active devices
+            if ($type !== 'ODF') {
+                $query->withCount('interfaces');
+            }
+
             $devices = $query->get()->map(fn ($d) => [
                 'id' => $d->id,
                 'name' => $d->name,
                 'type' => $type,
                 'class' => get_class($d),
                 'code' => $d->code,
-                'port_count' => $d->port_count ?? ($d->interfaces_count ?? 0),
+                'port_count' => ($d->interfaces_count > 0) ? $d->interfaces_count : ($d->port_count ?? 0),
             ]);
 
             $allDevices = $allDevices->concat($devices);

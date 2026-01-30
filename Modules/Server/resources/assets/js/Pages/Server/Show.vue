@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, onMounted, computed } from 'vue'
+  import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
   import DeleteAction from '@/components/DeleteAction.vue'
   import LocationPicker from '@/components/LocationPicker.vue'
   import { Badge } from '@/components/ui/badge'
@@ -129,6 +129,12 @@
     return props.server.photos?.filter((p: any) => p.category === category) || []
   }
 
+  // --- Connection Visualization Logic ---
+  const activeDeviceId = ref<number | null>(null)
+  const activeDeviceType = ref<string | null>(null)
+  const rackContainerRef = ref<HTMLElement | null>(null)
+  const portRefs = ref<Map<string, HTMLElement>>(new Map())
+
   const deviceColors = [
     { name: 'Blue', value: 'bg-blue-500' },
     { name: 'Emerald', value: 'bg-emerald-500' },
@@ -137,6 +143,89 @@
     { name: 'Indigo', value: 'bg-indigo-500' },
     { name: 'Slate', value: 'bg-slate-500' },
   ]
+
+  const activeConnections = computed(() => {
+    if (!activeDeviceId.value) return []
+    
+    const device = selectedRack.value?.contents?.find(
+        (c: any) => c.device_id === activeDeviceId.value && c.device_type === activeDeviceType.value
+    )?.device
+
+    if (!device) return []
+
+    // Merge source and destination connections
+    return [...(device.source_connections || []), ...(device.destination_connections || [])]
+  })
+
+  const connectionLines = ref<any[]>([])
+
+  const updateConnectionLines = async () => {
+    await nextTick()
+    if (!activeDeviceId.value || !rackContainerRef.value) {
+        connectionLines.value = []
+        return
+    }
+
+    const rackRect = rackContainerRef.value.getBoundingClientRect()
+    const lines: any[] = []
+
+    activeConnections.value.forEach((conn: any) => {
+        // We need to determine which end of the connection corresponds to the clicked device and which is the 'other' end
+        let targetType, targetId, targetPort
+        let originType, originId, originPort
+
+        // Normalize data to find coordinates
+        const sKey = `${conn.source_type}:${conn.source_id}:${conn.source_port}`
+        const dKey = `${conn.destination_type}:${conn.destination_id}:${conn.destination_port}`
+
+        const sourceEl = portRefs.value.get(sKey)
+        const destEl = portRefs.value.get(dKey)
+
+        if (sourceEl && destEl) {
+            const sRect = sourceEl.getBoundingClientRect()
+            const dRect = destEl.getBoundingClientRect()
+
+            lines.push({
+                x1: sRect.left + sRect.width / 2 - rackRect.left,
+                y1: sRect.top + sRect.height / 2 - rackRect.top,
+                x2: dRect.left + dRect.width / 2 - rackRect.left,
+                y2: dRect.top + dRect.height / 2 - rackRect.top,
+                type: conn.connection_type
+            })
+        }
+    })
+
+    connectionLines.value = lines
+  }
+
+  const handleDeviceClick = (deviceId: number, deviceType: string) => {
+    if (activeDeviceId.value === deviceId && activeDeviceType.value === deviceType) {
+        activeDeviceId.value = null
+        activeDeviceType.value = null
+    } else {
+        activeDeviceId.value = deviceId
+        activeDeviceType.value = deviceType
+    }
+    updateConnectionLines()
+  }
+
+  // Handle window resize to keep lines accurate
+  onMounted(() => {
+    window.addEventListener('resize', updateConnectionLines)
+  })
+
+  onUnmounted(() => {
+    window.removeEventListener('resize', updateConnectionLines)
+  })
+
+  // Handle window resize to keep lines accurate
+  onMounted(() => {
+    window.addEventListener('resize', updateConnectionLines)
+  })
+
+  onUnmounted(() => {
+    window.removeEventListener('resize', updateConnectionLines)
+  })
 </script>
 
 <template>
@@ -369,7 +458,20 @@
                             <CardContent class="px-3">
                                 <div class="relative mx-auto w-full rounded-t-lg border-x-[12px] border-t-[12px] border-slate-800 bg-slate-900 shadow-2xl">
                                     <!-- Rack Interior -->
-                                    <div class="flex flex-col-reverse gap-px bg-slate-800 overflow-hidden relative">
+                                    <div ref="rackContainerRef" class="flex flex-col-reverse gap-px bg-slate-800 overflow-hidden relative">
+                                        <!-- SVG Overlay for connections -->
+                                        <svg v-if="connectionLines.length > 0" class="absolute inset-0 z-30 pointer-events-none w-full h-full" style="filter: drop-shadow(0 0 8px rgba(255,255,255,0.3))">
+                                            <path v-for="(line, idx) in connectionLines" :key="idx"
+                                                :d="`M ${line.x1} ${line.y1} C ${line.x1 + 40} ${line.y1}, ${line.x2 - 40} ${line.y2}, ${line.x2} ${line.y2}`"
+                                                fill="none"
+                                                stroke="white"
+                                                stroke-width="1.5"
+                                                stroke-linecap="round"
+                                                stroke-dasharray="4 2"
+                                                class="animate-[dash_20s_linear_infinite]"
+                                            />
+                                        </svg>
+
                                         <div v-for="u in selectedRack.u_capacity" :key="u" class="group relative flex h-[40px] w-full items-center bg-slate-900/50">
                                             <!-- U Number -->
                                             <div class="flex w-10 h-full items-center justify-center border-r border-slate-800 text-[10px] font-bold text-slate-500 bg-slate-950/40">
@@ -383,10 +485,12 @@
                                                         <Tooltip>
                                                             <TooltipTrigger as-child>
                                                                     <div
+                                                                        @click="handleDeviceClick(getDeviceAtU(selectedRack, u).device_id, getDeviceAtU(selectedRack, u).device_type)"
                                                                         :class="[
                                                                             'absolute inset-x-0 bottom-0 z-10 flex items-center justify-between border-l-4 px-3 text-white shadow-2xl transition-all hover:brightness-110 cursor-pointer overflow-hidden',
                                                                             getDeviceAtU(selectedRack, u).color,
                                                                             'border-white/20',
+                                                                            activeDeviceId === getDeviceAtU(selectedRack, u).device_id && activeDeviceType === getDeviceAtU(selectedRack, u).device_type ? 'ring-2 ring-white ring-inset brightness-125' : ''
                                                                         ]"
                                                                         :style="{ height: `calc(${getDeviceAtU(selectedRack, u).unit_size} * 40px + (${getDeviceAtU(selectedRack, u).unit_size} - 1) * 1px)` }">
                                                                         <div class="flex flex-col min-w-0 z-10">
@@ -397,16 +501,17 @@
                                                                         </div>
                                                                         
                                                                         <!-- Hardware Ports Visualization -->
-                                                                        <div class="absolute inset-x-[120px] inset-y-1.5 flex items-center justify-end pr-4 pointer-events-none">
-                                                                            <div class="bg-black/20 rounded-sm p-1 border border-white/5 flex items-center h-full">
-                                                                                <div class="grid grid-flow-col gap-1" 
+                                                                        <div class="absolute right-12 inset-y-1 flex items-center justify-end pointer-events-none">
+                                                                            <div class="bg-black/10 backdrop-blur-[2px] rounded border border-white/10 p-1.5 flex items-center justify-center h-[calc(100%-8px)] my-auto">
+                                                                                <div class="grid grid-flow-col gap-x-1.5 gap-y-1" 
                                                                                     :style="{ 
                                                                                         gridTemplateRows: `repeat(${getDeviceAtU(selectedRack, u).unit_size > 1 ? 4 : 2}, minmax(0, 1fr))`,
                                                                                         gridTemplateColumns: `repeat(${Math.ceil((getDeviceAtU(selectedRack, u).device?.port_count || 0) / (getDeviceAtU(selectedRack, u).unit_size > 1 ? 4 : 2))}, minmax(0, 1fr))`
                                                                                     }">
                                                                                     <div v-for="p in (getDeviceAtU(selectedRack, u).device?.port_count || 0)" 
                                                                                         :key="p" 
-                                                                                        class="h-1.5 w-1.5 rounded-full bg-white/60 shadow-[0_0_3px_rgba(255,255,255,0.6)] ring-1 ring-white/10">
+                                                                                        :ref="(el) => { if (el) portRefs.set(getDeviceAtU(selectedRack, u).device_type + ':' + getDeviceAtU(selectedRack, u).device_id + ':' + p, el as HTMLElement) }"
+                                                                                        class="h-[5px] w-[5px] rounded-full bg-white/70 shadow-[0_0_4px_rgba(255,255,255,0.4)] ring-[0.5px] ring-white/20 transition-all hover:bg-white hover:scale-125">
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -694,3 +799,14 @@
     </Dialog>
   </AppLayout>
 </template>
+
+<style scoped>
+@keyframes dash {
+  from {
+    stroke-dashoffset: 200;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+</style>
