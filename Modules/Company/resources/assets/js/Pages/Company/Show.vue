@@ -9,7 +9,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import {
     Building2,
     ChevronLeft,
@@ -19,7 +19,13 @@ import {
     Pencil,
     Phone,
 } from 'lucide-vue-next';
+import { computed } from 'vue';
 // import { index as companiesIndex, edit as companiesEdit } from '@/routes/companies';
+
+const page = usePage();
+const isSuperAdmin = computed(
+    () => (page.props.auth as any)?.roles?.includes('superadmin') || false,
+);
 
 const props = defineProps<{
     company: {
@@ -42,14 +48,23 @@ const props = defineProps<{
     <Head :title="company.name" />
 
     <AppLayout
-        :breadcrumbs="[
-            { title: 'Companies', href: route('companies.index') },
-            { title: company.name, href: '' },
-        ]"
+        :breadcrumbs="
+            [
+                isSuperAdmin
+                    ? { title: 'Companies', href: route('companies.index') }
+                    : null,
+                { title: company.name, href: '' },
+            ].filter(Boolean) as any
+        "
     >
         <div class="flex flex-col gap-6 p-4 md:p-6">
             <div class="flex items-center gap-4">
-                <Button variant="outline" size="icon" as-child>
+                <Button
+                    v-if="isSuperAdmin"
+                    variant="outline"
+                    size="icon"
+                    as-child
+                >
                     <Link :href="route('companies.index')">
                         <ChevronLeft class="h-4 w-4" />
                     </Link>
@@ -72,7 +87,7 @@ const props = defineProps<{
                         </Badge>
                     </div>
                 </div>
-                <Button as-child>
+                <Button v-if="isSuperAdmin" as-child>
                     <Link :href="route('companies.edit', company.id)">
                         <Pencil class="mr-2 h-4 w-4" />
                         Edit Company

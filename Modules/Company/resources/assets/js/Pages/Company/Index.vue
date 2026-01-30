@@ -18,11 +18,16 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { debounce } from 'lodash';
 import { Building2, Pencil, Plus, Search, Trash2 } from 'lucide-vue-next';
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 // import { index as companiesIndex, create as companiesCreate, edit as companiesEdit, destroy as companiesDestroy, show as companiesShow } from '@/routes/companies';
+
+const page = usePage();
+const isSuperAdmin = computed(
+    () => (page.props.auth as any)?.roles?.includes('superadmin') || false,
+);
 
 const props = defineProps<{
     companies: {
@@ -78,7 +83,7 @@ const deleteCompany = (id: number) => {
                         Manage your ISP companies.
                     </p>
                 </div>
-                <Button as-child>
+                <Button v-if="isSuperAdmin" as-child>
                     <Link :href="route('companies.create')">
                         <Plus class="mr-2 h-4 w-4" />
                         Add Company
@@ -119,7 +124,9 @@ const deleteCompany = (id: number) => {
                                     <TableHead>Name</TableHead>
                                     <TableHead>Contact</TableHead>
                                     <TableHead>Status</TableHead>
-                                    <TableHead class="text-right"
+                                    <TableHead
+                                        v-if="isSuperAdmin"
+                                        class="text-right"
                                         >Actions</TableHead
                                     >
                                 </TableRow>
@@ -193,7 +200,10 @@ const deleteCompany = (id: number) => {
                                             }}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell class="text-right">
+                                    <TableCell
+                                        v-if="isSuperAdmin"
+                                        class="text-right"
+                                    >
                                         <div class="flex justify-end gap-2">
                                             <Button
                                                 variant="ghost"

@@ -17,6 +17,10 @@ class CompanyController extends Controller
      */
     public function index(Request $request)
     {
+        if (!auth()->user()->hasRole('superadmin')) {
+            abort(403);
+        }
+
         $query = Company::query();
 
         if ($request->has('search')) {
@@ -37,6 +41,10 @@ class CompanyController extends Controller
      */
     public function create()
     {
+        if (!auth()->user()->hasRole('superadmin')) {
+            abort(403);
+        }
+
         return Inertia::render('Company::Create');
     }
 
@@ -45,6 +53,10 @@ class CompanyController extends Controller
      */
     public function store(StoreCompanyRequest $request)
     {
+        if (!auth()->user()->hasRole('superadmin')) {
+            abort(403);
+        }
+
         $data = $request->validated();
 
         if ($request->hasFile('logo')) {
@@ -62,6 +74,10 @@ class CompanyController extends Controller
      */
     public function show(Company $company)
     {
+        if (!auth()->user()->hasRole('superadmin') && auth()->user()->company_id !== $company->id) {
+            abort(403);
+        }
+
         return Inertia::render('Company::Show', [
             'company' => $company,
         ]);
@@ -72,6 +88,12 @@ class CompanyController extends Controller
      */
     public function edit(Company $company)
     {
+        if (!auth()->user()->hasRole('superadmin')) {
+            // According to the request, company admin might only see details.
+            // If they can't "mengelola" (manage), they probably can't edit.
+            abort(403);
+        }
+
         return Inertia::render('Company::Edit', [
             'company' => $company,
             'logo_url' => $company->logo ? Storage::url($company->logo) : null,
@@ -83,6 +105,10 @@ class CompanyController extends Controller
      */
     public function update(UpdateCompanyRequest $request, Company $company)
     {
+        if (!auth()->user()->hasRole('superadmin')) {
+            abort(403);
+        }
+
         $data = $request->validated();
 
         if ($request->hasFile('logo')) {
@@ -104,6 +130,10 @@ class CompanyController extends Controller
      */
     public function destroy(Company $company)
     {
+        if (!auth()->user()->hasRole('superadmin')) {
+            abort(403);
+        }
+
         if ($company->logo) {
             Storage::disk('public')->delete($company->logo);
         }

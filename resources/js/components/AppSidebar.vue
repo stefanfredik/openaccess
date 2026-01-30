@@ -216,18 +216,36 @@ const activeDeviceNavItems: NavItem[] = [
     },
 ];
 
-const managementNavItems: NavItem[] = [
-    {
-        title: 'Perusahaan',
-        href: companiesIndex().url,
-        icon: Building2,
-    },
-    {
-        title: 'User',
-        href: userIndex().url,
-        icon: Users,
-    },
-];
+const managementNavItems = computed<NavItem[]>(() => {
+    const items: NavItem[] = [];
+
+    // Perusahaan menu
+    if (isSuperAdmin.value) {
+        items.push({
+            title: 'Perusahaan',
+            href: companiesIndex().url,
+            icon: Building2,
+        });
+    } else if ((page.props.auth as any)?.user?.company_id) {
+        // Direct link to their own company detail
+        items.push({
+            title: 'Perusahaan',
+            href: `/companies/${(page.props.auth as any).user.company_id}`,
+            icon: Building2,
+        });
+    }
+
+    // User menu - superadmin only
+    if (isSuperAdmin.value) {
+        items.push({
+            title: 'User',
+            href: userIndex().url,
+            icon: Users,
+        });
+    }
+
+    return items;
+});
 
 const footerNavItems: NavItem[] = [];
 </script>

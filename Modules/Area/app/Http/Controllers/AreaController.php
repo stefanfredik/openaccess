@@ -58,8 +58,17 @@ class AreaController extends Controller
     {
         $area = InfrastructureArea::findOrFail($id);
 
+        $stats = [
+            'pops_count' => $area->pops()->count(),
+            'servers_count' => $area->servers()->count(),
+            'olts_count' => \Modules\ActiveDevice\Models\Olt::where('infrastructure_area_id', $area->id)->count(),
+            'odps_count' => \Modules\PassiveDevice\Models\Odp::where('infrastructure_area_id', $area->id)->count(),
+            'cpes_count' => \Modules\Cpe\Models\Cpe::where('infrastructure_area_id', $area->id)->count(),
+        ];
+
         return Inertia::render('Area::Show', [
             'area' => $area,
+            'stats' => $stats,
         ]);
     }
 

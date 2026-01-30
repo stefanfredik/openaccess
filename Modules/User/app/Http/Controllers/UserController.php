@@ -17,6 +17,10 @@ class UserController extends Controller
 {
     public function index()
     {
+        if (!auth()->user()->hasRole('superadmin')) {
+            abort(403);
+        }
+
         $users = User::query()
             ->with(['roles', 'company'])
             ->latest()
@@ -39,6 +43,10 @@ class UserController extends Controller
 
     public function create()
     {
+        if (!auth()->user()->hasRole('superadmin')) {
+            abort(403);
+        }
+
         return Inertia::render('User::Create', [
             'roles' => Role::all(),
             'companies' => Company::all(),
@@ -47,6 +55,10 @@ class UserController extends Controller
 
     public function store(StoreUserRequest $request)
     {
+        if (!auth()->user()->hasRole('superadmin')) {
+            abort(403);
+        }
+
         $data = $request->validated();
         $data['password'] = Hash::make($data['password']);
 
@@ -58,6 +70,10 @@ class UserController extends Controller
 
     public function edit($id)
     {
+        if (!auth()->user()->hasRole('superadmin')) {
+            abort(403);
+        }
+
         $user = User::with(['roles'])->findOrFail($id);
 
         return Inertia::render('User::Edit', [
@@ -75,6 +91,10 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request, $id)
     {
+        if (!auth()->user()->hasRole('superadmin')) {
+            abort(403);
+        }
+
         $user = User::findOrFail($id);
         $data = $request->validated();
 
@@ -92,6 +112,10 @@ class UserController extends Controller
 
     public function destroy($id)
     {
+        if (!auth()->user()->hasRole('superadmin')) {
+            abort(403);
+        }
+
         $user = User::findOrFail($id);
         if ($user->id === auth()->id()) {
             return redirect()->back()->with('error', 'Cannot self-delete.');
