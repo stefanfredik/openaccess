@@ -92,7 +92,7 @@
               <div class="space-y-1.5">
                 <Label for="function" class="text-sm font-medium">Fungsi Perangkat</Label>
                 <Select v-model="form.function">
-                  <SelectTrigger class="h-11 rounded-lg border-border">
+                  <SelectTrigger class="h-11 w-full rounded-lg border-border">
                     <SelectValue placeholder="Pilih Fungsi" />
                   </SelectTrigger>
                   <SelectContent>
@@ -109,7 +109,7 @@
               <div class="space-y-1.5">
                 <Label for="status" class="text-sm font-medium">Status Operasional</Label>
                 <Select v-model="form.status">
-                  <SelectTrigger class="h-11 rounded-lg border-border">
+                  <SelectTrigger class="h-11 w-full rounded-lg border-border">
                     <SelectValue placeholder="Pilih Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -137,7 +137,7 @@
               <div class="space-y-1.5">
                 <Label for="area" class="text-sm font-medium">Wilayah Infrastruktur</Label>
                 <Select v-model="form.area_id">
-                  <SelectTrigger class="h-11 rounded-lg border-border">
+                  <SelectTrigger class="h-11 w-full rounded-lg border-border">
                     <SelectValue placeholder="Pilih Wilayah" />
                   </SelectTrigger>
                   <SelectContent>
@@ -150,7 +150,7 @@
               <div class="space-y-1.5">
                 <Label for="pop" class="text-sm font-medium">POP (Opsional)</Label>
                 <Select v-model="form.pop_id">
-                  <SelectTrigger class="h-11 rounded-lg border-border">
+                  <SelectTrigger class="h-11 w-full rounded-lg border-border">
                     <SelectValue placeholder="Pilih POP (Jika ada)" />
                   </SelectTrigger>
                   <SelectContent>
@@ -247,7 +247,7 @@
           </CardContent>
           <CardFooter class="flex justify-end gap-3 rounded-b-lg border-t bg-muted/50 p-6">
             <Button variant="ghost" as-child class="font-medium">
-              <Link :href="serverIndex().url">Batal</Link>
+              <Link :href="route('server.index')">Batal</Link>
             </Button>
             <Button type="submit" :disabled="form.processing" class="rounded-lg bg-primary px-10 font-bold hover:bg-primary/90">
               Simpan Perubahan

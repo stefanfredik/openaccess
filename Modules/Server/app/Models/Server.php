@@ -41,4 +41,9 @@ class Server extends Model
     {
         return $this->hasMany(ServerPhoto::class);
     }
+
+    public function racks()
+    {
+        return $this->hasMany(Rack::class);
+    }
 }
