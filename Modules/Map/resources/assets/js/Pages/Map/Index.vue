@@ -114,15 +114,15 @@
 
   // Helper to create valid SVG string (using Lucide style paths)
   const getIconHtml = (color: string, svgPath: string) => `
-    <div class="flex flex-col items-center drop-shadow-md">
-        <div style="background-color: ${color}; border: 2.5px solid #fff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 2;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));">
-                ${svgPath}
-            </svg>
-        </div>
-        <div style="width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 9px solid #fff; margin-top: -2px; z-index: 1;"></div>
-    </div>
-`
+      <div class="flex flex-col items-center drop-shadow-md">
+          <div style="background-color: ${color}; border: 2.5px solid #fff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 2;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));">
+                  ${svgPath}
+              </svg>
+          </div>
+          <div style="width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 9px solid #fff; margin-top: -2px; z-index: 1;"></div>
+      </div>
+  `
 
   const createIcon = (color: string, svgPath: string) =>
     L.divIcon({
@@ -222,7 +222,7 @@
 
   let map: L.Map | null = null
   let markersLayer: any | null = null
-  let boundaryLayer: L.Layer | null = null
+  let boundaryLayer: L.FeatureGroup | null = null
   let tempMarker: L.Marker | null = null
   let drawPolyline: L.Polyline | null = null
 
@@ -314,46 +314,46 @@
       onEachFeature: (feature, layer) => {
         const props = feature.properties
         let popupContent = `
-                <div class="p-2 min-w-[200px]">
-                    <h3 class="font-bold text-lg mb-2">${props.name}</h3>
-                    <p class="text-sm"><strong>Type:</strong> ${props.type.toUpperCase().replace('_', ' ')}</p>
-                    ${props.address ? `<p class="text-sm"><strong>Address:</strong> ${props.address}</p>` : ''}
-                    <p class="text-sm mb-3"><strong>Status:</strong> <span class="text-green-600">${props.status}</span></p>
-            `
+                  <div class="p-2 min-w-[200px]">
+                      <h3 class="font-bold text-lg mb-2">${props.name}</h3>
+                      <p class="text-sm"><strong>Type:</strong> ${props.type.toUpperCase().replace('_', ' ')}</p>
+                      ${props.address ? `<p class="text-sm"><strong>Address:</strong> ${props.address}</p>` : ''}
+                      <p class="text-sm mb-3"><strong>Status:</strong> <span class="text-green-600">${props.status}</span></p>
+              `
 
         if (feature.geometry.type === 'Point') {
           popupContent += `
-                    <div class="pt-2 border-t">
-                        <button
-                            onclick="window.startRelocation(${props.id}, '${props.type}', '${props.name.replace(/'/g, "\\'")}')"
-                            class="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs font-bold py-2 px-3 rounded-md transition-colors flex items-center justify-center gap-2"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-                            Geser Posisi
-                        </button>
-                    </div>
-                `
+                      <div class="pt-2 border-t">
+                          <button
+                              onclick="window.startRelocation(${props.id}, '${props.type}', '${props.name.replace(/'/g, "\\'")}')"
+                              class="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs font-bold py-2 px-3 rounded-md transition-colors flex items-center justify-center gap-2"
+                          >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                              Geser Posisi
+                          </button>
+                      </div>
+                  `
         } else if (feature.geometry.type === 'LineString') {
           popupContent += `
-                    <div class="space-y-1 mt-2">
-                            <div class="text-xs text-gray-700"><strong>Code:</strong> ${props.code || '-'}</div>
-                        <div class="text-xs text-gray-700"><strong>Length:</strong> ${props.length}m</div>
-                        <div class="text-xs text-gray-700"><strong>Core:</strong> ${props.core_count} Core</div>
-                        <div class="text-xs text-gray-700"><strong>Type:</strong> ${props.type_name}</div>
-                        ${props.brand ? `<div class="text-xs text-gray-700"><strong>Brand:</strong> ${props.brand}</div>` : ''}
-                        ${props.start_point ? `<div class="text-xs text-gray-700"><strong>Start:</strong> ${props.start_point}</div>` : ''}
-                        ${props.end_point ? `<div class="text-xs text-gray-700"><strong>End:</strong> ${props.end_point}</div>` : ''}
-                    </div>
-                    <div class="pt-2 border-t mt-2">
-                        <button
-                            onclick="window.editCable(${props.id})"
-                            class="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs font-bold py-2 px-3 rounded-md transition-colors flex items-center justify-center gap-2"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-                            Edit Jalur
-                        </button>
-                    </div>
-                `
+                      <div class="space-y-1 mt-2">
+                              <div class="text-xs text-gray-700"><strong>Code:</strong> ${props.code || '-'}</div>
+                          <div class="text-xs text-gray-700"><strong>Length:</strong> ${props.length}m</div>
+                          <div class="text-xs text-gray-700"><strong>Core:</strong> ${props.core_count} Core</div>
+                          <div class="text-xs text-gray-700"><strong>Type:</strong> ${props.type_name}</div>
+                          ${props.brand ? `<div class="text-xs text-gray-700"><strong>Brand:</strong> ${props.brand}</div>` : ''}
+                          ${props.start_point ? `<div class="text-xs text-gray-700"><strong>Start:</strong> ${props.start_point}</div>` : ''}
+                          ${props.end_point ? `<div class="text-xs text-gray-700"><strong>End:</strong> ${props.end_point}</div>` : ''}
+                      </div>
+                      <div class="pt-2 border-t mt-2">
+                          <button
+                              onclick="window.editCable(${props.id})"
+                              class="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs font-bold py-2 px-3 rounded-md transition-colors flex items-center justify-center gap-2"
+                          >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                              Edit Jalur
+                          </button>
+                      </div>
+                  `
         }
 
         popupContent += `</div>`
@@ -403,27 +403,52 @@
       renderMap()
 
       // Handle Boundary and Zoom logic remains same but using mapData.value
+      // Handle Boundary
+      if (boundaryLayer) {
+        boundaryLayer.clearLayers()
+      } else if (map) {
+        boundaryLayer = new L.FeatureGroup().addTo(map)
+      }
+
       if (selectedAreaId.value !== 'all') {
-        if (boundaryLayer) {
-          map?.removeLayer(boundaryLayer)
-          boundaryLayer = null
-        }
         const area = props.areas.find((a) => a.id === parseInt(selectedAreaId.value))
 
         if (area && area.boundary) {
-          boundaryLayer = L.polygon(area.boundary, {
+          const polygon = L.polygon(area.boundary, {
             color: '#3b82f6',
             weight: 2,
             opacity: 0.5,
-            fillOpacity: 0.2,
+            fillOpacity: 0.1,
             interactive: false,
-          }).addTo(map!)
-          boundaryLayer.bringToBack()
+          })
+          boundaryLayer?.addLayer(polygon)
+          boundaryLayer?.bringToBack()
 
           if (fitToArea && map) {
-            map.fitBounds((boundaryLayer as L.Polygon).getBounds())
+            map.fitBounds(polygon.getBounds())
           }
         }
+      } else {
+        // Show ALL boundaries if "All Areas" is selected
+        let addedCount = 0
+        props.areas.forEach((area) => {
+          if (area.boundary) {
+            const polygon = L.polygon(area.boundary, {
+              color: '#3b82f6', // Bright Blue
+              weight: 2, // Thicker line
+              opacity: 0.8, // More opaque
+              fillOpacity: 0.05,
+              interactive: false,
+            })
+            try {
+              boundaryLayer?.addLayer(polygon)
+              addedCount++
+            } catch (e) {
+              console.error('Error adding polygon for area', area.name, e)
+            }
+          }
+        })
+        boundaryLayer?.bringToBack()
       }
     } catch (error) {
       console.error('Failed to load map data:', error)
