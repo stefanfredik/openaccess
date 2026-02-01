@@ -19,6 +19,7 @@
     areas: Array<any>
     pops: Array<any>
     selectedAreaId?: string | null
+    initialLength?: number
   }>()
 
   const emit = defineEmits(['update:open', 'success'])
@@ -67,6 +68,7 @@
         form.latitude = props.lat?.toString() || ''
         form.longitude = props.lng?.toString() || ''
         form.path = props.path || []
+        form.length = props.initialLength ? Number(props.initialLength.toFixed(2)) : 0
 
         // Auto-populate area if selected
         if (props.selectedAreaId && props.selectedAreaId !== 'all') {

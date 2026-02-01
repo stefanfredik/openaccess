@@ -2,10 +2,13 @@
   import AppLayout from '@/layouts/AppLayout.vue'
   import { Head } from '@inertiajs/vue3'
 
+  import SplicingEditor from '../../Components/SplicingEditor.vue'
+
   declare global {
     interface Window {
       startRelocation: (id: number, type: string, name: string) => void
       editCable: (id: number) => void
+      openSplicingEditor: (id: number, type: string) => void
     }
   }
 
@@ -331,6 +334,22 @@
                               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                               Geser Posisi
                           </button>
+                  `
+
+          const isSpliceable = ['odp', 'joint_box', 'odf'].includes(props.type)
+          if (isSpliceable) {
+            popupContent += `
+                  <div class="pt-2 border-t mt-2">
+                       <button onclick="window.openSplicingEditor(${props.id}, '${props.type}')" 
+                          class="w-full bg-purple-50 hover:bg-purple-100 text-purple-600 rounded px-2 py-1 text-xs font-bold transition-colors flex items-center justify-center gap-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M2 12h20"/></svg>
+                          Manage Splicing
+                       </button>
+                  </div>
+              `
+          }
+
+          popupContent += `
                       </div>
                   `
         } else if (feature.geometry.type === 'LineString') {
@@ -465,6 +484,18 @@
     },
     { deep: true },
   )
+
+  watch(pendingDeviceType, (newVal) => {
+    if (newVal === 'cable') {
+      isDrawingCable.value = true
+      toast.info('Mode Gambar Kabel Aktif. Klik peta untuk membuat titik-titik jalur.', {
+        duration: 4000,
+      })
+    } else {
+      // For other devices, point placing mode is handled in map click
+      isDrawingCable.value = false
+    }
+  })
 
   const initMap = async () => {
     if (!mapContainer.value) return
@@ -603,6 +634,17 @@
     }
     relocatingDevice.value = null
     relocatingMarker.value = null
+  }
+
+  // --- Splicing Editor Integration ---
+  const showSplicingEditor = ref(false)
+  const splicingEnclosureId = ref<number>(0)
+  const splicingEnclosureType = ref<string>('')
+
+  window.openSplicingEditor = (id, type) => {
+    splicingEnclosureId.value = id
+    splicingEnclosureType.value = type
+    showSplicingEditor.value = true
   }
 
   // Global function for relocation (called from popup string)
@@ -1036,6 +1078,12 @@
           cancelCableDrawing()
         }
       " />
+
+    <SplicingEditor
+      :is-open="showSplicingEditor"
+      :enclosure-type="splicingEnclosureType"
+      :enclosure-id="splicingEnclosureId"
+      @close="showSplicingEditor = false" />
   </AppLayout>
 </template>
 

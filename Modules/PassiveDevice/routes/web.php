@@ -21,4 +21,9 @@ Route::middleware(['auth', 'verified'])->prefix('pendataan/passive-devices')->na
     Route::resource('splitter', SplitterController::class);
     Route::resource('slack', SlackController::class);
     Route::resource('tower', TowerController::class);
+
+    // Splicing & Tracing
+    Route::post('splice', [\Modules\PassiveDevice\Http\Controllers\SplicingController::class, 'splice'])->name('splice');
+    Route::get('trace/{core}', [\Modules\PassiveDevice\Http\Controllers\SplicingController::class, 'trace'])->name('trace');
+    Route::get('enclosure-details', [\Modules\PassiveDevice\Http\Controllers\SplicingController::class, 'getEnclosureDetails'])->name('enclosure-details');
 });

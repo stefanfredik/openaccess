@@ -43,4 +43,24 @@ class Cable extends Model
     {
         return $this->belongsTo(\Modules\Area\Models\InfrastructureArea::class, 'infrastructure_area_id');
     }
+
+    public function tubes()
+    {
+        return $this->hasMany(CableTube::class, 'cable_id');
+    }
+
+    public function cores()
+    {
+        return $this->hasMany(CableCore::class, 'cable_id');
+    }
+
+    public function startNode()
+    {
+        return $this->morphTo();
+    }
+
+    public function endNode()
+    {
+        return $this->morphTo();
+    }
 }

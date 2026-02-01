@@ -62,7 +62,41 @@ class CableController extends Controller
     {
         $data = $request->validated();
         $data['company_id'] = auth()->user()->company_id;
-        Cable::create($data);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($data) {
+            $cable = Cable::create($data);
+
+            // Generate Cores & Tubes Logic
+            $coreCount = (int) $data['core_count'];
+            $coresPerTube = 12; // Standard
+            $tubeCount = ceil($coreCount / $coresPerTube);
+
+            $tubeColors = ['Blue', 'Orange', 'Green', 'Brown', 'Grey', 'White', 'Red', 'Black', 'Yellow', 'Violet', 'Pink', 'Aqua'];
+            $coreColors = ['Blue', 'Orange', 'Green', 'Brown', 'Grey', 'White', 'Red', 'Black', 'Yellow', 'Violet', 'Pink', 'Aqua'];
+
+            $currentCore = 1;
+
+            for ($t = 0; $t < $tubeCount; $t++) {
+                $tube = \Modules\PassiveDevice\Models\CableTube::create([
+                    'cable_id' => $cable->id,
+                    'color' => $tubeColors[$t % 12],
+                    'tube_number' => $t + 1,
+                    'core_count' => ($t == $tubeCount - 1 && $coreCount % 12 != 0) ? ($coreCount % 12) : 12,
+                ]);
+
+                $coresInThisTube = $tube->core_count;
+
+                for ($c = 0; $c < $coresInThisTube; $c++) {
+                    \Modules\PassiveDevice\Models\CableCore::create([
+                        'cable_id' => $cable->id,
+                        'tube_id' => $tube->id,
+                        'color' => $coreColors[$c % 12],
+                        'core_number' => $currentCore++,
+                        'status' => 'Available',
+                    ]);
+                }
+            }
+        });
 
         if ($request->header('referer') && str_contains($request->header('referer'), route('map.index'))) {
             return back()->with('success', $this->flashCreated('cable'));

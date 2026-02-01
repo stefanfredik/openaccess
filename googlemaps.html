@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Google Maps API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        #map {
+            height: 400px;
+            width: 100%;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🗺️ Test Google Maps API Key</h1>
+    
+    <div class="test-section">
+        <h2>Configuration</h2>
+        <label for="apiKey">API Key:</label><br>
+        <input type="text" id="apiKey" style="width: 100%; padding: 8px; margin: 10px 0;" 
+               placeholder="Masukkan API Key Anda">
+        <button onclick="runAllTests()">🚀 Run All Tests</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 1: Geocoding API</h2>
+        <p>Mengkonversi alamat menjadi koordinat</p>
+        <div id="geocoding-status" class="status info">Menunggu test...</div>
+        <button onclick="testGeocoding()">Test Geocoding</button>
+        <pre id="geocoding-result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Places API (Nearby Search)</h2>
+        <p>Mencari tempat di sekitar lokasi</p>
+        <div id="places-status" class="status info">Menunggu test...</div>
+        <button onclick="testPlaces()">Test Places</button>
+        <pre id="places-result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Maps JavaScript API</h2>
+        <p>Menampilkan peta interaktif</p>
+        <div id="map-status" class="status info">Menunggu test...</div>
+        <button onclick="testMapDisplay()">Test Map Display</button>
+        <div id="map"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Directions API</h2>
+        <p>Mendapatkan rute dari A ke B</p>
+        <div id="directions-status" class="status info">Menunggu test...</div>
+        <button onclick="testDirections()">Test Directions</button>
+        <pre id="directions-result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Summary</h2>
+        <div id="summary"></div>
+    </div>
+
+    <script>
+        let map;
+        let testResults = {
+            geocoding: false,
+            places: false,
+            mapDisplay: false,
+            directions: false
+        };
+
+        function getApiKey() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            if (!apiKey) {
+                alert('Masukkan API Key terlebih dahulu!');
+                return null;
+            }
+            return apiKey;
+        }
+
+        async function testGeocoding() {
+            const apiKey = getApiKey();
+            if (!apiKey) return;
+
+            const statusDiv = document.getElementById('geocoding-status');
+            const resultDiv = document.getElementById('geocoding-result');
+            
+            statusDiv.className = 'status info';
+            statusDiv.textContent = '⏳ Testing Geocoding API...';
+            
+            try {
+                const response = await fetch(
+                    `https://maps.googleapis.com/maps/api/geocode/json?address=Jakarta&key=${apiKey}`
+                );
+                const data = await response.json();
+                
+                if (data.status === 'OK') {
+                    statusDiv.className = 'status success';
+                    statusDiv.textContent = '✅ Geocoding API berfungsi!';
+                    testResults.geocoding = true;
+                    resultDiv.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = `❌ Error: ${data.status} - ${data.error_message || 'Unknown error'}`;
+                    testResults.geocoding = false;
+                    resultDiv.textContent = JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = `❌ Error: ${error.message}`;
+                testResults.geocoding = false;
+                resultDiv.textContent = error.stack;
+            }
+            updateSummary();
+        }
+
+        async function testPlaces() {
+            const apiKey = getApiKey();
+            if (!apiKey) return;
+
+            const statusDiv = document.getElementById('places-status');
+            const resultDiv = document.getElementById('places-result');
+            
+            statusDiv.className = 'status info';
+            statusDiv.textContent = '⏳ Testing Places API...';
+            
+            try {
+                // Using Text Search instead of Nearby Search (works better with HTTP requests)
+                const response = await fetch(
+                    `https://maps.googleapis.com/maps/api/place/textsearch/json?query=restaurants+in+Jakarta&key=${apiKey}`
+                );
+                const data = await response.json();
+                
+                if (data.status === 'OK' || data.status === 'ZERO_RESULTS') {
+                    statusDiv.className = 'status success';
+                    statusDiv.textContent = '✅ Places API berfungsi!';
+                    testResults.places = true;
+                    resultDiv.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = `❌ Error: ${data.status} - ${data.error_message || 'Unknown error'}`;
+                    testResults.places = false;
+                    resultDiv.textContent = JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = `❌ Error: ${error.message}`;
+                testResults.places = false;
+                resultDiv.textContent = error.stack;
+            }
+            updateSummary();
+        }
+
+        function testMapDisplay() {
+            const apiKey = getApiKey();
+            if (!apiKey) return;
+
+            const statusDiv = document.getElementById('map-status');
+            
+            statusDiv.className = 'status info';
+            statusDiv.textContent = '⏳ Loading Maps JavaScript API...';
+            
+            // Remove old script if exists
+            const oldScript = document.getElementById('gmaps-script');
+            if (oldScript) {
+                oldScript.remove();
+            }
+
+            const script = document.createElement('script');
+            script.id = 'gmaps-script';
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap`;
+            script.async = true;
+            script.defer = true;
+            
+            script.onerror = () => {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ Gagal memuat Maps JavaScript API';
+                testResults.mapDisplay = false;
+                updateSummary();
+            };
+            
+            document.head.appendChild(script);
+        }
+
+        function initMap() {
+            const statusDiv = document.getElementById('map-status');
+            
+            try {
+                map = new google.maps.Map(document.getElementById('map'), {
+                    center: { lat: -6.2088, lng: 106.8456 }, // Jakarta
+                    zoom: 12
+                });
+                
+                // Add a marker
+                new google.maps.Marker({
+                    position: { lat: -6.2088, lng: 106.8456 },
+                    map: map,
+                    title: 'Jakarta'
+                });
+                
+                statusDiv.className = 'status success';
+                statusDiv.textContent = '✅ Maps JavaScript API berfungsi!';
+                testResults.mapDisplay = true;
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = `❌ Error: ${error.message}`;
+                testResults.mapDisplay = false;
+            }
+            updateSummary();
+        }
+
+        async function testDirections() {
+            const apiKey = getApiKey();
+            if (!apiKey) return;
+
+            const statusDiv = document.getElementById('directions-status');
+            const resultDiv = document.getElementById('directions-result');
+            
+            statusDiv.className = 'status info';
+            statusDiv.textContent = '⏳ Testing Directions API...';
+            
+            try {
+                const response = await fetch(
+                    `https://maps.googleapis.com/maps/api/directions/json?origin=Jakarta&destination=Bandung&key=${apiKey}`
+                );
+                const data = await response.json();
+                
+                if (data.status === 'OK') {
+                    statusDiv.className = 'status success';
+                    statusDiv.textContent = '✅ Directions API berfungsi!';
+                    testResults.directions = true;
+                    resultDiv.textContent = JSON.stringify(data, null, 2);
+                } else if (data.status === 'REQUEST_DENIED') {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = `⚠️ Directions API tidak diaktifkan atau dibatasi. Error: ${data.error_message}`;
+                    testResults.directions = false;
+                    resultDiv.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = `❌ Error: ${data.status} - ${data.error_message || 'Unknown error'}`;
+                    testResults.directions = false;
+                    resultDiv.textContent = JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = `❌ Error: ${error.message}`;
+                testResults.directions = false;
+                resultDiv.textContent = error.stack;
+            }
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const summaryDiv = document.getElementById('summary');
+            const total = Object.keys(testResults).length;
+            const passed = Object.values(testResults).filter(v => v === true).length;
+            
+            let html = `<h3>Hasil Test: ${passed}/${total} berhasil</h3><ul>`;
+            html += `<li>Geocoding API: ${testResults.geocoding ? '✅' : '❌'}</li>`;
+            html += `<li>Places API: ${testResults.places ? '✅' : '❌'}</li>`;
+            html += `<li>Maps JavaScript API: ${testResults.mapDisplay ? '✅' : '❌'}</li>`;
+            html += `<li>Directions API: ${testResults.directions ? '✅' : '❌'}</li>`;
+            html += '</ul>';
+            
+            summaryDiv.innerHTML = html;
+        }
+
+        async function runAllTests() {
+            const apiKey = getApiKey();
+            if (!apiKey) return;
+
+            // Reset results
+            testResults = {
+                geocoding: false,
+                places: false,
+                mapDisplay: false,
+                directions: false
+            };
+
+            // Run tests sequentially
+            await testGeocoding();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testPlaces();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            testMapDisplay();
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            await testDirections();
+        }
+
+        // Make initMap available globally
+        window.initMap = initMap;
+    </script>
+</body>
+</html>

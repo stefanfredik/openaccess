@@ -109,6 +109,11 @@
       icon: MapPinned,
     },
     {
+      title: 'Google Map',
+      href: '/maps/google', // Using direct path since route helper might not be fully typed in FE yet or simple string is easier here
+      icon: MapPin,
+    },
+    {
       title: 'Topology',
       href: '/topology',
       icon: Network,

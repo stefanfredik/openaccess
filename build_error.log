@@ -1,0 +1,28 @@
+
+> build
+> vite build
+
+vite v7.3.1 building client environment for production...
+[plugin @laravel/vite-plugin-wayfinder] Types generated for actions, routes, form variants
+transforming...
+Modules/Map/resources/assets/js/Components/SplicingEditor.vue (1:7): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+✓ 3479 modules transformed.
+✗ Build failed in 23.29s
+error during build:
+Modules/Map/resources/assets/js/Components/SplicingEditor.vue (1:7): "default" is not exported by "Modules/Map/resources/assets/js/Components/SplicingEditor.vue?vue&type=script&setup=true&lang.vue", imported by "Modules/Map/resources/assets/js/Components/SplicingEditor.vue".
+file: /home/homenet/dev/oa-inertia/openaccess/Modules/Map/resources/assets/js/Components/SplicingEditor.vue:1:7
+
+1: import _sfc_main from "/home/homenet/dev/oa-inertia/openaccess/Modules/Map/resources/assets/js/Components/SplicingEdi...
+          ^
+2: export * from "/home/homenet/dev/oa-inertia/openaccess/Modules/Map/resources/assets/js/Components/SplicingEditor.vue?...
+
+    at getRollupError (file:///home/homenet/dev/oa-inertia/openaccess/node_modules/rollup/dist/es/shared/parseAst.js:400:41)
+    at error (file:///home/homenet/dev/oa-inertia/openaccess/node_modules/rollup/dist/es/shared/parseAst.js:396:42)
+    at Module.error (file:///home/homenet/dev/oa-inertia/openaccess/node_modules/rollup/dist/es/shared/node-entry.js:17036:16)
+    at Module.traceVariable (file:///home/homenet/dev/oa-inertia/openaccess/node_modules/rollup/dist/es/shared/node-entry.js:17448:29)
+    at ModuleScope.findVariable (file:///home/homenet/dev/oa-inertia/openaccess/node_modules/rollup/dist/es/shared/node-entry.js:15066:39)
+    at Identifier.bind (file:///home/homenet/dev/oa-inertia/openaccess/node_modules/rollup/dist/es/shared/node-entry.js:5447:40)
+    at ExportDefaultDeclaration.bind (file:///home/homenet/dev/oa-inertia/openaccess/node_modules/rollup/dist/es/shared/node-entry.js:2829:23)
+    at ExportDefaultDeclaration.bind (file:///home/homenet/dev/oa-inertia/openaccess/node_modules/rollup/dist/es/shared/node-entry.js:6939:15)
+    at Program.bind (file:///home/homenet/dev/oa-inertia/openaccess/node_modules/rollup/dist/es/shared/node-entry.js:2825:28)
+    at Module.bindReferences (file:///home/homenet/dev/oa-inertia/openaccess/node_modules/rollup/dist/es/shared/node-entry.js:17015:18)

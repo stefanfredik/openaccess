@@ -35,6 +35,26 @@ class MapController extends Controller
         ]);
     }
 
+    public function google()
+    {
+        $areas = \Modules\Area\Models\InfrastructureArea::query()
+            ->whereHas('company')
+            ->get(['id', 'name', 'boundary']);
+
+        $pops = \Modules\Pop\Models\Pop::query()
+            ->get(['id', 'name']);
+
+        return Inertia::render('Map::GoogleMap/Index', [
+            'areas' => $areas,
+            'pops' => $pops,
+        ]);
+    }
+
+    public function presale()
+    {
+        return Inertia::render('Map::TestGoogleMaps');
+    }
+
     private function applyFilters($query, Request $request)
     {
         $areaId = $request->query('area_id');
@@ -57,9 +77,9 @@ class MapController extends Controller
         // Filter by Bounding Box if present
         if ($minLat && $maxLat && $minLng && $maxLng) {
             $query->whereBetween('latitude', [$minLat, $maxLat])
-                  ->whereBetween('longitude', [$minLng, $maxLng]);
+                ->whereBetween('longitude', [$minLng, $maxLng]);
         }
-        
+
         // Ensure valid coordinates
         $query->whereNotNull('latitude')->whereNotNull('longitude');
 
@@ -208,7 +228,7 @@ class MapController extends Controller
         }
         // TODO: Implement bounding box check for cables (complex, maybe skip for now or check start/end points)
         // For now, let's load all cables in area to avoid cutting them off
-        
+
         $cables = $cablesQuery->get()->map(function ($dev) {
             return [
                 'type' => 'Feature',
@@ -255,8 +275,9 @@ class MapController extends Controller
         $request->validate([
             'type' => 'required|string',
             'id' => 'required|integer',
-            'lat' => 'required|numeric',
-            'lng' => 'required|numeric',
+            'lat' => 'nullable|numeric|required_unless:type,cable',
+            'lng' => 'nullable|numeric|required_unless:type,cable',
+            'path' => 'nullable|array|required_if:type,cable',
         ]);
 
         $type = $request->type;
