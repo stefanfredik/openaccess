@@ -100,6 +100,8 @@
   const cableDrawStep = ref<CableDrawStep>('idle')
   const startPoint = ref<{ lat: number; lng: number } | null>(null)
   const endPoint = ref<{ lat: number; lng: number } | null>(null)
+  const autoRouteMode = ref(true) // Auto-follow roads by default
+  const isLoadingRoute = ref(false) // Loading state for directions API
   let startPointMarker: google.maps.marker.AdvancedMarkerElement | null = null
   let endPointMarker: google.maps.marker.AdvancedMarkerElement | null = null
 
@@ -910,12 +912,11 @@
     toast.info('Geser marker merah ke posisi titik akhir kabel')
   }
 
-  const confirmEndPoint = () => {
+  const confirmEndPoint = async () => {
     if (!endPointMarker || !startPoint.value || !map || !GooglePolyline) return
 
     const pos = endPointMarker.position as google.maps.LatLngLiteral
     endPoint.value = { lat: pos.lat, lng: pos.lng }
-    cableDrawStep.value = 'editPath'
 
     // Change end marker appearance (locked)
     const lockedIcon = document.createElement('div')
@@ -930,11 +931,50 @@
     endPointMarker.gmpDraggable = false
     endPointMarker.content = lockedIcon
 
-    // Create editable polyline between start and end
-    const path = [
-      { lat: startPoint.value.lat, lng: startPoint.value.lng },
-      { lat: endPoint.value!.lat, lng: endPoint.value!.lng },
-    ]
+    let path: google.maps.LatLngLiteral[] = []
+
+    // Try to get route from Directions API if auto-route is enabled
+    if (autoRouteMode.value) {
+      isLoadingRoute.value = true
+      try {
+        const directionsService = new google.maps.DirectionsService()
+        const result = await directionsService.route({
+          origin: { lat: startPoint.value.lat, lng: startPoint.value.lng },
+          destination: { lat: endPoint.value.lat, lng: endPoint.value.lng },
+          travelMode: google.maps.TravelMode.DRIVING,
+        })
+
+        if (result.routes && result.routes.length > 0 && result.routes[0].overview_path) {
+          path = result.routes[0].overview_path.map((p) => ({ lat: p.lat(), lng: p.lng() }))
+          toast.success('Jalur otomatis berhasil dibuat mengikuti jalan')
+        } else {
+          // Fallback to straight line
+          path = [
+            { lat: startPoint.value.lat, lng: startPoint.value.lng },
+            { lat: endPoint.value.lat, lng: endPoint.value.lng },
+          ]
+          toast.warning('Tidak dapat menemukan rute jalan, menggunakan garis lurus')
+        }
+      } catch (error) {
+        console.error('Directions API error:', error)
+        // Fallback to straight line
+        path = [
+          { lat: startPoint.value.lat, lng: startPoint.value.lng },
+          { lat: endPoint.value.lat, lng: endPoint.value.lng },
+        ]
+        toast.warning('Gagal mendapatkan rute jalan, menggunakan garis lurus')
+      } finally {
+        isLoadingRoute.value = false
+      }
+    } else {
+      // Manual mode: straight line
+      path = [
+        { lat: startPoint.value.lat, lng: startPoint.value.lng },
+        { lat: endPoint.value.lat, lng: endPoint.value.lng },
+      ]
+    }
+
+    cableDrawStep.value = 'editPath'
 
     drawPolyline = new GooglePolyline({
       path: path,
@@ -1206,6 +1246,26 @@
               <path d="M2 12h20M12 2l10 10-10 10" />
             </svg>
             <span class="text-sm font-black text-blue-600">{{ pendingLength.toFixed(1) }} m</span>
+          </div>
+
+          <!-- Auto-Route Toggle (only show before editPath step) -->
+          <div v-if="cableDrawStep !== 'editPath'" class="flex items-center gap-2 border-l pl-3">
+            <label class="flex cursor-pointer items-center gap-2">
+              <UiSwitch :checked="autoRouteMode" @update:checked="autoRouteMode = $event" />
+              <span class="text-xs font-medium text-gray-600">Ikuti Jalan</span>
+            </label>
+          </div>
+
+          <!-- Loading Indicator -->
+          <div v-if="isLoadingRoute" class="flex items-center gap-2 border-l pl-3">
+            <svg class="h-4 w-4 animate-spin text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="text-xs text-gray-500">Mencari rute...</span>
           </div>
 
           <div class="h-6 w-px bg-gray-200"></div>
