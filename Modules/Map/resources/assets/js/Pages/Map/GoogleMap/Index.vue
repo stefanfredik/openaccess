@@ -261,6 +261,7 @@
           },
           polylineOptions: {
             editable: true,
+            draggable: false,
             geodesic: true,
             strokeColor: '#3b82f6',
             strokeOpacity: 1.0,
@@ -323,7 +324,20 @@
             pendingLat.value = pos.lat()
             pendingLng.value = pos.lng()
 
-            // Replace with custom marker logic or just show modal
+            // Handle temporary marker interactions
+            marker.addListener('click', () => {
+              showCreateModal.value = true
+            })
+
+            marker.addListener('dragend', () => {
+              const newPos = marker.getPosition()
+              if (newPos) {
+                pendingLat.value = newPos.lat()
+                pendingLng.value = newPos.lng()
+                showCreateModal.value = true // Re-open if dragged
+              }
+            })
+
             tempMarker = marker as any
             showCreateModal.value = true
           } else if (event.type === 'polyline') {
@@ -648,21 +662,32 @@
       // Hide original
       target.map = null
 
-      // Temporary icon for relocation
-      const dragIcon = document.createElement('img')
-      dragIcon.src = 'http://maps.google.com/mapfiles/ms/icons/orange-dot.png'
+      // Use the same animated target icon as placement flow
+      const deviceColor = (colors as any)[type] || colors.blue
+      const markerIcon = document.createElement('div')
+      markerIcon.innerHTML = `
+        <div class="flex flex-col items-center animate-bounce">
+          <div style="background-color: ${deviceColor}; border: 3px solid #fff; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12 2v4m0 12v4m10-10h-4M6 12H2"/>
+            </svg>
+          </div>
+          <div style="width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 10px solid #fff; margin-top: -2px;"></div>
+        </div>
+      `
 
       const dragMarker = new AdvancedMarkerElement({
         position: target.position,
         map: map,
         gmpDraggable: true,
-        content: dragIcon,
+        content: markerIcon,
         zIndex: 999,
         title: 'Geser ke posisi baru',
       })
 
       relocatingDevice.value = { id, type, name, marker: dragMarker }
-      toast.info(`Mode Relokasi: Geser marker ${name} ke posisi baru`)
+      toast.info(`Geser marker ${name} ke lokasi baru, lalu klik centang.`)
     }
   }
 
@@ -687,7 +712,7 @@
         strokeColor: '#3b82f6',
         strokeWeight: 4,
         editable: true,
-        draggable: true,
+        draggable: false,
         map: map,
       })
 
@@ -719,13 +744,13 @@
     }
   }
 
-  const cancelCableDrawing = () => {
+  const cancelAddingDevice = () => {
     isDrawingCable.value = false
     pendingDeviceType.value = null
     pendingPath.value = []
     if (drawPolyline) drawPolyline.setMap(null)
     drawPolyline = null
-    if (tempMarker) (tempMarker as any).setMap(null)
+    if (tempMarker) (tempMarker as any).map = null
     tempMarker = null
     if (drawingManager) drawingManager.setDrawingMode(null)
     editMarkers.value.forEach((m) => (m.map = null))
@@ -747,7 +772,7 @@
         path: pendingPath.value,
       })
       toast.success('Updated')
-      cancelCableDrawing()
+      cancelAddingDevice()
       relocatingDevice.value = null
     } catch (e) {
       toast.error('Error')
@@ -792,11 +817,19 @@
   }
 
   const cancelRelocation = () => {
+    if (relocatingDevice.value?.id) {
+      // Restore original marker if possible
+      const target = markers.find((m) => m.metadata?.id === relocatingDevice.value?.id && m.metadata?.type === relocatingDevice.value?.type)
+      if (target) target.map = map
+    }
+
     if (relocatingDevice.value?.marker) {
       relocatingDevice.value.marker.map = null
     }
+
     relocatingDevice.value = null
-    loadMapData()
+    // Only reload if we can't restore or to be safe, but let's try restoring first for speed
+    renderMap()
   }
 
   const saveRelocation = async () => {
@@ -1191,7 +1224,7 @@
     // Add snap detection listener
     setupMarkerSnapListener(startPointMarker)
 
-    toast.info('Geser marker hijau ke posisi titik awal kabel (snap ke perangkat terdekat)')
+    toast.info('Geser pin hijau ke posisi titik awal kabel (snap ke perangkat terdekat)')
   }
 
   const confirmStartPoint = () => {
@@ -1259,7 +1292,7 @@
     // Add snap detection listener to end marker
     setupMarkerSnapListener(endPointMarker, false)
 
-    toast.info('Geser marker merah ke posisi titik akhir kabel (snap ke perangkat terdekat)')
+    toast.info('Geser pin merah ke posisi titik akhir kabel (snap ke perangkat terdekat)')
   }
 
   const confirmEndPoint = async () => {
@@ -1439,11 +1472,15 @@
   watch(
     () => pendingDeviceType.value,
     (type) => {
-      if (!drawingManager) return
+      if (!drawingManager || !map || !AdvancedMarkerElement) return
 
       if (!type) {
         drawingManager.setDrawingMode(null)
         isDrawingCable.value = false
+        if (tempMarker) {
+          tempMarker.map = null
+          tempMarker = null
+        }
         return
       }
 
@@ -1452,10 +1489,51 @@
         // Don't use DrawingManager for cables anymore
         return
       } else {
-        const label = type.toUpperCase()
-        drawingManager.setDrawingMode(google.maps.drawing.OverlayType.MARKER)
-        isDrawingCable.value = false
-        toast.info(`Mode Tambah ${label}: Klik pada peta untuk menaruh perangkat`)
+        // Mobile-friendly placement: Place marker at center immediately
+        const center = map.getCenter()
+        if (!center) return
+
+        pendingLat.value = center.lat()
+        pendingLng.value = center.lng()
+
+        // Remove old temp if exists
+        if (tempMarker) tempMarker.map = null
+
+        // Custom marker content (matching cable placement style)
+        const deviceColor = (colors as any)[type] || colors.blue
+        const markerIcon = document.createElement('div')
+        markerIcon.innerHTML = `
+          <div class="flex flex-col items-center animate-bounce">
+            <div style="background-color: ${deviceColor}; border: 3px solid #fff; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 2v4m0 12v4m10-10h-4M6 12H2"/>
+              </svg>
+            </div>
+            <div style="width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 10px solid #fff; margin-top: -2px;"></div>
+          </div>
+        `
+
+        tempMarker = new AdvancedMarkerElement({
+          map: map,
+          position: { lat: pendingLat.value, lng: pendingLng.value },
+          gmpDraggable: true,
+          content: markerIcon,
+          title: `Letakkan ${type.toUpperCase()}`,
+        })
+
+        tempMarker.addListener('dragend', () => {
+          const pos = tempMarker?.position as google.maps.LatLngLiteral
+          if (pos) {
+            pendingLat.value = pos.lat
+            pendingLng.value = pos.lng
+          }
+        })
+
+        // Disable DrawingManager default marker placement
+        drawingManager.setDrawingMode(null)
+
+        toast.info(`Geser marker ke lokasi ${type.toUpperCase()}, lalu klik centang.`)
       }
     },
   )
@@ -1734,56 +1812,74 @@
         </div>
       </div>
 
-      <!-- Stop/Finish Drawing Overlay (For non-cable devices and relocation) -->
       <div
-        v-if="(pendingDeviceType && pendingDeviceType !== 'cable') || relocatingDevice"
-        class="absolute bottom-10 left-1/2 z-[1000] -translate-x-1/2">
+        v-if="((pendingDeviceType && pendingDeviceType !== 'cable') || relocatingDevice) && !showCreateModal"
+        class="absolute bottom-6 left-1/2 z-[1000] w-[90%] -translate-x-1/2 sm:bottom-10 sm:w-auto">
         <div
-          class="flex items-center gap-3 rounded-full bg-white px-4 py-2 shadow-2xl ring-1 ring-black/10 animate-in fade-in zoom-in slide-in-from-bottom-4">
-          <span v-if="pendingDeviceType" class="text-xs font-bold text-gray-600 uppercase tracking-tight"> Menambah {{ pendingDeviceType }} </span>
-          <span v-else-if="relocatingDevice" class="text-xs font-bold text-blue-600 uppercase tracking-tight">
-            Edit {{ relocatingDevice.type === 'cable' ? 'Jalur' : 'Lokasi' }}
+          class="flex items-center justify-between gap-3 rounded-full bg-white px-4 py-2 shadow-2xl ring-1 ring-black/10 animate-in fade-in zoom-in slide-in-from-bottom-4 sm:justify-start">
+          <span v-if="pendingDeviceType" class="truncate text-[10px] font-bold text-gray-600 uppercase tracking-tight sm:text-xs">
+            Menambah {{ pendingDeviceType }}
+          </span>
+          <span v-else-if="relocatingDevice" class="truncate text-[10px] font-bold text-blue-600 uppercase tracking-tight sm:text-xs">
+            Pindah Lokasi: {{ relocatingDevice.name }}
           </span>
 
           <div v-if="relocatingDevice && relocatingDevice.type === 'cable' && pendingLength > 0" class="flex items-center gap-2">
             <div class="h-5 w-px bg-gray-200"></div>
-            <span class="text-xs font-black text-blue-600">{{ pendingLength.toFixed(2) }}m</span>
+            <span class="text-[10px] font-black text-blue-600 sm:text-xs">{{ pendingLength.toFixed(2) }}m</span>
           </div>
           <div class="h-5 w-px bg-gray-200"></div>
 
-          <!-- Finalize/Save -->
-          <button
-            @click="
-              () => {
-                if (relocatingDevice) {
-                  relocatingDevice.type === 'cable' ? saveEditedCable() : saveRelocation()
-                }
-              }
-            "
-            class="flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-white shadow-sm transition-all hover:bg-green-600 hover:scale-110 active:scale-95"
-            :title="relocatingDevice ? 'Simpan Perubahan' : 'Selesai'"
-            v-if="relocatingDevice">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="3"
-              stroke-linecap="round"
-              stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-          </button>
+          <div class="flex items-center gap-2">
+            <!-- Confirm Placement (Show Modal) -->
+            <button
+              v-if="pendingDeviceType"
+              @click="showCreateModal = true"
+              class="flex h-9 w-9 items-center justify-center rounded-full bg-blue-500 text-white shadow-sm transition-all hover:bg-blue-600 hover:scale-110 active:scale-95"
+              title="Konfirmasi Lokasi">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </button>
 
-          <!-- Cancel -->
-          <button
-            @click="cancelCableDrawing"
-            class="flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-red-500 transition-all hover:bg-red-500 hover:text-white hover:scale-110 active:scale-95"
-            title="Batal">
-            <Plus class="h-5 w-5 rotate-45" />
-          </button>
+            <!-- Finalize Relocation -->
+            <button
+              v-else-if="relocatingDevice"
+              @click="() => (relocatingDevice.type === 'cable' ? saveEditedCable() : saveRelocation())"
+              class="flex h-9 items-center gap-2 rounded-full bg-green-500 px-4 text-white shadow-sm transition-all hover:bg-green-600 hover:scale-110 active:scale-95"
+              title="Simpan Perubahan">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span class="hidden text-xs font-bold sm:inline">Simpan</span>
+            </button>
+
+            <!-- Cancel -->
+            <button
+              @click="cancelAddingDevice"
+              class="flex h-9 w-9 items-center justify-center rounded-full bg-red-50 text-red-500 transition-all hover:bg-red-500 hover:text-white hover:scale-110 active:scale-95"
+              title="Batal">
+              <Plus class="h-5 w-5 rotate-45" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -1814,7 +1910,8 @@
       :start-node="snappedStartDevice ? { id: snappedStartDevice.id, type: snappedStartDevice.type, name: snappedStartDevice.name } : null"
       :end-node="snappedEndDevice ? { id: snappedEndDevice.id, type: snappedEndDevice.type, name: snappedEndDevice.name } : null"
       :waypoint-poles="waypointPolesIds"
-      @success="handleCreateSuccess" />
+      @success="handleCreateSuccess"
+      @cancel="cancelAddingDevice" />
 
     <SplicingEditor
       :is-open="showSplicingEditor"

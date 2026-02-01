@@ -7,7 +7,7 @@
   import { Textarea } from '@/components/ui/textarea'
   import { useForm } from '@inertiajs/vue3'
   import { Plus, Trash2 } from 'lucide-vue-next'
-  import { watch } from 'vue'
+  import { computed, watch } from 'vue'
   import { toast } from 'vue-sonner'
 
   const props = defineProps<{
@@ -26,7 +26,7 @@
     waypointPoles?: number[]
   }>()
 
-  const emit = defineEmits(['update:open', 'success'])
+  const emit = defineEmits(['update:open', 'success', 'cancel'])
 
   const form = useForm({
     infrastructure_area_id: '',
@@ -72,7 +72,7 @@
   })
   watch(
     () => props.open,
-    (newVal) => {
+    (newVal: boolean) => {
       if (newVal) {
         form.reset()
         form.latitude = props.lat?.toString() || ''
@@ -163,7 +163,7 @@
 
 <template>
   <Dialog :open="open" @update:open="emit('update:open', $event)">
-    <DialogContent class="sm:max-w-[500px]">
+    <DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-[500px]">
       <DialogHeader>
         <DialogTitle>Add New {{ deviceType?.toUpperCase().replace('-', ' ') }}</DialogTitle>
         <DialogDescription> Fill in the details for the new device at the selected location. </DialogDescription>
@@ -486,7 +486,17 @@
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="outline" @click="emit('update:open', false)"> Cancel </Button>
+          <Button
+            type="button"
+            variant="outline"
+            @click="
+              () => {
+                emit('update:open', false)
+                emit('cancel')
+              }
+            ">
+            Cancel
+          </Button>
           <Button type="submit" :disabled="form.processing">
             {{ form.processing ? 'Saving...' : 'Save Device' }}
           </Button>
