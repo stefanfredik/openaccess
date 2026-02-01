@@ -32,6 +32,13 @@ class StoreCableRequest extends FormRequest
             'is_active' => ['boolean'],
             'installed_at' => ['nullable', 'date'],
             'path' => ['nullable', 'array'],
+            // Node references (from snap feature)
+            'start_node_id' => ['nullable', 'integer'],
+            'start_node_type' => ['nullable', 'string', 'max:255'],
+            'end_node_id' => ['nullable', 'integer'],
+            'end_node_type' => ['nullable', 'string', 'max:255'],
+            'waypoint_poles' => ['nullable', 'array'],
+            'waypoint_poles.*' => ['integer'],
         ];
     }
 

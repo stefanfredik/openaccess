@@ -105,6 +105,16 @@
   let startPointMarker: google.maps.marker.AdvancedMarkerElement | null = null
   let endPointMarker: google.maps.marker.AdvancedMarkerElement | null = null
 
+  // -- Auto-Snap Cable to Devices --
+  const SNAPPABLE_TYPES = ['odp', 'odf', 'joint_box', 'pole', 'olt', 'ont', 'splitter', 'slack']
+  const SNAP_RADIUS_METERS = 50 // Snap radius in meters
+  type SnappedDevice = { id: number; type: string; name: string; lat: number; lng: number } | null
+  const snappedStartDevice = ref<SnappedDevice>(null)
+  const snappedEndDevice = ref<SnappedDevice>(null)
+  const nearbyDevice = ref<SnappedDevice>(null) // Currently detected nearby device
+  let snapHighlightCircle: google.maps.Circle | null = null
+  const waypointPolesIds = ref<number[]>([]) // Track pole IDs the cable passes through
+
   // -- Filters --
   const getSavedFilters = () => ({
     pop: true,
@@ -823,6 +833,321 @@
   }
 
   // -- Step-by-Step Cable Drawing Functions --
+  // -- Snap Detection Functions --
+  const findNearbySnappableDevice = (position: { lat: number; lng: number }): SnappedDevice => {
+    if (!mapData.value?.features) return null
+
+    let closestDevice: SnappedDevice = null
+    let closestDistance = Infinity
+
+    for (const feature of mapData.value.features) {
+      const deviceType = feature.properties?.type?.toLowerCase()
+      if (!SNAPPABLE_TYPES.includes(deviceType)) continue
+
+      const coords = feature.geometry?.coordinates
+      if (!coords || feature.geometry?.type !== 'Point') continue
+
+      const deviceLat = coords[1]
+      const deviceLng = coords[0]
+
+      // Calculate distance in meters using Haversine-like approach
+      const R = 6371000 // Earth radius in meters
+      const dLat = ((deviceLat - position.lat) * Math.PI) / 180
+      const dLng = ((deviceLng - position.lng) * Math.PI) / 180
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos((position.lat * Math.PI) / 180) * Math.cos((deviceLat * Math.PI) / 180) * Math.sin(dLng / 2) * Math.sin(dLng / 2)
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+      const distance = R * c
+
+      if (distance <= SNAP_RADIUS_METERS && distance < closestDistance) {
+        closestDistance = distance
+        closestDevice = {
+          id: feature.properties?.id,
+          type: deviceType,
+          name: feature.properties?.name || feature.properties?.label || `${deviceType.toUpperCase()} #${feature.properties?.id}`,
+          lat: deviceLat,
+          lng: deviceLng,
+        }
+      }
+    }
+
+    return closestDevice
+  }
+
+  const showSnapHighlight = (device: NonNullable<SnappedDevice>) => {
+    hideSnapHighlight()
+    if (!map || !window.google?.maps?.Circle) return
+
+    snapHighlightCircle = new window.google.maps.Circle({
+      center: { lat: device.lat, lng: device.lng },
+      radius: SNAP_RADIUS_METERS,
+      strokeColor: '#22c55e',
+      strokeOpacity: 0.8,
+      strokeWeight: 3,
+      fillColor: '#22c55e',
+      fillOpacity: 0.2,
+      map: map,
+      zIndex: 900,
+    })
+  }
+
+  const hideSnapHighlight = () => {
+    if (snapHighlightCircle) {
+      snapHighlightCircle.setMap(null)
+      snapHighlightCircle = null
+    }
+    nearbyDevice.value = null
+  }
+
+  // Find poles near the path and insert them as waypoints
+  const POLE_SNAP_DISTANCE = 15 // meters - distance from path to snap pole
+  const insertPoleWaypoints = (path: google.maps.LatLngLiteral[]): google.maps.LatLngLiteral[] => {
+    if (!mapData.value?.features || path.length < 2) return path
+
+    // Reset waypoint poles IDs
+    waypointPolesIds.value = []
+
+    // Get all poles from map data
+    const poles: { id: number; lat: number; lng: number; name: string }[] = []
+    for (const feature of mapData.value.features) {
+      const deviceType = feature.properties?.type?.toLowerCase()
+      if (deviceType !== 'pole') continue
+      const coords = feature.geometry?.coordinates
+      if (!coords || feature.geometry?.type !== 'Point') continue
+      poles.push({
+        id: feature.properties?.id,
+        lat: coords[1],
+        lng: coords[0],
+        name: feature.properties?.name || `Pole #${feature.properties?.id}`,
+      })
+    }
+
+    if (poles.length === 0) return path
+
+    // For each segment in path, check if any pole is close to it
+    const newPath: google.maps.LatLngLiteral[] = [path[0]]
+    const usedPoles = new Set<string>()
+    const collectedPoleIds: number[] = []
+
+    for (let i = 0; i < path.length - 1; i++) {
+      const segStart = path[i]
+      const segEnd = path[i + 1]
+
+      // Find poles near this segment
+      const nearbyPoles: { pole: (typeof poles)[0]; distance: number; position: number }[] = []
+
+      for (const pole of poles) {
+        const poleKey = `${pole.lat},${pole.lng}`
+        if (usedPoles.has(poleKey)) continue
+
+        // Calculate distance from pole to line segment
+        const dist = pointToSegmentDistance(pole, segStart, segEnd)
+        if (dist <= POLE_SNAP_DISTANCE) {
+          // Calculate position along segment (0 = start, 1 = end)
+          const position = getPositionAlongSegment(pole, segStart, segEnd)
+          nearbyPoles.push({ pole, distance: dist, position })
+          usedPoles.add(poleKey)
+        }
+      }
+
+      // Sort by position along segment
+      nearbyPoles.sort((a, b) => a.position - b.position)
+
+      // Add poles as waypoints and collect IDs
+      for (const { pole } of nearbyPoles) {
+        newPath.push({ lat: pole.lat, lng: pole.lng })
+        collectedPoleIds.push(pole.id)
+      }
+
+      // Add segment end (except for last segment, it's added after loop)
+      if (i < path.length - 2) {
+        newPath.push(segEnd)
+      }
+    }
+
+    newPath.push(path[path.length - 1])
+
+    // Store collected pole IDs
+    waypointPolesIds.value = collectedPoleIds
+
+    return newPath
+  }
+
+  // Helper: Calculate distance from point to line segment (in meters)
+  const pointToSegmentDistance = (
+    point: { lat: number; lng: number },
+    segStart: google.maps.LatLngLiteral,
+    segEnd: google.maps.LatLngLiteral,
+  ): number => {
+    const R = 6371000 // Earth radius in meters
+
+    // Convert to radians
+    const lat1 = (segStart.lat * Math.PI) / 180
+    const lat2 = (segEnd.lat * Math.PI) / 180
+    const lat3 = (point.lat * Math.PI) / 180
+    const lng1 = (segStart.lng * Math.PI) / 180
+    const lng2 = (segEnd.lng * Math.PI) / 180
+    const lng3 = (point.lng * Math.PI) / 180
+
+    // Cross-track distance formula (simplified for short distances)
+    const dLat = lat2 - lat1
+    const dLng = lng2 - lng1
+
+    const t = Math.max(0, Math.min(1, ((lat3 - lat1) * dLat + (lng3 - lng1) * dLng) / (dLat * dLat + dLng * dLng)))
+
+    const closestLat = lat1 + t * dLat
+    const closestLng = lng1 + t * dLng
+
+    // Haversine distance from point to closest point on segment
+    const dLatP = lat3 - closestLat
+    const dLngP = lng3 - closestLng
+    const a = Math.sin(dLatP / 2) * Math.sin(dLatP / 2) + Math.cos(closestLat) * Math.cos(lat3) * Math.sin(dLngP / 2) * Math.sin(dLngP / 2)
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    return R * c
+  }
+
+  // Helper: Get position (0-1) of pole projection along segment
+  const getPositionAlongSegment = (
+    point: { lat: number; lng: number },
+    segStart: google.maps.LatLngLiteral,
+    segEnd: google.maps.LatLngLiteral,
+  ): number => {
+    const dLat = segEnd.lat - segStart.lat
+    const dLng = segEnd.lng - segStart.lng
+    if (dLat === 0 && dLng === 0) return 0
+    return Math.max(0, Math.min(1, ((point.lat - segStart.lat) * dLat + (point.lng - segStart.lng) * dLng) / (dLat * dLat + dLng * dLng)))
+  }
+
+  // Douglas-Peucker path simplification to reduce number of points
+  const simplifyPath = (
+    path: google.maps.LatLngLiteral[],
+    tolerance: number = 0.00005, // ~5 meters in lat/lng
+  ): google.maps.LatLngLiteral[] => {
+    if (path.length <= 2) return path
+
+    // Find the point with maximum distance from line between first and last
+    let maxDist = 0
+    let maxIndex = 0
+    const first = path[0]
+    const last = path[path.length - 1]
+
+    for (let i = 1; i < path.length - 1; i++) {
+      const dist = perpendicularDistance(path[i], first, last)
+      if (dist > maxDist) {
+        maxDist = dist
+        maxIndex = i
+      }
+    }
+
+    // If max distance is greater than tolerance, recursively simplify
+    if (maxDist > tolerance) {
+      const left = simplifyPath(path.slice(0, maxIndex + 1), tolerance)
+      const right = simplifyPath(path.slice(maxIndex), tolerance)
+      return [...left.slice(0, -1), ...right]
+    } else {
+      // All points between first and last are within tolerance, remove them
+      return [first, last]
+    }
+  }
+
+  // Helper: Perpendicular distance from point to line
+  const perpendicularDistance = (
+    point: google.maps.LatLngLiteral,
+    lineStart: google.maps.LatLngLiteral,
+    lineEnd: google.maps.LatLngLiteral,
+  ): number => {
+    const dx = lineEnd.lng - lineStart.lng
+    const dy = lineEnd.lat - lineStart.lat
+    const mag = Math.sqrt(dx * dx + dy * dy)
+    if (mag === 0) return 0
+    return Math.abs((dy * point.lng - dx * point.lat + lineEnd.lng * lineStart.lat - lineEnd.lat * lineStart.lng) / mag)
+  }
+
+  const setupMarkerSnapListener = (marker: google.maps.marker.AdvancedMarkerElement, isStartMarker: boolean = true) => {
+    // During drag - show highlight when near device
+    marker.addListener('drag', () => {
+      const pos = marker.position as google.maps.LatLngLiteral
+      const device = findNearbySnappableDevice({ lat: pos.lat, lng: pos.lng })
+
+      if (device) {
+        nearbyDevice.value = device
+        showSnapHighlight(device)
+      } else {
+        hideSnapHighlight()
+      }
+    })
+
+    // On drag end - snap to exact device position if nearby
+    marker.addListener('dragend', () => {
+      const markerElement = marker.content as HTMLElement
+      const color = isStartMarker ? '#22c55e' : '#ef4444' // green or red
+
+      if (nearbyDevice.value) {
+        // Snap marker to exact device position
+        marker.position = { lat: nearbyDevice.value.lat, lng: nearbyDevice.value.lng }
+
+        // Store snapped device reference
+        if (isStartMarker) {
+          snappedStartDevice.value = nearbyDevice.value
+        } else {
+          snappedEndDevice.value = nearbyDevice.value
+        }
+
+        // Update marker visual to show snapped state with device name
+        if (markerElement) {
+          markerElement.innerHTML = `
+            <div class="flex flex-col items-center">
+              <div style="
+                background: ${color};
+                color: white;
+                padding: 6px 12px;
+                border-radius: 9999px;
+                font-size: 11px;
+                font-weight: 600;
+                box-shadow: 0 0 0 3px white, 0 0 12px ${color}80;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                white-space: nowrap;
+              ">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                ${nearbyDevice.value.name}
+              </div>
+              <div style="width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 10px solid ${color}; margin-top: -2px;"></div>
+            </div>
+          `
+        }
+
+        toast.success(`Tersnap ke ${nearbyDevice.value.name}`)
+      } else {
+        // Clear snapped device if not near any device
+        if (isStartMarker) {
+          snappedStartDevice.value = null
+        } else {
+          snappedEndDevice.value = null
+        }
+
+        // Reset marker visual to default
+        if (markerElement) {
+          const stepNum = isStartMarker ? 1 : 2
+          const label = isStartMarker ? 'Titik Awal' : 'Titik Akhir'
+          markerElement.innerHTML = `
+            <div class="flex flex-col items-center">
+              <div style="background: ${color}; color: white; padding: 4px 10px; border-radius: 9999px; font-size: 10px; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 4px;">
+                <span style="background: white; color: ${color}; width: 16px; height: 16px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 10px;">${stepNum}</span>
+                ${label}
+              </div>
+              <div style="width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 10px solid ${color}; margin-top: -2px;"></div>
+            </div>
+          `
+        }
+      }
+    })
+  }
+
   const startCableDrawing = () => {
     if (!map || !AdvancedMarkerElement) return
 
@@ -832,6 +1157,8 @@
     pendingPath.value = []
     startPoint.value = null
     endPoint.value = null
+    snappedStartDevice.value = null
+    snappedEndDevice.value = null
 
     // Disable DrawingManager - we handle manually
     if (drawingManager) drawingManager.setDrawingMode(null)
@@ -861,22 +1188,42 @@
       zIndex: 1000,
     })
 
-    toast.info('Geser marker hijau ke posisi titik awal kabel')
+    // Add snap detection listener
+    setupMarkerSnapListener(startPointMarker)
+
+    toast.info('Geser marker hijau ke posisi titik awal kabel (snap ke perangkat terdekat)')
   }
 
   const confirmStartPoint = () => {
     if (!startPointMarker || !map || !AdvancedMarkerElement) return
 
-    const pos = startPointMarker.position as google.maps.LatLngLiteral
+    let pos = startPointMarker.position as google.maps.LatLngLiteral
+
+    // Check for nearby device if not already snapped (user may not have dragged)
+    if (!snappedStartDevice.value) {
+      const device = findNearbySnappableDevice(pos)
+      if (device) {
+        pos = { lat: device.lat, lng: device.lng }
+        snappedStartDevice.value = device
+        startPointMarker.position = pos
+        toast.success(`Snapped ke ${device.name}`)
+      }
+    } else {
+      // Use already snapped position
+      pos = { lat: snappedStartDevice.value.lat, lng: snappedStartDevice.value.lng }
+    }
+
     startPoint.value = { lat: pos.lat, lng: pos.lng }
     cableDrawStep.value = 'selectEnd'
+    hideSnapHighlight()
 
-    // Change start marker appearance (locked)
+    // Change start marker appearance (locked with device name if snapped)
     const lockedIcon = document.createElement('div')
+    const labelText = snappedStartDevice.value ? snappedStartDevice.value.name : 'A'
     lockedIcon.innerHTML = `
       <div class="flex flex-col items-center">
-        <div style="background-color: #3b82f6; border: 3px solid #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
-          <span style="color: #fff; font-weight: bold; font-size: 12px;">A</span>
+        <div style="background-color: #3b82f6; border: 3px solid #fff; width: ${snappedStartDevice.value ? 'auto' : '32px'}; height: 32px; padding: ${snappedStartDevice.value ? '0 8px' : '0'}; border-radius: ${snappedStartDevice.value ? '16px' : '50%'}; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+          <span style="color: #fff; font-weight: bold; font-size: 11px; white-space: nowrap;">${labelText}</span>
         </div>
         <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid #fff; margin-top: -2px;"></div>
       </div>
@@ -909,21 +1256,41 @@
       zIndex: 1000,
     })
 
-    toast.info('Geser marker merah ke posisi titik akhir kabel')
+    // Add snap detection listener to end marker
+    setupMarkerSnapListener(endPointMarker, false)
+
+    toast.info('Geser marker merah ke posisi titik akhir kabel (snap ke perangkat terdekat)')
   }
 
   const confirmEndPoint = async () => {
     if (!endPointMarker || !startPoint.value || !map || !GooglePolyline) return
 
-    const pos = endPointMarker.position as google.maps.LatLngLiteral
-    endPoint.value = { lat: pos.lat, lng: pos.lng }
+    let pos = endPointMarker.position as google.maps.LatLngLiteral
 
-    // Change end marker appearance (locked)
+    // Check for nearby device if not already snapped (user may not have dragged)
+    if (!snappedEndDevice.value) {
+      const device = findNearbySnappableDevice(pos)
+      if (device) {
+        pos = { lat: device.lat, lng: device.lng }
+        snappedEndDevice.value = device
+        endPointMarker.position = pos
+        toast.success(`Snapped ke ${device.name}`)
+      }
+    } else {
+      // Use already snapped position
+      pos = { lat: snappedEndDevice.value.lat, lng: snappedEndDevice.value.lng }
+    }
+
+    endPoint.value = { lat: pos.lat, lng: pos.lng }
+    hideSnapHighlight()
+
+    // Change end marker appearance (locked with device name if snapped)
     const lockedIcon = document.createElement('div')
+    const labelText = snappedEndDevice.value ? snappedEndDevice.value.name : 'B'
     lockedIcon.innerHTML = `
       <div class="flex flex-col items-center">
-        <div style="background-color: #ef4444; border: 3px solid #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
-          <span style="color: #fff; font-weight: bold; font-size: 12px;">B</span>
+        <div style="background-color: #ef4444; border: 3px solid #fff; width: ${snappedEndDevice.value ? 'auto' : '32px'}; height: 32px; padding: ${snappedEndDevice.value ? '0 8px' : '0'}; border-radius: ${snappedEndDevice.value ? '16px' : '50%'}; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+          <span style="color: #fff; font-weight: bold; font-size: 11px; white-space: nowrap;">${labelText}</span>
         </div>
         <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid #fff; margin-top: -2px;"></div>
       </div>
@@ -945,8 +1312,10 @@
         })
 
         if (result.routes && result.routes.length > 0 && result.routes[0].overview_path) {
-          path = result.routes[0].overview_path.map((p) => ({ lat: p.lat(), lng: p.lng() }))
-          toast.success('Jalur otomatis berhasil dibuat mengikuti jalan')
+          const rawPath = result.routes[0].overview_path.map((p) => ({ lat: p.lat(), lng: p.lng() }))
+          // Simplify path to reduce number of points for easier editing
+          path = simplifyPath(rawPath, 0.0001) // tolerance ~10m
+          toast.success(`Jalur dibuat dengan ${path.length} titik (dari ${rawPath.length})`)
         } else {
           // Fallback to straight line
           path = [
@@ -972,6 +1341,14 @@
         { lat: startPoint.value.lat, lng: startPoint.value.lng },
         { lat: endPoint.value.lat, lng: endPoint.value.lng },
       ]
+    }
+
+    // Insert pole waypoints along the path
+    const originalLength = path.length
+    path = insertPoleWaypoints(path)
+    const polesAdded = path.length - originalLength
+    if (polesAdded > 0) {
+      toast.info(`Jalur kabel melewati ${polesAdded} tiang`)
     }
 
     cableDrawStep.value = 'editPath'
@@ -1020,6 +1397,10 @@
     pendingLength.value = 0
     startPoint.value = null
     endPoint.value = null
+    snappedStartDevice.value = null
+    snappedEndDevice.value = null
+    hideSnapHighlight()
+    waypointPolesIds.value = []
 
     if (startPointMarker) {
       startPointMarker.map = null
@@ -1248,6 +1629,16 @@
             <span class="text-sm font-black text-blue-600">{{ pendingLength.toFixed(1) }} m</span>
           </div>
 
+          <!-- Snap Indicator (shows when near a device) -->
+          <div
+            v-if="nearbyDevice && (cableDrawStep === 'selectStart' || cableDrawStep === 'selectEnd')"
+            class="flex items-center gap-2 border-l pl-3">
+            <div class="flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1">
+              <div class="h-2 w-2 animate-pulse rounded-full bg-green-500"></div>
+              <span class="text-xs font-semibold text-green-700">Snap: {{ nearbyDevice.name }}</span>
+            </div>
+          </div>
+
           <!-- Auto-Route Toggle (only show before editPath step) -->
           <div v-if="cableDrawStep !== 'editPath'" class="flex items-center gap-2 border-l pl-3">
             <label class="flex cursor-pointer items-center gap-2">
@@ -1420,6 +1811,9 @@
       :selected-area-id="selectedAreaId"
       :path="pendingPath"
       :initial-length="pendingLength"
+      :start-node="snappedStartDevice ? { id: snappedStartDevice.id, type: snappedStartDevice.type, name: snappedStartDevice.name } : null"
+      :end-node="snappedEndDevice ? { id: snappedEndDevice.id, type: snappedEndDevice.type, name: snappedEndDevice.name } : null"
+      :waypoint-poles="waypointPolesIds"
       @success="handleCreateSuccess" />
 
     <SplicingEditor

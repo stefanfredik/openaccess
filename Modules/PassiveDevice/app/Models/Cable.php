@@ -31,12 +31,18 @@ class Cable extends Model
         'is_active',
         'installed_at',
         'path',
+        'start_node_id',
+        'start_node_type',
+        'end_node_id',
+        'end_node_type',
+        'waypoint_poles',
     ];
 
     protected $casts = [
         'path' => 'array',
         'installed_at' => 'date',
         'is_active' => 'boolean',
+        'waypoint_poles' => 'array',
     ];
 
     public function area()

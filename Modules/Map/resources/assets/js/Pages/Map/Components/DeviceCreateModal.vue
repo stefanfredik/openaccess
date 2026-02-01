@@ -20,6 +20,10 @@
     pops: Array<any>
     selectedAreaId?: string | null
     initialLength?: number
+    // Cable node references (from snap feature)
+    startNode?: { id: number; type: string; name: string } | null
+    endNode?: { id: number; type: string; name: string } | null
+    waypointPoles?: number[]
   }>()
 
   const emit = defineEmits(['update:open', 'success'])
@@ -59,6 +63,12 @@
       port: number | string
       status: string
     }>,
+    // Cable node references
+    start_node_id: null as number | null,
+    start_node_type: '',
+    end_node_id: null as number | null,
+    end_node_type: '',
+    waypoint_poles: [] as number[],
   })
   watch(
     () => props.open,
@@ -89,6 +99,19 @@
           ]
         } else {
           form.service_ports = []
+        }
+
+        // Cable node references (from snap feature)
+        if (props.startNode) {
+          form.start_node_id = props.startNode.id
+          form.start_node_type = props.startNode.type
+        }
+        if (props.endNode) {
+          form.end_node_id = props.endNode.id
+          form.end_node_type = props.endNode.type
+        }
+        if (props.waypointPoles && props.waypointPoles.length > 0) {
+          form.waypoint_poles = props.waypointPoles
         }
       }
     },
@@ -353,6 +376,40 @@
 
         <!-- Cable Specific Fields -->
         <div v-if="deviceType === 'cable'" class="space-y-4 border-t pt-2">
+          <!-- Connection Info Display -->
+          <div class="rounded-lg bg-slate-50 dark:bg-slate-800/50 p-3 space-y-2">
+            <Label class="text-xs font-semibold text-slate-600 dark:text-slate-400">Informasi Koneksi</Label>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div class="flex items-center gap-2">
+                <span
+                  class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+                  <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="5" /></svg>
+                </span>
+                <span class="text-slate-600 dark:text-slate-400">Awal:</span>
+                <span class="font-medium text-slate-900 dark:text-slate-100">{{ startNode?.name || 'Tidak tersnap' }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300">
+                  <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="5" /></svg>
+                </span>
+                <span class="text-slate-600 dark:text-slate-400">Akhir:</span>
+                <span class="font-medium text-slate-900 dark:text-slate-100">{{ endNode?.name || 'Tidak tersnap' }}</span>
+              </div>
+            </div>
+            <div
+              v-if="waypointPoles && waypointPoles.length > 0"
+              class="flex items-center gap-2 text-xs pt-1 border-t border-slate-200 dark:border-slate-700">
+              <span
+                class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300">
+                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+              </span>
+              <span class="text-slate-600 dark:text-slate-400">Melewati:</span>
+              <span class="font-medium text-amber-600 dark:text-amber-400">{{ waypointPoles.length }} tiang</span>
+            </div>
+          </div>
+
           <div class="grid grid-cols-2 gap-4">
             <div class="space-y-2">
               <Label>Cable Type</Label>
