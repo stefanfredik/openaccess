@@ -6,39 +6,24 @@
     interface Window {
       startRelocation: (id: number, type: string, name: string) => void
       editCable: (id: number) => void
+      openSplicingEditor: (id: number, type: string) => void
       google: any
     }
   }
 
   import { Button } from '@/components/ui/button'
-  import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-  } from '@/components/ui/dropdown-menu'
-  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-  import { Switch as UiSwitch } from '@/components/ui/switch'
   import { MarkerClusterer } from '@googlemaps/markerclusterer'
   import axios from 'axios'
   import { debounce } from 'lodash'
-  import { Layers, MapPin, Plus } from 'lucide-vue-next'
+  import { MapPin, Plus } from 'lucide-vue-next'
   import { computed, onMounted, reactive, ref, watch } from 'vue'
   import { toast } from 'vue-sonner'
   import DeviceCreateModal from '../Components/DeviceCreateModal.vue'
   import SplicingEditor from '../../../Components/SplicingEditor.vue'
-
-  declare global {
-    interface Window {
-      startRelocation: (id: number, type: string, name: string) => void
-      editCable: (id: number) => void
-      openSplicingEditor: (id: number, type: string) => void
-      google: any
-    }
-  }
+  import MapFilter from './Components/MapFilter.vue'
+  import MapActionOverlay from './Components/MapActionOverlay.vue'
+  import MapCableDrawingBar from './Components/MapCableDrawingBar.vue'
+  import MapPlacementBar from './Components/MapPlacementBar.vue'
 
   const props = defineProps<{
     areas: Array<{ id: number; name: string; boundary: any }>
@@ -467,6 +452,15 @@
 
       const props = feature.properties
 
+      // Skip rendering if this device is currently being relocated or edited
+      if (
+        relocatingDevice.value &&
+        relocatingDevice.value.id === props.id &&
+        (relocatingDevice.value.type === type || (relocatingDevice.value.type === 'cable' && feature.geometry.type === 'LineString'))
+      ) {
+        return
+      }
+
       if (feature.geometry.type === 'Point') {
         const latLng = { lat: feature.geometry.coordinates[1], lng: feature.geometry.coordinates[0] }
 
@@ -828,7 +822,6 @@
     }
 
     relocatingDevice.value = null
-    // Only reload if we can't restore or to be safe, but let's try restoring first for speed
     renderMap()
   }
 
@@ -1547,341 +1540,45 @@
       <div ref="mapContainer" class="absolute inset-0 z-0"></div>
 
       <!-- Filter Panel -->
-      <div
-        v-if="showFilter"
-        :class="[
-          'absolute top-3 right-3 z-[1000] flex w-60 animate-in flex-col gap-2 rounded-lg bg-white/95 p-3 shadow-lg backdrop-blur-md transition-all slide-in-from-right-5',
-          isFilterMinimized ? 'h-auto w-8' : '',
-        ]">
-        <!-- Header -->
-        <div class="flex items-center justify-between border-b pb-2">
-          <h3 class="font-bold text-gray-800">Filter</h3>
-          <div class="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              class="h-6 w-6 rounded-full hover:bg-gray-100"
-              @click="isFilterMinimized = !isFilterMinimized"
-              :title="isFilterMinimized ? 'Expand' : 'Minimize'">
-              <Layers class="h-4 w-4 text-gray-500" />
-            </Button>
-          </div>
-        </div>
+      <MapFilter
+        v-model:selected-area-id="selectedAreaId"
+        v-model:is-filter-minimized="isFilterMinimized"
+        v-model:device-filters="deviceFilters"
+        :show-filter="showFilter"
+        :areas="areas"
+        :available-filters="availableFilters"
+        :selected-area-name="selectedAreaName"
+        @load-map-data="loadMapData" />
 
-        <!-- Minimized View -->
-        <div v-if="isFilterMinimized" class="text-sm font-medium text-gray-600">
-          {{ selectedAreaName }}
-        </div>
-
-        <!-- Expanded View -->
-        <div v-else class="custom-scrollbar space-y-4 overflow-y-auto pr-2">
-          <!-- Area Filter -->
-          <div class="space-y-2">
-            <label class="text-xs font-semibold tracking-wider text-gray-500 uppercase">Wilayah</label>
-            <Select v-model="selectedAreaId" @update:modelValue="() => loadMapData(true)">
-              <SelectTrigger>
-                <SelectValue placeholder="Pilih Wilayah" />
-              </SelectTrigger>
-              <SelectContent class="z-[2001]">
-                <SelectItem value="all"> Semua Wilayah </SelectItem>
-                <SelectItem v-for="area in areas" :key="area.id" :value="String(area.id)">
-                  {{ area.name }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <!-- Device Filters -->
-          <div class="custom-scrollbar max-h-[50vh] space-y-3 overflow-y-auto pr-1">
-            <div class="flex items-center justify-between">
-              <label class="text-xs font-semibold tracking-wider text-gray-500 uppercase"> Perangkat </label>
-            </div>
-            <div class="mt-2 space-y-2">
-              <div
-                v-for="item in availableFilters"
-                :key="item.key"
-                class="flex cursor-pointer items-center justify-between rounded-lg border border-gray-100 p-2 transition-colors hover:bg-gray-50"
-                @click="updateFilter(item.key, !deviceFilters[item.key])">
-                <div class="flex items-center gap-3">
-                  <div
-                    class="flex h-8 w-8 items-center justify-center rounded-full border-2 bg-white shadow-sm"
-                    :style="{ borderColor: item.color || '#ccc' }">
-                    <svg
-                      v-if="item.icon"
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      :stroke="item.color || '#ccc'"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      v-html="item.icon"></svg>
-                    <div v-else-if="item.key === 'cable'" class="h-1 w-6 -rotate-45 transform" :style="{ backgroundColor: '#3b82f6' }"></div>
-                    <div v-else class="h-2 w-2 rounded-full bg-gray-400"></div>
-                  </div>
-                  <span class="text-sm font-medium text-gray-700">{{ item.label }}</span>
-                </div>
-                <UiSwitch :checked="deviceFilters[item.key]" aria-readonly="true" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Floating Drawing Tools (Standard Professional Style) -->
-      <div class="absolute bottom-10 left-4 z-[1000]">
-        <!-- Add Button -->
-        <DropdownMenu v-if="!pendingDeviceType && !relocatingDevice">
-          <DropdownMenuTrigger as-child>
-            <button
-              class="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-xl ring-1 ring-black/10 transition-all hover:scale-110 hover:bg-gray-50 active:scale-95 focus:outline-none"
-              title="Tambah Perangkat">
-              <Plus class="h-6 w-6 text-blue-600" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" side="top" class="z-[1001] mb-2 w-56">
-            <DropdownMenuLabel>Pilih Perangkat</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuLabel class="py-1 text-[10px] font-bold text-muted-foreground uppercase">Aktif</DropdownMenuLabel>
-              <DropdownMenuItem v-for="type in deviceTypes.active" :key="type.value" @click="pendingDeviceType = type.value" class="cursor-pointer">
-                <div class="flex items-center gap-2">
-                  <div class="h-2 w-2 rounded-full" :style="{ backgroundColor: (colors as any)[type.value] || colors.blue }"></div>
-                  {{ type.label }}
-                </div>
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuLabel class="py-1 text-[10px] font-bold text-muted-foreground uppercase">Pasif</DropdownMenuLabel>
-              <DropdownMenuItem
-                v-for="type in deviceTypes.passive"
-                :key="type.value"
-                @click="type.value === 'cable' ? startCableDrawing() : (pendingDeviceType = type.value)"
-                class="cursor-pointer">
-                <div class="flex items-center gap-2">
-                  <div class="h-2 w-2 rounded-full" :style="{ backgroundColor: (colors as any)[type.value] || colors.blue }"></div>
-                  {{ type.label }}
-                </div>
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+      <!-- Floating Action Tools -->
+      <MapActionOverlay
+        v-model:pending-device-type="pendingDeviceType"
+        :relocating-device="relocatingDevice"
+        :device-types="deviceTypes"
+        :colors="colors"
+        @start-cable-drawing="startCableDrawing" />
 
       <!-- Step-by-Step Cable Drawing UI -->
-      <div v-if="cableDrawStep !== 'idle'" class="absolute bottom-10 left-1/2 z-[1000] -translate-x-1/2">
-        <div
-          class="flex items-center gap-3 rounded-2xl bg-white px-5 py-3 shadow-2xl ring-1 ring-black/10 animate-in fade-in zoom-in slide-in-from-bottom-4">
-          <!-- Step Indicator -->
-          <div class="flex items-center gap-2">
-            <div
-              :class="[
-                'flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold',
-                cableDrawStep === 'selectStart' ? 'bg-green-500 text-white' : 'bg-blue-500 text-white',
-              ]">
-              {{ cableDrawStep === 'selectStart' ? '1' : cableDrawStep === 'selectEnd' ? '2' : '3' }}
-            </div>
-            <div class="text-sm font-semibold text-gray-700">
-              <span v-if="cableDrawStep === 'selectStart'">Tentukan Titik Awal</span>
-              <span v-else-if="cableDrawStep === 'selectEnd'">Tentukan Titik Akhir</span>
-              <span v-else-if="cableDrawStep === 'editPath'">Edit Jalur Kabel</span>
-            </div>
-          </div>
+      <MapCableDrawingBar
+        v-model:auto-route-mode="autoRouteMode"
+        :cable-draw-step="cableDrawStep"
+        :pending-length="pendingLength"
+        :nearby-device="nearbyDevice"
+        :is-loading-route="isLoadingRoute"
+        @confirm-start-point="confirmStartPoint"
+        @confirm-end-point="confirmEndPoint"
+        @finalize-cable-step-drawing="finalizeCableStepDrawing"
+        @cancel-cable-step-drawing="cancelCableStepDrawing" />
 
-          <!-- Length Display -->
-          <div v-if="pendingLength > 0" class="flex items-center gap-2 border-l pl-3">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              class="text-blue-500">
-              <path d="M2 12h20M12 2l10 10-10 10" />
-            </svg>
-            <span class="text-sm font-black text-blue-600">{{ pendingLength.toFixed(1) }} m</span>
-          </div>
-
-          <!-- Snap Indicator (shows when near a device) -->
-          <div
-            v-if="nearbyDevice && (cableDrawStep === 'selectStart' || cableDrawStep === 'selectEnd')"
-            class="flex items-center gap-2 border-l pl-3">
-            <div class="flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1">
-              <div class="h-2 w-2 animate-pulse rounded-full bg-green-500"></div>
-              <span class="text-xs font-semibold text-green-700">Snap: {{ nearbyDevice.name }}</span>
-            </div>
-          </div>
-
-          <!-- Auto-Route Toggle (only show before editPath step) -->
-          <div v-if="cableDrawStep !== 'editPath'" class="flex items-center gap-2 border-l pl-3">
-            <label class="flex cursor-pointer items-center gap-2">
-              <UiSwitch :checked="autoRouteMode" @update:checked="autoRouteMode = $event" />
-              <span class="text-xs font-medium text-gray-600">Ikuti Jalan</span>
-            </label>
-          </div>
-
-          <!-- Loading Indicator -->
-          <div v-if="isLoadingRoute" class="flex items-center gap-2 border-l pl-3">
-            <svg class="h-4 w-4 animate-spin text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path
-                class="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span class="text-xs text-gray-500">Mencari rute...</span>
-          </div>
-
-          <div class="h-6 w-px bg-gray-200"></div>
-
-          <!-- Action Buttons -->
-          <div class="flex items-center gap-2">
-            <!-- Confirm Start Point -->
-            <button
-              v-if="cableDrawStep === 'selectStart'"
-              @click="confirmStartPoint"
-              class="flex h-9 items-center gap-2 rounded-full bg-green-500 px-4 text-sm font-semibold text-white shadow-sm transition-all hover:bg-green-600 hover:scale-105 active:scale-95">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="3"
-                stroke-linecap="round"
-                stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-              Konfirmasi
-            </button>
-
-            <!-- Confirm End Point -->
-            <button
-              v-if="cableDrawStep === 'selectEnd'"
-              @click="confirmEndPoint"
-              class="flex h-9 items-center gap-2 rounded-full bg-red-500 px-4 text-sm font-semibold text-white shadow-sm transition-all hover:bg-red-600 hover:scale-105 active:scale-95">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="3"
-                stroke-linecap="round"
-                stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-              Konfirmasi
-            </button>
-
-            <!-- Finish Drawing -->
-            <button
-              v-if="cableDrawStep === 'editPath'"
-              @click="finalizeCableStepDrawing"
-              class="flex h-9 items-center gap-2 rounded-full bg-blue-500 px-4 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-600 hover:scale-105 active:scale-95">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="3"
-                stroke-linecap="round"
-                stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-              Selesai
-            </button>
-
-            <!-- Cancel -->
-            <button
-              @click="cancelCableStepDrawing"
-              class="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition-all hover:bg-red-100 hover:text-red-500 hover:scale-105 active:scale-95"
-              title="Batal">
-              <Plus class="h-5 w-5 rotate-45" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div
-        v-if="((pendingDeviceType && pendingDeviceType !== 'cable') || relocatingDevice) && !showCreateModal"
-        class="absolute bottom-6 left-1/2 z-[1000] w-[90%] -translate-x-1/2 sm:bottom-10 sm:w-auto">
-        <div
-          class="flex items-center justify-between gap-3 rounded-full bg-white px-4 py-2 shadow-2xl ring-1 ring-black/10 animate-in fade-in zoom-in slide-in-from-bottom-4 sm:justify-start">
-          <span v-if="pendingDeviceType" class="truncate text-[10px] font-bold text-gray-600 uppercase tracking-tight sm:text-xs">
-            Menambah {{ pendingDeviceType }}
-          </span>
-          <span v-else-if="relocatingDevice" class="truncate text-[10px] font-bold text-blue-600 uppercase tracking-tight sm:text-xs">
-            Pindah Lokasi: {{ relocatingDevice.name }}
-          </span>
-
-          <div v-if="relocatingDevice && relocatingDevice.type === 'cable' && pendingLength > 0" class="flex items-center gap-2">
-            <div class="h-5 w-px bg-gray-200"></div>
-            <span class="text-[10px] font-black text-blue-600 sm:text-xs">{{ pendingLength.toFixed(2) }}m</span>
-          </div>
-          <div class="h-5 w-px bg-gray-200"></div>
-
-          <div class="flex items-center gap-2">
-            <!-- Confirm Placement (Show Modal) -->
-            <button
-              v-if="pendingDeviceType"
-              @click="showCreateModal = true"
-              class="flex h-9 w-9 items-center justify-center rounded-full bg-blue-500 text-white shadow-sm transition-all hover:bg-blue-600 hover:scale-110 active:scale-95"
-              title="Konfirmasi Lokasi">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="3"
-                stroke-linecap="round"
-                stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </button>
-
-            <!-- Finalize Relocation -->
-            <button
-              v-else-if="relocatingDevice"
-              @click="() => (relocatingDevice.type === 'cable' ? saveEditedCable() : saveRelocation())"
-              class="flex h-9 items-center gap-2 rounded-full bg-green-500 px-4 text-white shadow-sm transition-all hover:bg-green-600 hover:scale-110 active:scale-95"
-              title="Simpan Perubahan">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="3"
-                stroke-linecap="round"
-                stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-              <span class="hidden text-xs font-bold sm:inline">Simpan</span>
-            </button>
-
-            <!-- Cancel -->
-            <button
-              @click="cancelAddingDevice"
-              class="flex h-9 w-9 items-center justify-center rounded-full bg-red-50 text-red-500 transition-all hover:bg-red-500 hover:text-white hover:scale-110 active:scale-95"
-              title="Batal">
-              <Plus class="h-5 w-5 rotate-45" />
-            </button>
-          </div>
-        </div>
-      </div>
+      <!-- Placement / Relocation Overlay -->
+      <MapPlacementBar
+        v-model:show-create-modal="showCreateModal"
+        :pending-device-type="pendingDeviceType"
+        :relocating-device="relocatingDevice"
+        :pending-length="pendingLength"
+        @save-edited-cable="saveEditedCable"
+        @save-relocation="saveRelocation"
+        @cancel-adding-device="cancelAddingDevice" />
     </div>
 
     <!-- Warning Popup -->
