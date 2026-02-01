@@ -95,6 +95,14 @@
   const googleMapType = ref<'satellite' | 'roadmap'>((localStorage.getItem('map_google_type') as 'satellite' | 'roadmap') || 'roadmap')
   const showGoogleLabels = ref(false)
 
+  // -- Step-by-Step Cable Drawing State Machine --
+  type CableDrawStep = 'idle' | 'selectStart' | 'selectEnd' | 'editPath'
+  const cableDrawStep = ref<CableDrawStep>('idle')
+  const startPoint = ref<{ lat: number; lng: number } | null>(null)
+  const endPoint = ref<{ lat: number; lng: number } | null>(null)
+  let startPointMarker: google.maps.marker.AdvancedMarkerElement | null = null
+  let endPointMarker: google.maps.marker.AdvancedMarkerElement | null = null
+
   // -- Filters --
   const getSavedFilters = () => ({
     pop: true,
@@ -747,6 +755,23 @@
     showCreateModal.value = false
     pendingDeviceType.value = null
     pendingLength.value = 0
+
+    // Clean up cable step drawing
+    if (cableDrawStep.value !== 'idle') {
+      cableDrawStep.value = 'idle'
+      isDrawingCable.value = false
+      startPoint.value = null
+      endPoint.value = null
+      if (startPointMarker) {
+        startPointMarker.map = null
+        startPointMarker = null
+      }
+      if (endPointMarker) {
+        endPointMarker.map = null
+        endPointMarker = null
+      }
+    }
+
     if (tempMarker) (tempMarker as any).setMap(null)
     tempMarker = null
     if (drawPolyline) drawPolyline.setMap(null)
@@ -795,6 +820,201 @@
     showSplicingEditor.value = true
   }
 
+  // -- Step-by-Step Cable Drawing Functions --
+  const startCableDrawing = () => {
+    if (!map || !AdvancedMarkerElement) return
+
+    pendingDeviceType.value = 'cable'
+    cableDrawStep.value = 'selectStart'
+    isDrawingCable.value = true
+    pendingPath.value = []
+    startPoint.value = null
+    endPoint.value = null
+
+    // Disable DrawingManager - we handle manually
+    if (drawingManager) drawingManager.setDrawingMode(null)
+
+    // Create draggable marker at center of map
+    const center = map.getCenter()
+    if (!center) return
+
+    const markerIcon = document.createElement('div')
+    markerIcon.innerHTML = `
+      <div class="flex flex-col items-center animate-bounce">
+        <div style="background-color: #22c55e; border: 3px solid #fff; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 2v4m0 12v4m10-10h-4M6 12H2"/>
+          </svg>
+        </div>
+        <div style="width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 10px solid #fff; margin-top: -2px;"></div>
+      </div>
+    `
+
+    startPointMarker = new AdvancedMarkerElement({
+      position: { lat: center.lat(), lng: center.lng() },
+      map: map,
+      gmpDraggable: true,
+      content: markerIcon,
+      zIndex: 1000,
+    })
+
+    toast.info('Geser marker hijau ke posisi titik awal kabel')
+  }
+
+  const confirmStartPoint = () => {
+    if (!startPointMarker || !map || !AdvancedMarkerElement) return
+
+    const pos = startPointMarker.position as google.maps.LatLngLiteral
+    startPoint.value = { lat: pos.lat, lng: pos.lng }
+    cableDrawStep.value = 'selectEnd'
+
+    // Change start marker appearance (locked)
+    const lockedIcon = document.createElement('div')
+    lockedIcon.innerHTML = `
+      <div class="flex flex-col items-center">
+        <div style="background-color: #3b82f6; border: 3px solid #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+          <span style="color: #fff; font-weight: bold; font-size: 12px;">A</span>
+        </div>
+        <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid #fff; margin-top: -2px;"></div>
+      </div>
+    `
+    startPointMarker.gmpDraggable = false
+    startPointMarker.content = lockedIcon
+
+    // Create end point marker at slightly offset position
+    const endIcon = document.createElement('div')
+    endIcon.innerHTML = `
+      <div class="flex flex-col items-center animate-bounce">
+        <div style="background-color: #ef4444; border: 3px solid #fff; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 2v4m0 12v4m10-10h-4M6 12H2"/>
+          </svg>
+        </div>
+        <div style="width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 10px solid #fff; margin-top: -2px;"></div>
+      </div>
+    `
+
+    const bounds = map.getBounds()
+    const offsetLat = bounds ? (bounds.getNorthEast().lat() - bounds.getSouthWest().lat()) * 0.1 : 0.001
+
+    endPointMarker = new AdvancedMarkerElement({
+      position: { lat: pos.lat + offsetLat, lng: pos.lng },
+      map: map,
+      gmpDraggable: true,
+      content: endIcon,
+      zIndex: 1000,
+    })
+
+    toast.info('Geser marker merah ke posisi titik akhir kabel')
+  }
+
+  const confirmEndPoint = () => {
+    if (!endPointMarker || !startPoint.value || !map || !GooglePolyline) return
+
+    const pos = endPointMarker.position as google.maps.LatLngLiteral
+    endPoint.value = { lat: pos.lat, lng: pos.lng }
+    cableDrawStep.value = 'editPath'
+
+    // Change end marker appearance (locked)
+    const lockedIcon = document.createElement('div')
+    lockedIcon.innerHTML = `
+      <div class="flex flex-col items-center">
+        <div style="background-color: #ef4444; border: 3px solid #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+          <span style="color: #fff; font-weight: bold; font-size: 12px;">B</span>
+        </div>
+        <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid #fff; margin-top: -2px;"></div>
+      </div>
+    `
+    endPointMarker.gmpDraggable = false
+    endPointMarker.content = lockedIcon
+
+    // Create editable polyline between start and end
+    const path = [
+      { lat: startPoint.value.lat, lng: startPoint.value.lng },
+      { lat: endPoint.value!.lat, lng: endPoint.value!.lng },
+    ]
+
+    drawPolyline = new GooglePolyline({
+      path: path,
+      geodesic: true,
+      strokeColor: '#3b82f6',
+      strokeWeight: 5,
+      strokeOpacity: 1,
+      editable: true,
+      draggable: false,
+      map: map,
+    })
+
+    // Listen to path changes to update length
+    const polyPath = drawPolyline.getPath()
+    const updatePathAndLength = () => {
+      const newPath: [number, number][] = []
+      for (let i = 0; i < polyPath.getLength(); i++) {
+        const p = polyPath.getAt(i)
+        newPath.push([p.lat(), p.lng()])
+      }
+      pendingPath.value = newPath
+
+      if (window.google?.maps?.geometry) {
+        pendingLength.value = window.google.maps.geometry.spherical.computeLength(drawPolyline!.getPath())
+      }
+    }
+
+    GoogleEvent.addListener(polyPath, 'insert_at', updatePathAndLength)
+    GoogleEvent.addListener(polyPath, 'remove_at', updatePathAndLength)
+    GoogleEvent.addListener(polyPath, 'set_at', updatePathAndLength)
+
+    // Initialize path and length
+    updatePathAndLength()
+
+    toast.info('Anda bisa menggeser titik-titik di jalur kabel. Klik centang jika sudah selesai.')
+  }
+
+  const cancelCableStepDrawing = () => {
+    cableDrawStep.value = 'idle'
+    isDrawingCable.value = false
+    pendingDeviceType.value = null
+    pendingPath.value = []
+    pendingLength.value = 0
+    startPoint.value = null
+    endPoint.value = null
+
+    if (startPointMarker) {
+      startPointMarker.map = null
+      startPointMarker = null
+    }
+    if (endPointMarker) {
+      endPointMarker.map = null
+      endPointMarker = null
+    }
+    if (drawPolyline) {
+      drawPolyline.setMap(null)
+      drawPolyline = null
+    }
+    if (drawingManager) drawingManager.setDrawingMode(null)
+
+    loadMapData()
+  }
+
+  const finalizeCableStepDrawing = () => {
+    if (pendingPath.value.length < 2) {
+      toast.error('Jalur kabel harus memiliki minimal 2 titik')
+      return
+    }
+
+    pendingLat.value = pendingPath.value[0][0]
+    pendingLng.value = pendingPath.value[0][1]
+    showCreateModal.value = true
+  }
+
+  const handleCableCreated = () => {
+    showCreateModal.value = false
+    cancelCableStepDrawing()
+    toast.success('Kabel berhasil disimpan')
+  }
+
   watch(
     () => pendingDeviceType.value,
     (type) => {
@@ -806,11 +1026,10 @@
         return
       }
 
+      // For cable, we now use step-by-step drawing, skip DrawingManager
       if (type === 'cable') {
-        drawingManager.setDrawingMode(google.maps.drawing.OverlayType.POLYLINE)
-        isDrawingCable.value = true
-        pendingPath.value = []
-        toast.info('Silakan mulai menggambar jalur kabel di peta')
+        // Don't use DrawingManager for cables anymore
+        return
       } else {
         const label = type.toUpperCase()
         drawingManager.setDrawingMode(google.maps.drawing.OverlayType.MARKER)
@@ -938,7 +1157,11 @@
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuLabel class="py-1 text-[10px] font-bold text-muted-foreground uppercase">Pasif</DropdownMenuLabel>
-              <DropdownMenuItem v-for="type in deviceTypes.passive" :key="type.value" @click="pendingDeviceType = type.value" class="cursor-pointer">
+              <DropdownMenuItem
+                v-for="type in deviceTypes.passive"
+                :key="type.value"
+                @click="type.value === 'cable' ? startCableDrawing() : (pendingDeviceType = type.value)"
+                class="cursor-pointer">
                 <div class="flex items-center gap-2">
                   <div class="h-2 w-2 rounded-full" :style="{ backgroundColor: (colors as any)[type.value] || colors.blue }"></div>
                   {{ type.label }}
@@ -949,20 +1172,129 @@
         </DropdownMenu>
       </div>
 
-      <!-- Stop/Finish Drawing Overlay (Centered at Bottom) -->
-      <div v-if="pendingDeviceType || relocatingDevice" class="absolute bottom-10 left-1/2 z-[1000] -translate-x-1/2">
+      <!-- Step-by-Step Cable Drawing UI -->
+      <div v-if="cableDrawStep !== 'idle'" class="absolute bottom-10 left-1/2 z-[1000] -translate-x-1/2">
+        <div
+          class="flex items-center gap-3 rounded-2xl bg-white px-5 py-3 shadow-2xl ring-1 ring-black/10 animate-in fade-in zoom-in slide-in-from-bottom-4">
+          <!-- Step Indicator -->
+          <div class="flex items-center gap-2">
+            <div
+              :class="[
+                'flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold',
+                cableDrawStep === 'selectStart' ? 'bg-green-500 text-white' : 'bg-blue-500 text-white',
+              ]">
+              {{ cableDrawStep === 'selectStart' ? '1' : cableDrawStep === 'selectEnd' ? '2' : '3' }}
+            </div>
+            <div class="text-sm font-semibold text-gray-700">
+              <span v-if="cableDrawStep === 'selectStart'">Tentukan Titik Awal</span>
+              <span v-else-if="cableDrawStep === 'selectEnd'">Tentukan Titik Akhir</span>
+              <span v-else-if="cableDrawStep === 'editPath'">Edit Jalur Kabel</span>
+            </div>
+          </div>
+
+          <!-- Length Display -->
+          <div v-if="pendingLength > 0" class="flex items-center gap-2 border-l pl-3">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              class="text-blue-500">
+              <path d="M2 12h20M12 2l10 10-10 10" />
+            </svg>
+            <span class="text-sm font-black text-blue-600">{{ pendingLength.toFixed(1) }} m</span>
+          </div>
+
+          <div class="h-6 w-px bg-gray-200"></div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center gap-2">
+            <!-- Confirm Start Point -->
+            <button
+              v-if="cableDrawStep === 'selectStart'"
+              @click="confirmStartPoint"
+              class="flex h-9 items-center gap-2 rounded-full bg-green-500 px-4 text-sm font-semibold text-white shadow-sm transition-all hover:bg-green-600 hover:scale-105 active:scale-95">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              Konfirmasi
+            </button>
+
+            <!-- Confirm End Point -->
+            <button
+              v-if="cableDrawStep === 'selectEnd'"
+              @click="confirmEndPoint"
+              class="flex h-9 items-center gap-2 rounded-full bg-red-500 px-4 text-sm font-semibold text-white shadow-sm transition-all hover:bg-red-600 hover:scale-105 active:scale-95">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              Konfirmasi
+            </button>
+
+            <!-- Finish Drawing -->
+            <button
+              v-if="cableDrawStep === 'editPath'"
+              @click="finalizeCableStepDrawing"
+              class="flex h-9 items-center gap-2 rounded-full bg-blue-500 px-4 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-600 hover:scale-105 active:scale-95">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              Selesai
+            </button>
+
+            <!-- Cancel -->
+            <button
+              @click="cancelCableStepDrawing"
+              class="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition-all hover:bg-red-100 hover:text-red-500 hover:scale-105 active:scale-95"
+              title="Batal">
+              <Plus class="h-5 w-5 rotate-45" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stop/Finish Drawing Overlay (For non-cable devices and relocation) -->
+      <div
+        v-if="(pendingDeviceType && pendingDeviceType !== 'cable') || relocatingDevice"
+        class="absolute bottom-10 left-1/2 z-[1000] -translate-x-1/2">
         <div
           class="flex items-center gap-3 rounded-full bg-white px-4 py-2 shadow-2xl ring-1 ring-black/10 animate-in fade-in zoom-in slide-in-from-bottom-4">
-          <span v-if="pendingDeviceType" class="text-xs font-bold text-gray-600 uppercase tracking-tight">
-            {{ pendingDeviceType === 'cable' ? 'Menggambar' : 'Menambah' }} {{ pendingDeviceType }}
-          </span>
+          <span v-if="pendingDeviceType" class="text-xs font-bold text-gray-600 uppercase tracking-tight"> Menambah {{ pendingDeviceType }} </span>
           <span v-else-if="relocatingDevice" class="text-xs font-bold text-blue-600 uppercase tracking-tight">
             Edit {{ relocatingDevice.type === 'cable' ? 'Jalur' : 'Lokasi' }}
           </span>
 
-          <div
-            v-if="(pendingDeviceType === 'cable' || (relocatingDevice && relocatingDevice.type === 'cable')) && pendingLength > 0"
-            class="flex items-center gap-2">
+          <div v-if="relocatingDevice && relocatingDevice.type === 'cable' && pendingLength > 0" class="flex items-center gap-2">
             <div class="h-5 w-px bg-gray-200"></div>
             <span class="text-xs font-black text-blue-600">{{ pendingLength.toFixed(2) }}m</span>
           </div>
@@ -974,13 +1306,12 @@
               () => {
                 if (relocatingDevice) {
                   relocatingDevice.type === 'cable' ? saveEditedCable() : saveRelocation()
-                } else if (pendingDeviceType === 'cable' || isDrawingCable) {
-                  finalizeCableDrawing()
                 }
               }
             "
             class="flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-white shadow-sm transition-all hover:bg-green-600 hover:scale-110 active:scale-95"
-            :title="relocatingDevice ? 'Simpan Perubahan' : 'Selesai Gambar'">
+            :title="relocatingDevice ? 'Simpan Perubahan' : 'Selesai'"
+            v-if="relocatingDevice">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"
