@@ -267,7 +267,7 @@ class MapController extends Controller
                 ->merge($jointBoxes)
                 ->merge($cpes)
                 ->merge($cables),
-        ]);
+        ])->header('Cache-Control', 'private, max-age=30, must-revalidate');
     }
 
     public function relocate(Request $request)

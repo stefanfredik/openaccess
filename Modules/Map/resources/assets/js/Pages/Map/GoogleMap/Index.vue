@@ -374,8 +374,8 @@
         })
 
         // Persist View
-        GoogleEvent.addListener(
-          map,
+        // Efficient Bounds-Based Loading: Use 'idle' event to load data when movement stops
+        map.addListener(
           'idle',
           debounce(() => {
             if (!map) return
@@ -385,9 +385,22 @@
               localStorage.setItem('map_center_lat', center.lat().toString())
               localStorage.setItem('map_center_lng', center.lng().toString())
               localStorage.setItem('map_zoom', zoom.toString())
-              loadMapData()
+
+              // Only auto-load if 'all' areas is selected (Bounds mode)
+              if (selectedAreaId.value === 'all') {
+                if (zoom >= 14) {
+                  loadMapData()
+                } else {
+                  // Optional: Clear map or show toast if zoomed out too far
+                  markers.forEach((m) => clusterer?.removeMarker(m))
+                  markers = []
+                  polylines.forEach((p) => p.setMap(null))
+                  polylines = []
+                  toast.info('Zoom lebih dalam untuk melihat detail perangkat', { id: 'zoom-info', duration: 2000 })
+                }
+              }
             }
-          }, 500),
+          }, 1000),
         )
 
         // REMOVED manual click handler, handled by DrawingManager
@@ -548,18 +561,35 @@
     clusterer = new MarkerClusterer({ map, markers: markersToAdd })
   }
 
-  const loadMapData = async (fitToArea = false) => {
+  // Debounced wrapper to save API quota and server load
+  const loadMapData = debounce(async (fitToArea = false) => {
     try {
       const params: any = {}
+
+      // If specific area selected, fetch only that area
       if (selectedAreaId.value !== 'all') {
         params.area_id = selectedAreaId.value
       } else if (map) {
+        const zoom = map.getZoom() || 0
+        if (zoom < 14 && selectedAreaId.value === 'all') {
+          return // Zoomed out too far
+        }
+
+        // Bounds-Based Loading: Only fetch data within the current viewport
         const bounds = map.getBounds()
         if (bounds) {
-          params.min_lat = bounds.getSouthWest().lat()
-          params.max_lat = bounds.getNorthEast().lat()
-          params.min_lng = bounds.getSouthWest().lng()
-          params.max_lng = bounds.getNorthEast().lng()
+          const sw = bounds.getSouthWest()
+          const ne = bounds.getNorthEast()
+
+          // Add a small buffer (padding) to the bounds to make panning smoother
+          // and reduce the number of requests when just moving slightly
+          const latPadding = (ne.lat() - sw.lat()) * 0.1
+          const lngPadding = (ne.lng() - sw.lng()) * 0.1
+
+          params.min_lat = sw.lat() - latPadding
+          params.max_lat = ne.lat() + latPadding
+          params.min_lng = sw.lng() - lngPadding
+          params.max_lng = ne.lng() + lngPadding
         }
       }
 
@@ -569,9 +599,9 @@
 
       renderBoundaries(fitToArea)
     } catch (e) {
-      console.error(e)
+      console.error('Error loading map data:', e)
     }
-  }
+  }, 300)
 
   const renderBoundaries = (fitToArea: boolean) => {
     if (!map) return
